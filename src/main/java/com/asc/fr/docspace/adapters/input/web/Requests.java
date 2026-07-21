@@ -1,5 +1,11 @@
 package com.asc.fr.docspace.adapters.input.web;
 
+import com.asc.fr.docspace.adapters.format.Json;
+import com.asc.fr.docspace.application.exception.PayloadTooLargeStatusException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import javax.servlet.http.HttpServletRequest;
 
 /** Servlet request helpers shared by all plugin endpoints. */
@@ -10,6 +16,41 @@ public final class Requests {
   public static String param(HttpServletRequest request, String name) {
     String value = request.getParameter(name);
     return value != null ? value.trim() : "";
+  }
+
+  /** Generous cap for JSON command bodies (credentials, identifiers — a few hundred bytes). */
+  private static final int MAX_JSON_BYTES = 256 * 1024;
+
+  /**
+   * Entire raw request body — a webhook payload, an uploaded file. Refuses with 413 once {@code
+   * maxBytes} is exceeded, so an oversized (or hostile) payload cannot exhaust the heap: the
+   * declared Content-Length is rejected up front, and the limit is enforced again while streaming
+   * because chunked requests carry no length and clients can lie.
+   */
+  public static byte[] body(HttpServletRequest request, int maxBytes) throws IOException {
+    if (request.getContentLengthLong() > maxBytes)
+      throw new PayloadTooLargeStatusException(maxBytes);
+
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    try (InputStream in = request.getInputStream()) {
+      byte[] chunk = new byte[8192];
+      int read;
+      while ((read = in.read(chunk)) != -1) {
+        if (buffer.size() + read > maxBytes) throw new PayloadTooLargeStatusException(maxBytes);
+        buffer.write(chunk, 0, read);
+      }
+    }
+
+    return buffer.toByteArray();
+  }
+
+  /**
+   * JSON request body bound to {@code type}; an empty body binds an empty object, missing fields
+   * stay null. Inputs travel as JSON in the POST body — never in the query string, where
+   * credentials and identifiers would leak into access logs, browser history, and Referers.
+   */
+  public static <T> T json(HttpServletRequest request, Class<T> type) throws IOException {
+    return Json.read(new String(body(request, MAX_JSON_BYTES), StandardCharsets.UTF_8), type);
   }
 
   /** Cookie header of the request, never null. */
