@@ -9,10 +9,8 @@ export const ExportUrlUtils = Object.freeze({
     return `${UrlUtils.hostBaseUrl()}${EXCEL_PATH}?${query}`;
   },
 
-  upload(operationId: string, reportName: string): string {
-    const query = new URLSearchParams({ operationId });
-    if (reportName) query.set("reportName", reportName);
-    return `${UrlUtils.pluginUrl(manifest.endpoints.exportTrigger)}?${query}`;
+  upload(): string {
+    return UrlUtils.pluginUrl(manifest.endpoints.exportTrigger);
   },
 
   config(): string {

@@ -15,5 +15,5 @@ export interface LoginRequest {
   email: string;
   password: string;
   action: string;
-  extraFields?: Record<string, string>;
+  extraFields?: { docspaceUrl?: string };
 }

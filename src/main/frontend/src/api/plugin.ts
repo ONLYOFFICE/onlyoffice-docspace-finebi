@@ -23,19 +23,23 @@ export interface FoldersResult {
   error?: string;
 }
 
-export class PluginClient {
-  // TODO: Proper fields type (as a body)
-  async login(action: string, fields: Record<string, string>): Promise<void> {
-    const body = new URLSearchParams();
-    for (const key of Object.keys(fields)) body.set(key, fields[key]);
+export interface LoginFields {
+  docspaceUrl?: string;
+  email: string;
+  userId: string;
+  hash: string;
+}
 
+export class PluginClient {
+  async login(action: string, fields: LoginFields): Promise<void> {
     const response = await fetch(action, {
       method: "POST",
+      credentials: "same-origin",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: body.toString(),
+      body: JSON.stringify(fields),
     });
 
     const data = (await response.json()) as PluginResult;
@@ -85,19 +89,14 @@ export class PluginClient {
       folderId?: string;
     },
   ): Promise<ImportResult> {
-    const query = new URLSearchParams({
-      fileId: params.fileId,
-      filename: params.filename,
-    });
-
-    if (params.viewUrl) query.set("viewUrl", params.viewUrl);
-    if (params.requestToken) query.set("requestToken", params.requestToken);
-    if (params.folderId) query.set("folderId", params.folderId);
-
-    const resp = await fetch(`${importUrl}?${query.toString()}`, {
+    const resp = await fetch(importUrl, {
       method: "POST",
       credentials: "same-origin",
-      headers: { Accept: "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(params),
     });
 
     if (!resp.ok)
@@ -117,53 +116,53 @@ export class PluginClient {
   }
 }
 
-export type PluginCoreAuthenticationMode = "setup" | "admin" | "user"; // old setup, admin-login, user-login
+export type PluginCoreAuthenticationMode = "setup" | "admin" | "user";
 
-export type PluginCoreNavigationMode = { mode: "navigation" }; // old nav mode
+export type PluginCoreNavigationMode = { mode: "navigation" };
 
 export type PluginCorePageMode =
-  | "docspace" // old embed mode
+  | "docspace"
   | PluginCoreAuthenticationMode
-  | "settings" // old admin-settings mode
-  | "notconfigured" // old not-configured mode
-  | "unauthorized" // old access-denied mode
+  | "settings"
+  | "notconfigured"
+  | "unauthorized"
   | "logout";
 
 type PluginCoreUserCredentials = {
-  email: string; // old docSpaceEmail
-  hash: string; // old docSpaceHash
+  email: string;
+  hash: string;
 }
 
 type PluginCoreUserStatus = {
-  loginStored: boolean; // old hasLogin
-  isAdmin: boolean; // old isAdmin
+  loginStored: boolean;
+  isAdmin: boolean;
 }
 
 type PluginCoreLocations = {
-  hostOrigin: string; // old finebiOrigin
-  pluginUrl: string; // old pageUrl
-  loginUrl: string; // old setupLink
-  logoutUrl: string; // old logoutLink
-  importUrl: string; // old importUrl
-  foldersUrl: string; // old foldersUrl
-  webhookRegistrationUrl: string; // old webhookRegisterUrl
-  eventStreamUrl: string; // old syncEventsUrl
+  hostOrigin: string;
+  pluginUrl: string;
+  loginUrl: string;
+  logoutUrl: string;
+  importUrl: string;
+  foldersUrl: string;
+  webhookRegistrationUrl: string;
+  eventStreamUrl: string;
 }
 
 type PluginCoreTenantConfiguration = {
-  docSpaceUrl: string; // old docSpaceUrl
-  sdkVersion: string; // old sdkVersion
+  docSpaceUrl: string;
+  sdkVersion: string;
 }
 
 type PluginCoreServerActions = {
-  submit: string; // old submitAction
-  reset: string; // old resetAction
-  logout: string; // old logoutAction
+  submit: string;
+  reset: string;
+  logout: string;
 }
 
 type PluginCoreServerTextResponse = {
-  message: string; // old message
-  error: string; // old error
+  message: string;
+  error: string;
 }
 
 // Served by the server side of the plugin (injected into the templates)

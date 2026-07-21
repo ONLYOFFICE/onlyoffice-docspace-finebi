@@ -37,9 +37,9 @@ export class AuthenticationClient {
     );
     await usePluginStore.getState().login(request.action, {
       ...(request.extraFields || {}),
-      docspace_email: request.email,
-      docspace_user_id: result.me.id ? String(result.me.id) : "",
-      docspace_hash: result.hash,
+      email: request.email,
+      userId: result.me.id ? String(result.me.id) : "",
+      hash: result.hash,
     });
     return result;
   }

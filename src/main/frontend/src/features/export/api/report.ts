@@ -1,7 +1,6 @@
 import { ExportUrlUtils } from "@features/export/utils/url";
 import type { ExportRequest, UploadResult } from "@features/export/types/report";
 
-/** FineBI Excel export + DocSpace upload HTTP calls. */
 export class ExportReportClient {
   async excel(request: ExportRequest): Promise<void> {
     const { reportId, reportName, operationId, entryType, sessionId, data } = request;
@@ -25,10 +24,14 @@ export class ExportReportClient {
   }
 
   async upload(operationId: string, reportName: string): Promise<UploadResult> {
-    const response = await fetch(ExportUrlUtils.upload(operationId, reportName), {
+    const response = await fetch(ExportUrlUtils.upload(), {
       method: "POST",
       credentials: "same-origin",
-      headers: { Accept: "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ operationId, reportName }),
     });
 
     const result = (await response.json()) as UploadResult;
