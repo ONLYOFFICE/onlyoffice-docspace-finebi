@@ -4,6 +4,9 @@ import com.asc.fr.docspace.PluginManifest;
 import com.asc.fr.docspace.adapters.input.web.JsonHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.OkResponse;
 import com.asc.fr.docspace.adapters.input.web.RequestUser;
+import com.asc.fr.docspace.adapters.input.web.Requests;
+import com.asc.fr.docspace.adapters.input.web.tenant.transfer.CredentialsRequest;
+import com.asc.fr.docspace.application.exception.BadRequestStatusException;
 import com.asc.fr.docspace.application.exception.PluginStatusException;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
@@ -34,21 +37,13 @@ public class LoginHttpHandler extends JsonHttpHandler {
     if (!tenantService.isConfigured())
       throw new PluginStatusException(400, "DocSpace is not configured. Ask your administrator.");
 
+    CredentialsRequest body = Requests.json(request, CredentialsRequest.class);
     DocSpaceAccountCredentials credentials;
     try {
-      // TODO: Use request body
       credentials =
-          new DocSpaceAccountCredentials(
-              request.getParameter("docspace_email"),
-              request.getParameter("docspace_user_id"),
-              request.getParameter("docspace_hash"));
+          new DocSpaceAccountCredentials(body.getEmail(), body.getUserId(), body.getHash());
     } catch (InvalidCredentialsException e) {
-      String message = e.getMessage() == null ? "" : e.getMessage();
-      if (message.startsWith("email"))
-        throw new PluginStatusException(400, "DocSpace email is required.");
-      if (message.startsWith("userId"))
-        throw new PluginStatusException(400, "DocSpace user id is required.");
-      throw new PluginStatusException(400, "DocSpace login failed. Try again.");
+      throw new BadRequestStatusException(e.getMessage());
     }
 
     RequestUser user = RequestUser.from(request);
