@@ -32,6 +32,8 @@ import com.asc.fr.docspace.adapters.output.persistence.service.FineDocSpaceTenan
 import com.asc.fr.docspace.adapters.output.persistence.service.FineDocSpaceUserAccountService;
 import com.asc.fr.docspace.adapters.output.persistence.service.FineSynchronizationService;
 import com.asc.fr.docspace.adapters.output.service.*;
+import com.asc.fr.docspace.adapters.resource.DefaultResourceLoader;
+import com.asc.fr.docspace.adapters.resource.ResourceLoader;
 import com.asc.fr.docspace.application.port.input.DocSpaceExporterService;
 import com.asc.fr.docspace.application.port.input.DocSpaceImporterService;
 import com.asc.fr.docspace.application.port.input.DocSpaceOriginService;
@@ -168,6 +170,7 @@ final class PluginModule extends AbstractModule {
     bind(DocSpacePathService.class).to(DefaultDocSpacePathService.class).in(Singleton.class);
     bind(FineExportService.class).to(FineExportClient.class).in(Singleton.class);
     bind(PageSelectorService.class).to(DefaultPageSelectorService.class).in(Singleton.class);
+    bind(ResourceLoader.class).to(DefaultResourceLoader.class).in(Singleton.class);
   }
 
   private void bindDomainServices() {
