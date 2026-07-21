@@ -1,49 +1,81 @@
 package com.asc.fr.docspace.adapters.input.web.imports.handler;
 
 import com.asc.fr.docspace.PluginManifest;
+import com.asc.fr.docspace.adapters.format.Json;
+import com.asc.fr.docspace.adapters.input.web.imports.SseConnection;
 import com.asc.fr.docspace.application.port.output.SynchronizationEventPublisher;
-import java.io.PrintWriter;
+import com.asc.fr.docspace.application.port.output.TaskSchedulerService;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.inject.Inject;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * SSE-backed {@link SynchronizationEventPublisher}: holds open connections and writes a "data
- * refreshed" frame to all of them when a webhook sync completes.
+ * refreshed" frame to all of them when a webhook sync completes. A single shared timer pings every
+ * connection each {@link #KEEPALIVE_MS} so proxies keep the streams open and dead clients are
+ * detected and dropped — no per-connection thread required.
  */
 public final class SynchronizationEventBroadcaster implements SynchronizationEventPublisher {
-  private final CopyOnWriteArrayList<PrintWriter> clients = new CopyOnWriteArrayList<>();
+  private static final long KEEPALIVE_MS = 25_000;
+  private static final String KEEPALIVE_FRAME = ": keepalive\n\n";
+
+  private final CopyOnWriteArrayList<SseConnection> clients = new CopyOnWriteArrayList<>();
+
+  @Inject
+  SynchronizationEventBroadcaster(TaskSchedulerService scheduler) {
+    keepalive(scheduler);
+  }
+
+  private void keepalive(TaskSchedulerService scheduler) {
+    scheduler.schedule(
+        KEEPALIVE_MS,
+        () -> {
+          keepalive(scheduler);
+          broadcast(KEEPALIVE_FRAME);
+        });
+  }
+
+  void register(SseConnection connection) {
+    clients.add(connection);
+  }
+
+  void unregister(SseConnection connection) {
+    clients.remove(connection);
+  }
 
   private void broadcast(String frame) {
-    for (PrintWriter writer : clients) {
+    for (SseConnection connection : clients) {
+      boolean alive;
       try {
-        writer.print(frame);
-        writer.flush();
-      } catch (Exception ignored) {
+        alive = connection.send(frame);
+      } catch (Exception e) {
+        alive = false;
+      }
+      if (!alive) {
+        clients.remove(connection);
+        connection.close();
       }
     }
   }
 
-  void register(PrintWriter writer) {
-    clients.add(writer);
+  private void broadcastEvent(ObjectNode payload) {
+    broadcast("data: " + payload + "\n\n");
   }
 
-  void unregister(PrintWriter writer) {
-    clients.remove(writer);
-  }
-
-  // TODO: Use some helpers/parsers
   @Override
   public void datasetUpdated(String tableName) {
-    String escaped = tableName.replace("\\", "\\\\").replace("\"", "\\\"");
-    broadcast(
-        "data: {\"type\":\""
-            + PluginManifest.get().events.backend.datasetUpdated
-            + "\",\"tableName\":\""
-            + escaped
-            + "\"}\n\n");
+    broadcastEvent(
+        Json.MAPPER
+            .createObjectNode()
+            .put("type", PluginManifest.get().events.backend.datasetUpdated)
+            .put("tableName", tableName));
   }
 
   @Override
   public void tenantReset() {
-    broadcast("data: {\"type\":\"" + PluginManifest.get().events.backend.tenantReset + "\"}\n\n");
+    broadcastEvent(
+        Json.MAPPER
+            .createObjectNode()
+            .put("type", PluginManifest.get().events.backend.tenantReset));
   }
 }
