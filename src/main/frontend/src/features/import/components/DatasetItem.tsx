@@ -3,21 +3,36 @@ import OnlyofficeIcon from "@resources/images/onlyoffice-logo.svg";
 
 import "./dataset.css";
 
-export const DatasetContent: FunctionComponent = () => (
-  <>
-    <span className="onlyoffice-import__icon">
-      <OnlyofficeIcon width={20} height={20} aria-hidden="true" />
-    </span>
-    <div className="bi-label">Import from DocSpace</div>
-  </>
-);
-
 interface ItemProps {
   onActivate?: (event: MouseEvent) => void;
 }
 
 export const DatasetItem: FunctionComponent<ItemProps> = ({ onActivate }) => (
-  <div className="onlyoffice-import__item" role="button" onClick={onActivate}>
-    <DatasetContent />
+  <div
+    className="bi-basic-button cursor-pointer bi-down-list-item bi-list-item-active onlyoffice-import__item bi-f-v-c bi-f-h v-middle h-left"
+    style={{ height: "30px", position: "relative" }}
+    role="button"
+    onClick={onActivate}
+  >
+    <div
+      className="bi-f-c bi-f-h v-middle h-center f-s-n c-e f-c"
+      style={{ width: "36px", height: "30px", position: "relative" }}
+    >
+      <OnlyofficeIcon width={20} height={20} aria-hidden="true" />
+    </div>
+    <div
+      className="bi-label list-item-text bi-text f-s-n c-e l-c"
+      style={{
+        height: "30px",
+        lineHeight: "30px",
+        paddingRight: "10px",
+        textAlign: "left",
+        whiteSpace: "pre",
+        textOverflow: "ellipsis",
+        position: "relative",
+      }}
+    >
+      Import from DocSpace
+    </div>
   </div>
 );

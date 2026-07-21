@@ -1,13 +1,11 @@
-import { DomInjector } from "@api/injector";
-import { useRegistryStore } from "@store/registry";
-import { useRendererStore } from "@store/renderer";
-import finebi from "@config/finebi.json";
-import { useImportStore } from "@features/import/store/import";
-import { DatasetContent, DatasetItem } from "./components/DatasetItem";
+import { DatasetItem } from "./components/DatasetItem";
 
-interface DatasetWidgetOptions extends Record<string, unknown> {
-  handler?: () => void;
-}
+import { useImportStore } from "@features/import/store/import";
+
+import { useRendererStore } from "@store/renderer";
+import { DomInjector } from "@api/injector";
+
+import finebi from "@config/finebi.json";
 
 /**
  * Imperative FineBI DOM injector for the “Import from DocSpace” Add Dataset row.
@@ -17,29 +15,17 @@ export class DatasetInjector {
   private readonly injector = new DomInjector();
 
   constructor() {
-    useRegistryStore.getState().define<DatasetWidgetOptions>({
-      type: finebi.dataset.widgetType,
-      defaultConfig: { cls: "onlyoffice-import__item" },
-      init: (el, options, on) => {
-        useRendererStore.getState().mount(<DatasetContent />, el);
-        // FineUI event = semantic activation (keyboard + mouse); the DOM
-        // listener only stops propagation, which needs the raw Event.
-        on("EVENT_CHANGE", () => {
-          dismissPopup(el.closest<HTMLElement>(finebi.selectors.popupView));
-          options.handler?.();
-        });
-        el.addEventListener("click", (event) => event.stopPropagation());
-      },
-    });
-
     this.injector.addRule<HTMLElement>({
       selector: finebi.selectors.downListPopup,
       marker: finebi.dataset.hostMarker,
-      filter: (popup) => !!popup.querySelector(finebi.selectors.spiderExcelTable),
+      filter: (popup) =>
+        !!popup.querySelector(finebi.selectors.spiderExcelTable) &&
+        !popup.querySelector(".onlyoffice-import__item"),
       inject: (popup) => {
         const list = popup.querySelector(finebi.selectors.spiderExcelTable)?.parentElement;
         if (!list) return false;
         list.appendChild(this.createItem());
+        return false;
       },
     });
   }
@@ -53,17 +39,13 @@ export class DatasetInjector {
   }
 
   private createItem(): HTMLElement {
-    return useRegistryStore.getState().create<DatasetWidgetOptions>(finebi.dataset.widgetType, {
-      handler: () => void useImportStore.getState().pick(),
-    }) ?? this.createItemDom();
-  }
-
-  private createItemDom(): HTMLElement {
     return useRendererStore.getState().toElement(
       <DatasetItem
         onActivate={(event) => {
           event.stopPropagation();
-          dismissPopup((event.currentTarget as HTMLElement).closest<HTMLElement>(finebi.selectors.popupView));
+          dismissPopup(
+            (event.currentTarget as HTMLElement).closest<HTMLElement>(finebi.selectors.popupView),
+          );
           void useImportStore.getState().pick();
         }}
       />,

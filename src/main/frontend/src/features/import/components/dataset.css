@@ -1,20 +1,4 @@
-.onlyoffice-import__item {
-  display: flex;
-  align-items: center;
-}
-
-.onlyoffice-import__item:hover {
-  background-color: #f2f4f7;
-}
-
-.onlyoffice-import__icon {
-  display: inline-flex;
-  align-items: center;
-
-  margin-right: 6px;
-}
-
-.onlyoffice-import__icon svg {
+.onlyoffice-import__item svg {
   display: block;
   width: 20px;
   height: 20px;
