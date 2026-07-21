@@ -30,6 +30,6 @@ export class ExportClient {
   }
 
   notifyError(err: unknown): void {
-    this.notify(FuncUtils.errorMessage(err));
+    useNotificationStore.getState().notify(FuncUtils.errorMessage(err), "error");
   }
 }

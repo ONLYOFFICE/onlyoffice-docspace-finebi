@@ -4,7 +4,6 @@ export { DialogButton } from "./buttons/DialogButton";
 export { FormError } from "./errors/FormError";
 export { GenericField as Field } from "./fields/GenericField";
 export { PasswordField } from "./fields/PasswordField";
-export { Toast } from "./feedback/Toast";
 export { Eye } from "./icons/Eye";
 export { EyeClosed } from "./icons/EyeClosed";
 export { OnlyOfficeLogo } from "./icons/Logo";

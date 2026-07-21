@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
-import { Toast } from "@components";
 import { FilePicker, FolderPicker } from "@features/import";
 import type { DocSpaceItem } from "@features/docspace/types";
 import { ImportUrlUtils } from "@features/import/utils/url";
 import { useDocSpaceStore } from "@store/docspace";
+import { useNotificationStore } from "@store/notification";
 import { usePageStore } from "@store/page";
 import { usePluginStore } from "@store/plugin";
 import { EventUtils } from "@utils/event";
@@ -13,15 +13,13 @@ import { FuncUtils } from "@utils/func";
 import manifest from "@manifest";
 
 import { PickerShell } from "./Shell";
-import type { Stage, ToastState } from "./stage";
+import type { Stage } from "./stage";
 
 const close = () => EventUtils.send(manifest.events.frontend.filePicker, "close");
 
 export function PickerPage() {
   const config = usePageStore((s) => s.config);
   const [stage, setStage] = useState<Stage>({ name: "connecting" });
-  const [toast, setToast] = useState<ToastState | null>(null);
-  const timer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (!config) return;
@@ -32,20 +30,14 @@ export function PickerPage() {
       .catch((err: unknown) => {
         setStage({ name: "connect-error", message: FuncUtils.errorMessage(err) });
       });
-
-    return () => window.clearTimeout(timer.current);
   }, [config]);
 
   if (!config) return null;
   const session = config;
 
   function finish(message: string, type: "success" | "error", action: "close" | "imported"): void {
-    setStage({ name: "finishing" });
-    setToast({ message, type });
-    timer.current = window.setTimeout(
-      () => EventUtils.send(manifest.events.frontend.filePicker, action),
-      type === "error" ? 4000 : 2000,
-    );
+    useNotificationStore.getState().notify(message, type);
+    EventUtils.send(manifest.events.frontend.filePicker, action);
   }
 
   function onFileSelect(items: DocSpaceItem[]): void {
@@ -64,8 +56,7 @@ export function PickerPage() {
   }
 
   async function onImport(file: DocSpaceItem, folderId: string): Promise<void> {
-    setStage({ name: "finishing" });
-    setToast({ message: `Importing "${file.title}"…` });
+    setStage({ name: "finishing", text: `Importing "${file.title}"…` });
     try {
       const requestToken = file.requestTokens?.[0]?.requestToken || undefined;
       const result = await usePluginStore.getState().importFile(session.locations.importUrl, {
@@ -108,7 +99,9 @@ export function PickerPage() {
           onCancel={close}
         />
       )}
-      {toast && <Toast message={toast.message} type={toast.type} />}
+      {stage.name === "finishing" && (
+        <PickerShell text={stage.text} onClose={close} />
+      )}
     </>
   );
 }

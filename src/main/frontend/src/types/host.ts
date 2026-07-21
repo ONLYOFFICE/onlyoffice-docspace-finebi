@@ -16,7 +16,7 @@ export interface IRegisterableWidgetInstance {
 
 export interface IHostGlobal {
   config?(key: string, fn: (items: unknown[]) => unknown[]): void;
-  Msg?: { toast?(text: string): void };
+  Msg?: { toast?(text: string, options?: { level?: string }): void };
   createWidget?(
     opts: Record<string, unknown>,
   ): IRegisterableWidgetInstance | null;

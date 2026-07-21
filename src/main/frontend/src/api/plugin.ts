@@ -99,20 +99,14 @@ export class PluginClient {
       body: JSON.stringify(params),
     });
 
-    if (!resp.ok)
-      return {
-        ok: false,
-        error: `Server error ${resp.status}`,
-      };
-
-    return resp.json() as Promise<ImportResult>;
+    const data = (await resp.json().catch(() => null)) as ImportResult | null;
+    return data ?? { ok: false, error: "Could not perform file import" };
   }
 
   async getFolders(foldersUrl: string): Promise<FoldersResult> {
     const resp = await fetch(foldersUrl, { credentials: "same-origin" });
-    if (!resp.ok) return { ok: false, error: `Server error ${resp.status}` };
-
-    return resp.json() as Promise<FoldersResult>;
+    const data = (await resp.json().catch(() => null)) as FoldersResult | null;
+    return data ?? { ok: false, error: "Could not retrieve folders" };
   }
 }
 
