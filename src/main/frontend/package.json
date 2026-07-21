@@ -1,6 +1,6 @@
 {
-  "name": "docspace-finebi-frontend",
-  "version": "1.0.0",
+  "name": "fr.docspace.frontend",
+  "version": "0.2.0",
   "description": "Preact frontend for the ONLYOFFICE DocSpace FineBI plugin",
   "private": true,
   "type": "module",
