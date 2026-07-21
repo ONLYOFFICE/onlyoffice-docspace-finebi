@@ -36,10 +36,14 @@ public class ResetHttpHandler extends JsonHttpHandler {
   protected Object handleJson(HttpServletRequest request) throws Exception {
     requireAdmin(request, "Only FineBI administrators can change DocSpace tenant.");
     try {
-      tenantAdminService.reset();
-      // A tenant change invalidates every stored authorization, not just
-      // the acting admin's: all credentials were issued by the old tenant.
+      // A tenant change invalidates every stored authorization, not just the
+      // acting admin's: all credentials were issued by the old tenant.
+      // Credentials go first: if clearing fails the tenant stays configured
+      // and the admin simply retries. The reverse order could crash between
+      // the two steps and leave old-tenant credentials behind, where they
+      // would count as valid logins for whatever tenant is configured next.
       userAccountService.clearAll();
+      tenantAdminService.reset();
       // Push to every open plugin page so active users drop their
       // DocSpace session and re-render immediately (see useTenantResetListener).
       eventPublisher.tenantReset();
