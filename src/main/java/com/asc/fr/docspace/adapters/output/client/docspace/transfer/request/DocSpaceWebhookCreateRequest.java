@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public final class DocSpaceWebhookCreateRequest {
   @JsonProperty("name")
-  private String name = "FineBI sync";
+  private String name = "FineBI Sync";
 
   @JsonProperty("uri")
   private String uri;
