@@ -73,6 +73,7 @@ public class WebhookHttpHandler extends PluginHttpHandler {
     try {
       body = Requests.body(request, MAX_BODY_BYTES);
     } catch (PluginStatusException e) {
+      // TODO: Send some UI notification in v2?
       response.setStatus(e.status());
       return;
     }
