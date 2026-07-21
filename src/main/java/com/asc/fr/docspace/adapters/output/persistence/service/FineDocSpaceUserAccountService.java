@@ -32,12 +32,10 @@ public final class FineDocSpaceUserAccountService implements DocSpaceUserAccount
   @Override
   public DocSpaceAccountCredentials credentials(String username) {
     String id = username == null ? "" : username.trim();
-    if (id.isEmpty())
-        return DocSpaceAccountCredentials.empty();
+    if (id.isEmpty()) return DocSpaceAccountCredentials.empty();
 
     DocSpaceAccountCredentials cached = cache.getIfPresent(id);
-    if (cached != null)
-        return cached;
+    if (cached != null) return cached;
 
     DocSpaceAccountCredentials loaded =
         uow.query(ctx -> ctx.getDAO(DocSpaceAccountDAO.class).getById(id))
