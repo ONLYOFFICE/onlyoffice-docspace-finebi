@@ -13,12 +13,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(onConstructor_ = @__(@Inject))
 public final class FineDocSpaceTenantService implements DocSpaceTenantService {
-  private static final long CACHE_TTL_MILLIS = 500;
+  private static final long CACHE_TTL_MILLIS = 200;
 
   private final FineEncryptionService encryption;
   private final IUnitOfWork uow;
