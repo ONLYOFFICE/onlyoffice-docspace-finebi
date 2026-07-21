@@ -1,0 +1,24 @@
+{
+  "name": "docspace-finebi-frontend",
+  "version": "1.0.0",
+  "description": "Preact frontend for the ONLYOFFICE DocSpace FineBI plugin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && vite build",
+    "typecheck": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "preact": "^10.26.9",
+    "preact-iso": "^2.12.0",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.2",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.0.4",
+    "vite-plugin-svgr": "^5.2.0"
+  }
+}

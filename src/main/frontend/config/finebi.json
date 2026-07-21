@@ -1,0 +1,20 @@
+{
+  "navMenuKey": "dec.constant.menu.items",
+  "managementNavKey": "dec.constant.management.navigation",
+  "selectors": {
+    "popupView": ".bi-popup-view",
+    "downListPopup": ".bi-down-list-popup",
+    "spiderExcelTable": ".spider-excel-table",
+    "exportComboOpen": ".bi-design-global-export.bi-combo-popup"
+  },
+  "export": {
+    "widgetType": "docspace.export.item",
+    "itemAttr": "data-docspace-export-item",
+    "hostMarker": "data-docspace-export",
+    "styleId": "docspace-export-menu-css"
+  },
+  "dataset": {
+    "widgetType": "docspace.dataset.item",
+    "hostMarker": "data-docspace-dataset"
+  }
+}

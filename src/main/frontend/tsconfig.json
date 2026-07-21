@@ -1,0 +1,38 @@
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"strict": true,
+		"allowJs": true,
+		"checkJs": true,
+		"baseUrl": ".",
+		"jsx": "react-jsx",
+		"jsxImportSource": "preact",
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"paths": {
+			"react": ["./node_modules/preact/compat/"],
+			"react-dom": ["./node_modules/preact/compat/"],
+			"@/*": ["./src/*"],
+			"@api": ["./src/api"],
+			"@api/*": ["./src/api/*"],
+			"@components": ["./src/components"],
+			"@components/*": ["./src/components/*"],
+			"@features/*": ["./src/features/*"],
+			"@hooks": ["./src/hooks"],
+			"@hooks/*": ["./src/hooks/*"],
+			"@pages/*": ["./src/pages/*"],
+			"@utils": ["./src/utils"],
+			"@utils/*": ["./src/utils/*"],
+			"@store": ["./src/store"],
+			"@store/*": ["./src/store/*"],
+			"@resources": ["./resources"],
+			"@resources/*": ["./resources/*"],
+			"@config/*": ["./config/*"],
+		"@manifest": ["../../../manifest.json"]
+		}
+	},
+	"include": ["src/**/*", "resources/**/*", "config/**/*.json", "../../../manifest.json"]
+}

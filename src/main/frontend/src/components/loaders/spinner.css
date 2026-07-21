@@ -1,0 +1,28 @@
+.onlyoffice-spinner {
+    color: #D0D5DA;
+    animation: spin 1s linear infinite;
+}
+
+.onlyoffice-spinner path:last-child {
+     color: #5299E0;
+}
+
+.onlyoffice-spinner--sm {
+    width: 16px;
+    height: 16px;
+}
+
+.onlyoffice-spinner--lg {
+    width: 64px;
+    height: 64px;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

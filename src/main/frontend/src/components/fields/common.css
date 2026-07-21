@@ -1,0 +1,48 @@
+.onlyoffice-input {
+  margin-bottom: 16px;
+}
+
+.onlyoffice-input__label {
+  display: block;
+
+  margin-bottom: 6px;
+
+  font-size: 0.9rem;
+
+  color: #333333;
+}
+
+.onlyoffice-input__control {
+  width: 100%;
+  height: 44px;
+
+  padding: 8px 12px;
+
+  font-size: 0.95rem;
+  font-family: inherit;
+
+  border-radius: 6px;
+  border: 1px solid #d0d5da;
+
+  color: #333333;
+  background: #ffffff;
+}
+
+.onlyoffice-input__control::placeholder {
+  color: #a3a9ae;
+}
+
+.onlyoffice-input__control:disabled {
+  color: #a3a9ae;
+  cursor: not-allowed;
+  background: #f8f9f9;
+}
+
+.onlyoffice-input__control:focus {
+  outline: none;
+  border-color: #5299e0;
+}
+
+.onlyoffice-input__control:invalid:not(:placeholder-shown):not(:focus) {
+  border-color: #f21c0e;
+}

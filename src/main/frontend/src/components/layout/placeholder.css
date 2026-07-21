@@ -1,0 +1,36 @@
+.onlyoffice-placeholder-container {
+    padding: 16px;
+
+    text-align: center;
+}
+
+.onlyoffice-placeholder-container__logo {
+    max-width: 386px;
+}
+
+.onlyoffice-placeholder-container__logo svg {
+    width: 100%;
+    height: auto;
+}
+
+.onlyoffice-placeholder-container__owl {
+    margin-top: 20px;
+}
+
+.onlyoffice-placeholder-container__text {
+    max-width: 288px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+    margin-top: 40px;
+}
+
+.onlyoffice-placeholder-container__header {
+    margin-bottom: 8px;
+
+    font-weight: 700;
+    font-size: 1.25rem;
+
+    color: #333333;
+}

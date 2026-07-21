@@ -1,0 +1,42 @@
+.onlyoffice-authentication-container {
+    padding: 32px 16px;
+}
+
+.onlyoffice-authentication-container__column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.onlyoffice-authentication-container__logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    margin-bottom: 32px;
+}
+
+.onlyoffice-authentication-container__access {
+    max-width: 384px;
+    display: flex;
+    flex-direction: column;
+
+    gap: 2px;
+    margin-bottom: 32px;
+
+    text-align: center;
+}
+
+.onlyoffice-authentication-container__card {
+    width: 384px;
+    max-width: calc(100vw - 32px);
+
+    padding: 32px;
+
+    border-radius: 8px;
+
+    background: #FFFFFF;
+
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}

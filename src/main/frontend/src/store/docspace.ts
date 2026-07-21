@@ -1,0 +1,49 @@
+import { create } from "zustand";
+import { DocSpaceClient } from "@features/docspace/api/client";
+import type { PluginCoreServerConfiguration } from "@api/plugin";
+import type { DocSpaceFrame, FileSelectorOptions } from "@features/docspace/types";
+
+interface DocSpaceState {
+  /** Whether the manager frame host should fill the page. */
+  frameVisible: boolean;
+  setFrameVisible(visible: boolean): void;
+  frameId(): string;
+  pickerFrameId(): string;
+  /** Open the hidden system frame (cached per URL). */
+  ensureFrame(docSpaceUrl: string): Promise<DocSpaceFrame>;
+  /** Open the system frame and restore the stored session; returns the normalised URL. */
+  connect(config: PluginCoreServerConfiguration): Promise<string>;
+  /** Best-effort, time-bounded SDK logout. */
+  logout(docSpaceUrl: string): Promise<void>;
+  /** Drop the cached system frame (e.g. after tenant reset). */
+  reset(): void;
+  /** Open the DocSpace manager UI in the frame. */
+  launchManager(docSpaceUrl: string): Promise<void>;
+  /** Open the DocSpace file selector (import picker). */
+  launchFileSelector(
+    docSpaceUrl: string,
+    events: NonNullable<FileSelectorOptions["events"]>,
+  ): Promise<void>;
+}
+
+export const useDocSpaceStore = create<DocSpaceState>()((set) => {
+  const client = new DocSpaceClient();
+  return {
+    frameVisible: false,
+    setFrameVisible: (visible) => set({ frameVisible: visible }),
+    frameId: () => client.frameId(),
+    pickerFrameId: () => client.pickerFrameId(),
+    ensureFrame: (url) => client.ensureFrame(url),
+    connect: (config) => client.connect(config),
+    logout: async (url) => {
+      await client.logout(url);
+      set({ frameVisible: false });
+    },
+    reset: () => {
+      client.reset();
+      set({ frameVisible: false });
+    },
+    launchManager: (url) => client.launchManager(url),
+    launchFileSelector: (url, events) => client.launchFileSelector(url, events),
+  };
+});

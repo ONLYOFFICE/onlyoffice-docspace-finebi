@@ -1,0 +1,49 @@
+{
+  "pluginId": "com.asc.fr.docspace",
+  "sdkVersion": "2.2.0",
+  "module": {
+    "id": "decision-management-docspace",
+    "value": "docspace",
+    "displayName": "DocSpace",
+    "sortIndex": 100
+  },
+  "assets": {
+    "navigation": {
+      "script": "com/asc/fr/docspace/web/dist/authentication.js",
+      "style": "com/asc/fr/docspace/web/dist/authentication.css"
+    }
+  },
+  "aliases": {
+    "main":    { "from": "/docspace",         "to": "/client/docspace",              "public": false },
+    "admin":   { "from": "/docspace/admin",   "to": "/client/docspace/admin",        "public": false },
+    "webhook": { "from": "/docspace/webhook", "to": "/api/import/docspace/webhook",  "public": true  },
+    "events":  { "from": "/docspace/events",  "to": "/api/import/docspace/events",   "public": false }
+  },
+  "events": {
+    "common": {},
+    "backend": {
+      "tenantReset": "tenantReset",
+      "datasetUpdated": "datasetUpdated"
+    },
+    "frontend": {
+      "filePicker": "filePicker"
+    }
+  },
+  "endpoints": {
+    "setup":            "/client/setup",
+    "docspace":         "/client/docspace",
+    "docspaceAdmin":    "/client/docspace/admin",
+    "session":          "/api/session",
+    "login":            "/api/login",
+    "logout":           "/api/logout",
+    "reset":            "/api/reset",
+    "importFile":       "/api/import/docspace/file",
+    "folders":          "/api/import/docspace/folders",
+    "webhookCallback":  "/api/import/docspace/webhook",
+    "webhookRegister":  "/api/import/docspace/webhook/register",
+    "syncEvents":       "/api/import/docspace/events",
+    "exportConfig":     "/api/export/config",
+    "exportUpload":     "/api/export/upload",
+    "exportTrigger":    "/api/export/trigger"
+  }
+}

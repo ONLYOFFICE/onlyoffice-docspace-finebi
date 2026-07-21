@@ -1,0 +1,17 @@
+.onlyoffice-navigation .b-font::before {
+  content: "";
+
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+
+  font-size: 0;
+
+  color: transparent;
+  background: url("../../../resources/images/onlyoffice-logo.svg") center / contain no-repeat;
+}
+
+.bi-icon-label.onlyoffice-navigation {
+  background-image: none !important;
+}

@@ -1,0 +1,11 @@
+.onlyoffice-form-error {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 6px;
+
+  font-size: 0.9rem;
+
+  color: #f21c0e;
+  background: #fff;
+  border: 1px solid #f21c0e;
+}

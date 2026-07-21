@@ -1,0 +1,29 @@
+.onlyoffice-dialog__button {
+    font-size: 0.83rem;
+    padding: 7px 16px;
+    border-radius: 3px;
+    border: 1px solid #D0D5DA;
+    cursor: pointer;
+    font-family: inherit;
+    background: #fff;
+    color: #444;
+}
+
+.onlyoffice-dialog__button:hover {
+    background: #F8F9F9;
+}
+
+.onlyoffice-dialog__button--primary {
+    background: #5299E0;
+    color: #fff;
+    border-color: #5299E0;
+}
+
+.onlyoffice-dialog__button--primary:hover {
+    opacity: 0.92;
+}
+
+.onlyoffice-dialog__button:disabled {
+    opacity: 0.55;
+    cursor: default;
+}

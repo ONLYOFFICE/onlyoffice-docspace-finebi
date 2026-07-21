@@ -1,0 +1,77 @@
+.onlyoffice-folder-overlay {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    inset: 0;
+    z-index: 60;
+}
+
+.onlyoffice-folder-backdrop {
+    position: absolute;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.onlyoffice-folder-dialog {
+    position: relative;
+    max-width: calc(100vw - 32px);
+    width: 380px;
+
+    padding: 20px 22px 18px;
+
+    border-radius: 10px;
+
+    z-index: 1;
+    background: #fff;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+}
+
+.onlyoffice-folder-dialog__loading {
+    margin: 10px 0 14px;
+
+    font-size: 0.8rem;
+
+    color: #A3A9AE;
+}
+
+.onlyoffice-folder-dialog__label {
+    margin-bottom: 6px;
+
+    font-size: 0.78rem;
+
+    color: #444;
+}
+
+.onlyoffice-folder-dialog__select {
+    width: 100%;
+
+    padding: 8px 10px;
+
+    font-size: 0.84rem;
+    font-family: inherit;
+
+    border: 1px solid #D0D5DA;
+    border-radius: 6px;
+
+    color: #222;
+    background: #fff;
+
+    cursor: pointer;
+}
+
+.onlyoffice-folder-dialog__select:focus {
+    border-color: transparent;
+    outline: 2px solid #5299E0;
+}
+
+.onlyoffice-folder-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 8px;
+    margin-top: 16px;
+}

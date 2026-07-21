@@ -1,0 +1,68 @@
+.onlyoffice-button {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 3px;
+
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: none;
+
+    color: #fff;
+    background: #5299E0;
+
+    cursor: pointer;
+}
+
+.onlyoffice-button:hover:not(:disabled) {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s;
+}
+
+.onlyoffice-button:disabled {
+    color: #A3A9AE;
+    box-shadow: none;
+    background: #F8F9F9;
+
+    cursor: not-allowed;
+}
+
+.onlyoffice-button--secondary {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 12px;
+
+    border: 1px solid #D0D5DA;
+    border-radius: 3px;
+
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+
+    background: #FFFFFF;
+    color: #333333;
+
+    cursor: pointer;
+}
+
+.onlyoffice-button--secondary:hover:not(:disabled) {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s;
+}
+
+.onlyoffice-button--secondary:disabled {
+    color: #A3A9AE;
+    box-shadow: none;
+    background: #F8F9F9;
+
+    cursor: not-allowed;
+}

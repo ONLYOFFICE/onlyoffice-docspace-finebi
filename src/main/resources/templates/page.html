@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ONLYOFFICE DocSpace</title>
+    <style th:utext="${css}"></style>
+    <script th:if="${sdkSrc}" th:src="${sdkSrc}" id="ds-sdk-script" async></script>
+</head>
+<body>
+    <div id="app"></div>
+    <script th:utext="${script}"></script>
+</body>
+</html>

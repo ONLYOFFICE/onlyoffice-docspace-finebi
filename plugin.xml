@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<plugin>
+    <id>com.asc.fr.docspace</id>
+    <name>ONLYOFFICE DocSpace</name>
+    <active>yes</active>
+    <version>0.2.0</version>
+    <env-version>10.0~11.0</env-version>
+    <jartime>2019-08-30</jartime>
+    <vendor>ONLYOFFICE</vendor>
+    <description>Use ONLYOFFICE DocSpace inside FineBI.</description>
+    <main-package>com.asc.fr</main-package>
+    <function-recorder class="com.asc.fr.docspace.DocSpacePluginApplication"/>
+    <extra-core>
+        <DBAccessProvider class="com.asc.fr.docspace.adapters.output.persistence.DocSpaceDatabaseAccessProvider"/>
+    </extra-core>
+    <extra-decision>
+        <HttpHandlerProvider class="com.asc.fr.docspace.DocSpacePluginApplication"/>
+        <URLAliasProvider class="com.asc.fr.docspace.adapters.input.platform.DocSpaceUrlAliasProviderRegistrar"/>
+        <SystemOptionProvider class="com.asc.fr.docspace.adapters.input.platform.DocSpaceSystemSettingsOptionProvider"/>
+        <WebResourceProvider class="com.asc.fr.docspace.adapters.input.platform.DocSpaceWebResourceProvider"/>
+    </extra-decision>
+</plugin>

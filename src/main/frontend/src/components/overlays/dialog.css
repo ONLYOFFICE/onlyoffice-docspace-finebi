@@ -1,0 +1,98 @@
+#onlyoffice-dialog {
+    flex: 1;
+    min-height: 0;
+}
+
+#onlyoffice-dialog iframe {
+    width: 100% !important;
+    height: 100% !important;
+
+    border: none !important;
+}
+
+.onlyoffice-dialog {
+    display: flex;
+    position: relative;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 64px);
+    width: 800px;
+    height: 560px;
+    flex-direction: column;
+
+    border-radius: 10px;
+
+    z-index: 1;
+    overflow: hidden;
+    
+    background: #fff;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+}
+
+.onlyoffice-dialog-overlay {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    inset: 0;
+
+    z-index: 50;
+}
+
+.onlyoffice-dialog-backdrop {
+    position: absolute;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.onlyoffice-dialog__title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+
+    padding: 10px 14px;
+
+    border-bottom: 1px solid #e6e8ec;
+
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    color: #333;
+}
+
+.onlyoffice-dialog__cancel {
+    padding: 4px 10px;
+
+    font-size: 0.78rem;
+    font-family: inherit;
+
+    border: 1px solid #D0D5DA;
+    border-radius: 5px;
+
+    color: #666;
+    background: none;
+
+    cursor: pointer;
+}
+
+.onlyoffice-dialog__cancel:hover {
+    background: #F8F9F9;
+}
+
+.onlyoffice-dialog__loader {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    inset: 42px 0 0 0;
+
+    font-size: 0.82rem;
+
+    z-index: 2;
+    color: #A3A9AE;
+    background: #fff;
+}
