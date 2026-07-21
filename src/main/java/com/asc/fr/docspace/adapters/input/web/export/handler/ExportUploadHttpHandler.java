@@ -3,6 +3,7 @@ package com.asc.fr.docspace.adapters.input.web.export.handler;
 import com.asc.fr.docspace.PluginManifest;
 import com.asc.fr.docspace.adapters.input.web.JsonHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.RequestUser;
+import com.asc.fr.docspace.adapters.input.web.Requests;
 import com.asc.fr.docspace.adapters.input.web.export.transfer.UploadedFileResponse;
 import com.asc.fr.docspace.application.exception.BadRequestStatusException;
 import com.asc.fr.docspace.application.port.input.DocSpaceExporterService;
@@ -10,16 +11,13 @@ import com.asc.fr.docspace.application.port.input.transfer.UploadFileCommand;
 import com.fr.plugin.transform.ExecuteFunctionRecord;
 import com.fr.third.springframework.web.bind.annotation.RequestMethod;
 import com.google.inject.Inject;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import javax.servlet.http.HttpServletRequest;
 
 /** Receives an XLSX export from the dashboard and uploads it to DocSpace. */
 public class ExportUploadHttpHandler extends JsonHttpHandler {
-  private static final int BUFFER_SIZE = 8192;
+  private static final int MAX_BODY_BYTES = 10 * 1024 * 1024;
 
   private final DocSpaceExporterService export;
 
@@ -29,38 +27,23 @@ public class ExportUploadHttpHandler extends JsonHttpHandler {
     this.export = export;
   }
 
-  private static byte[] readBody(HttpServletRequest request) throws IOException {
-    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    try (InputStream in = request.getInputStream()) {
-      byte[] chunk = new byte[BUFFER_SIZE];
-      int read;
-      while ((read = in.read(chunk)) >= 0) if (read > 0) buffer.write(chunk, 0, read);
-    }
-
-    return buffer.toByteArray();
-  }
-
   private static String resolveFilename(HttpServletRequest request) {
-    String fromParam = request.getParameter("filename");
-    if (fromParam != null && !fromParam.trim().isEmpty()) return fromParam.trim();
+    String fromParam = Requests.param(request, "filename");
+    if (!fromParam.isEmpty()) return fromParam;
 
-    String reportId = request.getParameter("reportId");
-    String widgetId = request.getParameter("widgetId");
     String stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
-    if (reportId != null && !reportId.trim().isEmpty()) {
-      String name = "finebi-" + reportId.trim();
-      if (widgetId != null && !widgetId.trim().isEmpty()) name = name + "-" + widgetId.trim();
+    String reportId = Requests.param(request, "reportId");
+    if (reportId.isEmpty()) return "fine-export-" + stamp + ".xlsx";
 
-      return name + "-" + stamp + ".xlsx";
-    }
-
-    return "fine-export-" + stamp + ".xlsx";
+    String widgetId = Requests.param(request, "widgetId");
+    String name = "finebi-" + reportId + (widgetId.isEmpty() ? "" : "-" + widgetId);
+    return name + "-" + stamp + ".xlsx";
   }
 
   @Override
   @ExecuteFunctionRecord
   protected Object handleJson(HttpServletRequest request) throws Exception {
-    byte[] content = readBody(request);
+    byte[] content = Requests.body(request, MAX_BODY_BYTES);
     RequestUser user = RequestUser.from(request);
     UploadFileCommand command =
         UploadFileCommand.builder()
