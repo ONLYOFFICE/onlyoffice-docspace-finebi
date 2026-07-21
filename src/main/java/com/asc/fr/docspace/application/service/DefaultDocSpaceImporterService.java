@@ -4,6 +4,7 @@ import com.asc.fr.docspace.application.port.input.DocSpaceImporterService;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
 import com.asc.fr.docspace.application.port.input.transfer.ImportFileCommand;
+import com.asc.fr.docspace.application.port.output.CachingService;
 import com.asc.fr.docspace.application.port.output.TaskSchedulerService;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileDownloadService;
@@ -24,14 +25,11 @@ import com.asc.fr.docspace.domain.fr.FineAttachment;
 import com.asc.fr.docspace.domain.fr.FineSession;
 import com.google.inject.Inject;
 import java.io.IOException;
-import lombok.RequiredArgsConstructor;
 
-// TODO: The service seems brittle. Make it more reliable
-// TODO: Make sure that there is caching for multiple sequential calls (caching must work well in a
-// cluster of FineBI). Must be short-lived
-@RequiredArgsConstructor(onConstructor_ = @__(@Inject))
 public final class DefaultDocSpaceImporterService implements DocSpaceImporterService {
   private static final String DOCSPACE_PACK = "DocSpace";
+  private static final long WEBHOOK_ENSURE_TTL_SECONDS = 30;
+  private static final long WEBHOOK_ENSURE_MAX_ENTRIES = 100;
 
   private final DocSpaceTenantService tenantService;
   private final DocSpaceUserAccountService userAccountService;
@@ -45,7 +43,33 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
   private final TaskSchedulerService taskSchedulerService;
   private final SynchronizationService synchronizationService;
 
-  // TODO: Get content-length before the real download
+  private final CachingService.Cache<String, Boolean> cache;
+
+  @Inject
+  public DefaultDocSpaceImporterService(
+      DocSpaceTenantService tenantService,
+      DocSpaceUserAccountService userAccountService,
+      DocSpaceFileDownloadService fileDownloadService,
+      FineFolderService folderService,
+      FineDatasetService datasetService,
+      FineAttachmentService attachmentService,
+      WebhookRegistrar webhookRegistrar,
+      TaskSchedulerService taskSchedulerService,
+      SynchronizationService synchronizationService,
+      CachingService cache) {
+    this.tenantService = tenantService;
+    this.userAccountService = userAccountService;
+    this.fileDownloadService = fileDownloadService;
+    this.folderService = folderService;
+    this.datasetService = datasetService;
+    this.attachmentService = attachmentService;
+    this.webhookRegistrar = webhookRegistrar;
+    this.taskSchedulerService = taskSchedulerService;
+    this.synchronizationService = synchronizationService;
+    this.cache =
+        cache.create("webhook-ensure", WEBHOOK_ENSURE_TTL_SECONDS, WEBHOOK_ENSURE_MAX_ENTRIES);
+  }
+
   private DocSpaceRawFile downloadSource(
       ImportFileCommand command, DocSpaceAccountCredentials credentials) throws IOException {
     String viewUrl = command.getViewUrl() == null ? "" : command.getViewUrl();
@@ -74,47 +98,55 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
   }
 
   private void ensureWebhookRegistered(String callbackUrl) throws IOException {
+    if (callbackUrl == null || callbackUrl.isEmpty()) return;
+    if (cache.get(callbackUrl) != null) return;
+
+    URL docSpaceUrl = new URL(tenantService.docSpaceUrl());
+    URL callback = new URL(callbackUrl);
+
     synchronizationService.storeCallbackUrl(callbackUrl);
     String secret = synchronizationService.ensureSecret();
     taskSchedulerService.run(
         () ->
             webhookRegistrar.ensureRegistered(
-                new URL(tenantService.docSpaceUrl()),
-                new URL(callbackUrl),
-                secret,
-                tenantService.adminCredentials()));
+                docSpaceUrl, callback, secret, tenantService.adminCredentials()));
+
+    cache.put(callbackUrl, Boolean.TRUE);
   }
 
   @Override
   public String importFile(ImportFileCommand command, FineSession session) throws IOException {
     DocSpaceAccountCredentials credentials = userAccountService.credentials(command.getUserName());
-    DocSpaceSpreadsheet spreadsheet;
-    byte[] rawFile;
+    if (!credentials.isComplete())
+      throw new IOException("No DocSpace login is stored for user " + command.getUserName());
 
+    DocSpaceRawFile download;
     try {
-      DocSpaceRawFile download = downloadSource(command, credentials);
-      rawFile = download.getRawContent();
-      spreadsheet = new DocSpaceSpreadsheet(download.getFileName());
+      download = downloadSource(command, credentials);
     } catch (IOException e) {
-      throw new IOException("DocSpace download failed: " + e.getMessage());
+      throw new IOException("DocSpace download failed: " + e.getMessage(), e);
     }
 
+    byte[] rawFile = download.getRawContent();
     if (rawFile.length > MAX_FILE_BYTES)
       throw new IOException("File exceeds the 50 MB import limit");
 
+    DocSpaceSpreadsheet spreadsheet = new DocSpaceSpreadsheet(download.getFileName());
     String tableName = spreadsheet.getTableName();
     String filename = spreadsheet.getFileName();
 
+    String folderId;
+    String tableId;
     try {
       FineAttachment attachment =
           attachmentService.uploadAttachment(
               FineUploadAttachmentCommand.builder().fileName(filename).content(rawFile).build(),
               session);
 
-      String folderId = command.getFolderId() == null ? "" : command.getFolderId();
+      folderId = command.getFolderId() == null ? "" : command.getFolderId();
       if (folderId.isEmpty()) folderId = folderService.ensureFolder(DOCSPACE_PACK, session);
 
-      String tableId =
+      tableId =
           datasetService.createDataset(
               FineCreateDatasetCommand.builder()
                   .tableName(tableName)
@@ -122,14 +154,20 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
                   .attachment(attachment)
                   .build(),
               session);
+    } catch (IOException e) {
+      throw new IOException("FineBI dataset creation failed: " + e.getMessage(), e);
+    }
 
+    try {
       synchronizationService.put(
           command.getFileId(), new FileSynchronizationRecord(tableName, folderId, tableId));
-
       ensureWebhookRegistered(command.getCallbackUrl());
-      return tableName;
-    } catch (IOException e) {
-      throw new IOException("FineBI dataset creation failed: " + e.getMessage());
+    } catch (Exception bookkeeping) {
+      // The dataset already exists; failing the import now would push the user to
+      // retry and duplicate it. A lost record or registration only pauses webhook
+      // syncs until the next import of this file redoes the bookkeeping.
     }
+
+    return tableName;
   }
 }

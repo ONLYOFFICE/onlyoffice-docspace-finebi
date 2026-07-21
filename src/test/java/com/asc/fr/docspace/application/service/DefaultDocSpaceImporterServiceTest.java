@@ -2,6 +2,7 @@ package com.asc.fr.docspace.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -53,7 +54,8 @@ class DefaultDocSpaceImporterServiceTest {
             recordingFineService,
             webhookRegistrar,
             new TestPorts.ImmediateTaskSchedulerService(),
-            synchronizationService);
+            synchronizationService,
+            new TestPorts.InMemoryCachingService());
   }
 
   private static ImportFileCommand.ImportFileCommandBuilder command() {
@@ -97,10 +99,52 @@ class DefaultDocSpaceImporterServiceTest {
       assertEquals("DocSpace", recordingFineService.ensureFolderCalls.get(0));
       assertEquals("folder-1", recordingFineService.createDatasetCalls.get(0).getFolderId());
     }
+
+    @Test
+    void givenSequentialImports_whenImportingFiles_thenWebhookIsEnsuredOnlyOnce()
+        throws IOException {
+      importerService.importFile(command().build(), SESSION);
+      importerService.importFile(command().fileId("23").build(), SESSION);
+
+      assertEquals(2, recordingFineService.createDatasetCalls.size());
+      assertEquals(1, webhookRegistrar.registered.size());
+    }
+
+    @Test
+    void givenSyncBookkeepingFails_whenImportingFile_thenDatasetIsStillReturned()
+        throws IOException {
+      synchronizationService.failPutWith = new IOException("registry down");
+
+      String dataset = importerService.importFile(command().build(), SESSION);
+
+      assertEquals("Report", dataset);
+      assertEquals(1, recordingFineService.createDatasetCalls.size());
+    }
+
+    @Test
+    void givenNoCallbackUrl_whenImportingFile_thenImportSucceedsWithoutWebhook()
+        throws IOException {
+      String dataset = importerService.importFile(command().callbackUrl(null).build(), SESSION);
+
+      assertEquals("Report", dataset);
+      assertTrue(webhookRegistrar.registered.isEmpty());
+    }
   }
 
   @Nested
   class WhenImportFails {
+    @Test
+    void givenNoStoredLogin_whenImportingFile_thenThrowsBeforeDownloading() {
+      IOException e =
+          assertThrows(
+              IOException.class,
+              () -> importerService.importFile(command().userName("bob").build(), SESSION));
+
+      assertEquals("No DocSpace login is stored for user bob", e.getMessage());
+      assertNull(fileStorage.lastDownloadedFileId);
+      assertTrue(recordingFineService.noCalls());
+    }
+
     @Test
     void givenStorageDownloadFails_whenImportingFile_thenThrowsWithContext() {
       fileStorage.failWith = new IOException("example");

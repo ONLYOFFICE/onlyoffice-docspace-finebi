@@ -28,8 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import lombok.RequiredArgsConstructor;
 
-// TODO: Caching for tenant and so on services (must work in a clustered env and must be
-// short-lived)
 @RequiredArgsConstructor(onConstructor_ = @__(@Inject))
 public final class DefaultSynchronizationService implements SynchronizationService {
   private static final long DOCSPACE_WRITE_DELAY_MS = 3_500;

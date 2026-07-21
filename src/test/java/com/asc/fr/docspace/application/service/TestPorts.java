@@ -1,6 +1,7 @@
 package com.asc.fr.docspace.application.service;
 
 import com.asc.fr.docspace.application.exception.DatasetAbsentException;
+import com.asc.fr.docspace.application.port.output.CachingService;
 import com.asc.fr.docspace.application.port.output.SynchronizationEventPublisher;
 import com.asc.fr.docspace.application.port.output.TaskSchedulerService;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
@@ -84,6 +85,34 @@ final class TestPorts {
     }
   }
 
+  static final class InMemoryCachingService implements CachingService {
+    @Override
+    public <K, V> Cache<K, V> create(String name, long ttlSeconds, long maximumEntries) {
+      Map<K, V> store = new HashMap<>();
+      return new Cache<K, V>() {
+        @Override
+        public V get(K key) {
+          return store.get(key);
+        }
+
+        @Override
+        public void put(K key, V value) {
+          store.put(key, value);
+        }
+
+        @Override
+        public void invalidate(K key) {
+          store.remove(key);
+        }
+
+        @Override
+        public void invalidateAll() {
+          store.clear();
+        }
+      };
+    }
+  }
+
   static final class EmptyDocSpaceCspService implements DocSpaceCspService {
     @Override
     public List<String> allowedDomains(URL docSpaceUrl) {
@@ -95,9 +124,11 @@ final class TestPorts {
     final Map<String, FileSynchronizationRecord> entries = new LinkedHashMap<>();
     String callbackUrl = "";
     String secret = "TestSecret123";
+    IOException failPutWith;
 
     @Override
-    public void put(String fileId, FileSynchronizationRecord entry) {
+    public void put(String fileId, FileSynchronizationRecord entry) throws IOException {
+      if (failPutWith != null) throw failPutWith;
       entries.put(fileId, entry);
     }
 

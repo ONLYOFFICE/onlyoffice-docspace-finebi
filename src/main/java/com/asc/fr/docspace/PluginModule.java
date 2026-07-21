@@ -42,6 +42,7 @@ import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
 import com.asc.fr.docspace.application.port.input.PageSelectorService;
 import com.asc.fr.docspace.application.port.input.SynchronizationService;
+import com.asc.fr.docspace.application.port.output.CachingService;
 import com.asc.fr.docspace.application.port.output.IUnitOfWork;
 import com.asc.fr.docspace.application.port.output.SynchronizationEventPublisher;
 import com.asc.fr.docspace.application.port.output.TaskSchedulerService;
@@ -161,6 +162,7 @@ final class PluginModule extends AbstractModule {
   }
 
   private void bindInfrastructure() {
+    bind(CachingService.class).to(FineCachingService.class).in(Singleton.class);
     bind(FineEncryptionService.class).to(FineStorageEncryptorsService.class).in(Singleton.class);
     bind(TaskSchedulerService.class).to(FineTaskScheduler.class).in(Singleton.class);
     bind(FineSessionFactory.class).to(FinePlatformSessionFactory.class).in(Singleton.class);
