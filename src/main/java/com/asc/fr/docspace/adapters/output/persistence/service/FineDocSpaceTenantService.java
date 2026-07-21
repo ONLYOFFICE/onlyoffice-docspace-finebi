@@ -8,17 +8,35 @@ import com.asc.fr.docspace.domain.DocSpaceTenantService;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceTenantConfiguration;
 import com.asc.fr.docspace.domain.exception.InvalidCredentialsException;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
 import java.io.IOException;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(onConstructor_ = @__(@Inject))
 public final class FineDocSpaceTenantService implements DocSpaceTenantService {
+  private static final long CACHE_TTL_MILLIS = 500;
+
   private final FineEncryptionService encryption;
   private final IUnitOfWork uow;
 
+  private final Cache<String, DocSpaceTenantConfiguration> cache =
+      CacheBuilder.newBuilder().expireAfterWrite(Duration.ofMillis(CACHE_TTL_MILLIS)).build();
+
   @Override
   public DocSpaceTenantConfiguration load() {
+    DocSpaceTenantConfiguration cached = cache.getIfPresent(DocSpaceTenantEntity.SINGLETON_ID);
+    if (cached != null) return cached;
+
+    DocSpaceTenantConfiguration loaded = loadFromStore();
+    cache.put(DocSpaceTenantEntity.SINGLETON_ID, loaded);
+    return loaded;
+  }
+
+  private DocSpaceTenantConfiguration loadFromStore() {
     return uow.query(
             ctx -> ctx.getDAO(DocSpaceTenantDAO.class).getById(DocSpaceTenantEntity.SINGLETON_ID))
         .filter(entity -> entity.getUrl() != null && !entity.getUrl().isEmpty())
@@ -67,6 +85,8 @@ public final class FineDocSpaceTenantService implements DocSpaceTenantService {
           dao.addOrUpdate(entity);
           return null;
         });
+
+    cache.invalidateAll();
   }
 
   @Override
@@ -78,5 +98,7 @@ public final class FineDocSpaceTenantService implements DocSpaceTenantService {
             dao.remove(DocSpaceTenantEntity.SINGLETON_ID);
           }
         });
+
+    cache.invalidateAll();
   }
 }
