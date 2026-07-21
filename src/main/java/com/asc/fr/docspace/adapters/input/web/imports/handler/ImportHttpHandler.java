@@ -4,6 +4,7 @@ import com.asc.fr.docspace.PluginManifest;
 import com.asc.fr.docspace.adapters.input.web.JsonHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.RequestUser;
 import com.asc.fr.docspace.adapters.input.web.Requests;
+import com.asc.fr.docspace.adapters.input.web.imports.transfer.ImportRequest;
 import com.asc.fr.docspace.adapters.input.web.imports.transfer.ImportResponse;
 import com.asc.fr.docspace.application.exception.UnauthorizedStatusException;
 import com.asc.fr.docspace.application.port.input.DocSpaceImporterService;
@@ -16,9 +17,7 @@ import com.google.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * POST /import/docspace/file?fileId=…&filename=…
- *
- * <p>Imports a DocSpace spreadsheet as a FineBI dataset. All orchestration lives in {@link
+ * Imports a DocSpace spreadsheet as a FineBI dataset. All orchestration lives in {@link
  * DocSpaceImporterService}; this handler only translates HTTP to the use case.
  */
 public class ImportHttpHandler extends JsonHttpHandler {
@@ -36,7 +35,8 @@ public class ImportHttpHandler extends JsonHttpHandler {
   @Override
   @ExecuteFunctionRecord
   protected Object handleJson(HttpServletRequest request) throws Exception {
-    String fileId = requireParam(request, "fileId");
+    ImportRequest body = Requests.json(request, ImportRequest.class);
+    String fileId = require(body.getFileId(), "fileId");
     RequestUser user = RequestUser.from(request);
     if (!users.hasLogin(user.name()) || !users.credentials(user.name()).isComplete())
       throw new UnauthorizedStatusException();
@@ -45,9 +45,9 @@ public class ImportHttpHandler extends JsonHttpHandler {
         ImportFileCommand.builder()
             .userName(user.name())
             .fileId(fileId)
-            .fileName(Requests.param(request, "filename"))
-            .viewUrl(Requests.param(request, "viewUrl"))
-            .folderId(Requests.param(request, "folderId"))
+            .fileName(orEmpty(body.getFilename()))
+            .viewUrl(orEmpty(body.getViewUrl()))
+            .folderId(orEmpty(body.getFolderId()))
             .callbackUrl(ImportRoutes.webhookCallbackUrl(request))
             .build();
 
