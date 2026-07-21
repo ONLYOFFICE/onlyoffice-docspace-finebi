@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 
 /** Receives an XLSX export from the dashboard and uploads it to DocSpace. */
 public class ExportUploadHttpHandler extends JsonHttpHandler {
-  private static final int MAX_BODY_BYTES = 10 * 1024 * 1024;
+  private static final int MAX_BODY_BYTES = PluginManifest.get().limits.exportUploadBytes;
 
   private final DocSpaceExporterService export;
 

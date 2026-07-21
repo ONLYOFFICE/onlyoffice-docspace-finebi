@@ -29,6 +29,13 @@
       "filePicker": "filePicker"
     }
   },
+  "limits": {
+    "jsonBodyBytes": 262144,
+    "webhookBodyBytes": 1048576,
+    "exportUploadBytes": 10485760,
+    "docSpaceUploadBytes": 52428800,
+    "docSpaceDownloadBytes": 52428800
+  },
   "endpoints": {
     "setup":            "/client/setup",
     "docspace":         "/client/docspace",

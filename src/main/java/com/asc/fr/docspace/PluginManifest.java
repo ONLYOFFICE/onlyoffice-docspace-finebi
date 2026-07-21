@@ -23,6 +23,7 @@ public final class PluginManifest {
   public final Aliases aliases;
   public final Events events;
   public final Endpoints endpoints;
+  public final Limits limits;
 
   @JsonCreator
   public PluginManifest(
@@ -32,7 +33,8 @@ public final class PluginManifest {
       @JsonProperty("assets") Assets assets,
       @JsonProperty("aliases") Aliases aliases,
       @JsonProperty("events") Events events,
-      @JsonProperty("endpoints") Endpoints endpoints) {
+      @JsonProperty("endpoints") Endpoints endpoints,
+      @JsonProperty("limits") Limits limits) {
     this.pluginId = pluginId;
     this.sdkVersion = sdkVersion;
     this.module = module;
@@ -40,6 +42,7 @@ public final class PluginManifest {
     this.aliases = aliases;
     this.events = events;
     this.endpoints = endpoints;
+    this.limits = limits;
   }
 
   public static PluginManifest get() {
@@ -111,6 +114,24 @@ public final class PluginManifest {
     public static final class Frontend {
       @JsonProperty public String filePicker;
     }
+  }
+
+  /** Payload size caps in bytes. */
+  public static final class Limits {
+    /** JSON command bodies */
+    @JsonProperty public int jsonBodyBytes;
+
+    /** DocSpace webhook deliveries */
+    @JsonProperty public int webhookBodyBytes;
+
+    /** Raw XLSX bodies POSTed to the export upload endpoint. */
+    @JsonProperty public int exportUploadBytes;
+
+    /** Files uploaded to DocSpace, also caps FineBI export downloads */
+    @JsonProperty public int docSpaceUploadBytes;
+
+    /** Spreadsheets pulled from DocSpace for import. */
+    @JsonProperty public int docSpaceDownloadBytes;
   }
 
   /** All plugin-private HTTP handler paths, keyed by logical name. */

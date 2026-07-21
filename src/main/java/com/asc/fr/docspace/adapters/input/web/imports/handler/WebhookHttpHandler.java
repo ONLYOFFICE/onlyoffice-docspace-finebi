@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 public class WebhookHttpHandler extends PluginHttpHandler {
   private static final String FILE_UPDATED_TRIGGER = "file.updated";
   private static final String SIGNATURE_HEADER = "x-docspace-signature-256";
-  private static final int MAX_BODY_BYTES = 1024 * 1024;
+  private static final int MAX_BODY_BYTES = PluginManifest.get().limits.webhookBodyBytes;
 
   public static final class HeadHandler extends AckHttpHandler {
     public HeadHandler() {

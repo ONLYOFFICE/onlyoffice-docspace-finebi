@@ -1,5 +1,6 @@
 package com.asc.fr.docspace.adapters.output.client.fr;
 
+import com.asc.fr.docspace.PluginManifest;
 import com.asc.fr.docspace.adapters.output.client.http.RedirectingDownloader;
 import com.asc.fr.docspace.application.port.output.fr.FineExportService;
 import com.asc.fr.docspace.domain.fr.FineSession;
@@ -17,9 +18,10 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public final class FineExportClient implements FineExportService {
+  private static final int MAX_DOWNLOAD_BYTES = PluginManifest.get().limits.docSpaceUploadBytes;
+
   private final RedirectingDownloader downloader;
 
-  // TODO: Test file size first (to avoid memory pollution)
   @Override
   public byte[] downloadExport(String operationId, FineSession session) throws IOException {
     String url =
@@ -31,7 +33,8 @@ public final class FineExportClient implements FineExportService {
     headers.put("Accept", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, */*");
     headers.put("Cookie", session.getCookie());
 
-    RedirectingDownloader.Downloaded result = downloader.fetch(url, headers, false);
+    RedirectingDownloader.Downloaded result =
+        downloader.fetch(url, headers, false, MAX_DOWNLOAD_BYTES);
     boolean isError =
         result.contentType.contains("application/json")
             || result.contentType.contains("text/plain")

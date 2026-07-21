@@ -1,5 +1,6 @@
 package com.asc.fr.docspace.adapters.output.client.docspace;
 
+import com.asc.fr.docspace.PluginManifest;
 import com.asc.fr.docspace.adapters.output.client.docspace.transfer.DocSpaceEnvelope;
 import com.asc.fr.docspace.adapters.output.client.docspace.transfer.response.DocSpaceFileResponse;
 import com.asc.fr.docspace.adapters.output.client.http.Calls;
@@ -24,15 +25,14 @@ import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 
-// TODO: Better check for file size (do not pollute the memory)
 @RequiredArgsConstructor
 public final class DocSpaceFileClient
     implements DocSpaceFileUploadService, DocSpaceFileDownloadService {
-  private static final int MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+  private static final int MAX_UPLOAD_BYTES = PluginManifest.get().limits.docSpaceUploadBytes;
+  private static final int MAX_DOWNLOAD_BYTES = PluginManifest.get().limits.docSpaceDownloadBytes;
   private static final String DEFAULT_FILENAME = "file";
   private static final MediaType XLSX =
       MediaType.parse("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-
   private static final DocSpaceMapper MAPPER = DocSpaceMapper.INSTANCE;
 
   private final DocSpaceRest rest;
@@ -41,7 +41,7 @@ public final class DocSpaceFileClient
   private final RedirectingDownloader downloader;
 
   private byte[] fetch(String url, Map<String, String> headers) throws IOException {
-    return downloader.fetch(url, headers, true).bytes;
+    return downloader.fetch(url, headers, true, MAX_DOWNLOAD_BYTES).bytes;
   }
 
   private DocSpaceFileResponse fileMeta(String base, String id, String bearer) throws IOException {
@@ -74,7 +74,8 @@ public final class DocSpaceFileClient
     if (content == null || content.length == 0) throw new IOException("Export file is empty");
 
     if (content.length > MAX_UPLOAD_BYTES)
-      throw new IOException("Export file exceeds the 50 MB limit");
+      throw new IOException(
+          "Export file exceeds the " + MAX_UPLOAD_BYTES / (1024 * 1024) + " MB limit");
 
     URL docSpaceUrl = command.getDocSpaceUrl();
     String base = docSpaceUrl.getValue();

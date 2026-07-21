@@ -1,5 +1,6 @@
 package com.asc.fr.docspace.adapters.input.web;
 
+import com.asc.fr.docspace.PluginManifest;
 import com.asc.fr.docspace.adapters.format.Json;
 import com.asc.fr.docspace.application.exception.PayloadTooLargeStatusException;
 import java.io.ByteArrayOutputStream;
@@ -10,8 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 
 /** Servlet request helpers shared by all plugin endpoints. */
 public final class Requests {
-  private static final int MAX_JSON_BYTES = 256 * 1024;
-
   private Requests() {}
 
   /** Trimmed request parameter, never null. */
@@ -49,7 +48,8 @@ public final class Requests {
    * credentials and identifiers would leak into access logs, browser history, and Referers.
    */
   public static <T> T json(HttpServletRequest request, Class<T> type) throws IOException {
-    return Json.read(new String(body(request, MAX_JSON_BYTES), StandardCharsets.UTF_8), type);
+    byte[] body = body(request, PluginManifest.get().limits.jsonBodyBytes);
+    return Json.read(new String(body, StandardCharsets.UTF_8), type);
   }
 
   /** Cookie header of the request, never null. */

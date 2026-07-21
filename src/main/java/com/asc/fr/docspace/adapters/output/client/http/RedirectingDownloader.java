@@ -1,6 +1,8 @@
 package com.asc.fr.docspace.adapters.output.client.http;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,6 @@ import okhttp3.ResponseBody;
  * re-send the session cookie on every hop, while DocSpace presigned downloads must drop credentials
  * when a CDN redirect crosses hosts.
  */
-// TODO: Make sure that there is no bytes memory pollution
 @RequiredArgsConstructor
 public final class RedirectingDownloader {
   private static final int MAX_REDIRECTS = 5;
@@ -62,12 +63,39 @@ public final class RedirectingDownloader {
   }
 
   /**
+   * Buffers the body up to {@code maxBytes} and refuses beyond it, so a huge (or hostile) remote
+   * file cannot exhaust the heap: the declared Content-Length is rejected up front, and the limit
+   * is enforced again while streaming because the header is optional and servers can lie.
+   */
+  private static byte[] bodyBytes(ResponseBody body, int maxBytes) throws IOException {
+    if (body == null) return new byte[0];
+
+    if (body.contentLength() > maxBytes)
+      throw new IOException("Download exceeds the limit of " + maxBytes + " bytes");
+
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    try (InputStream in = body.byteStream()) {
+      byte[] chunk = new byte[8192];
+      int read;
+      while ((read = in.read(chunk)) != -1) {
+        if (buffer.size() + read > maxBytes)
+          throw new IOException("Download exceeds the limit of " + maxBytes + " bytes");
+        buffer.write(chunk, 0, read);
+      }
+    }
+
+    return buffer.toByteArray();
+  }
+
+  /**
    * @param url the starting URL
    * @param headers initial request headers (e.g. Accept, Authorization, Cookie)
    * @param stripOnNewHost when true, Authorization/Cookie are dropped once a redirect resolves to a
    *     different host
+   * @param maxBytes cap on the buffered response body; exceeding it fails the download
    */
-  public Downloaded fetch(String url, Map<String, String> headers, boolean stripOnNewHost)
+  public Downloaded fetch(
+      String url, Map<String, String> headers, boolean stripOnNewHost, int maxBytes)
       throws IOException {
     String currentUrl = url;
     Map<String, String> currentHeaders = new LinkedHashMap<>(headers);
@@ -84,12 +112,11 @@ public final class RedirectingDownloader {
           continue;
         }
 
-        ResponseBody body = response.body();
-        byte[] bytes = body == null ? new byte[0] : body.bytes();
         if (response.code() >= 400)
           throw new IOException("Download failed with status code " + response.code());
 
-        return new Downloaded(response.code(), bytes, response.header("Content-Type"));
+        return new Downloaded(
+            response.code(), bodyBytes(response.body(), maxBytes), response.header("Content-Type"));
       }
     }
 
