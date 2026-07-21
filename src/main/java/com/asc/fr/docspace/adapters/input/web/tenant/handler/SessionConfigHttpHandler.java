@@ -18,26 +18,25 @@ import javax.servlet.http.HttpServletRequest;
  * render and route without a per-mode server-rendered page.
  *
  * <p>The mode is still resolved server-side by {@link PageSelectorService} (it needs tenant/user
- * state); the client conveys its request context via query flags ({@code console} for the admin
- * route, {@code logout}, {@code launcher}).
+ * state); the admin-console context is detected from the Referer, so the client needs no plumbing.
  */
 public class SessionConfigHttpHandler extends JsonHttpHandler {
   private final DocSpaceUserAccountService userAccountService;
   private final DocSpaceTenantService tenantService;
   private final PageSelectorService pageSelector;
-  private final PageRenderer pageRenderer;
+  private final SessionConfigFactory sessionConfig;
 
   @Inject
   public SessionConfigHttpHandler(
       DocSpaceUserAccountService userAccountService,
       DocSpaceTenantService tenantService,
       PageSelectorService pageSelector,
-      PageRenderer pageRenderer) {
+      SessionConfigFactory sessionConfig) {
     super(RequestMethod.GET, PluginManifest.get().endpoints.session);
     this.userAccountService = userAccountService;
     this.tenantService = tenantService;
     this.pageSelector = pageSelector;
-    this.pageRenderer = pageRenderer;
+    this.sessionConfig = sessionConfig;
   }
 
   @Override
@@ -58,6 +57,6 @@ public class SessionConfigHttpHandler extends JsonHttpHandler {
                 .configured(tenantService.isConfigured())
                 .hasLogin(userAccountService.hasLogin(user.name()))
                 .build());
-    return pageRenderer.configJson(page, request, user);
+    return sessionConfig.configJson(page, request, user);
   }
 }
