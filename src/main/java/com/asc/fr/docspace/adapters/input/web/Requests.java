@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 
 /** Servlet request helpers shared by all plugin endpoints. */
 public final class Requests {
+  private static final int MAX_JSON_BYTES = 256 * 1024;
+
   private Requests() {}
 
   /** Trimmed request parameter, never null. */
@@ -17,9 +19,6 @@ public final class Requests {
     String value = request.getParameter(name);
     return value != null ? value.trim() : "";
   }
-
-  /** Generous cap for JSON command bodies (credentials, identifiers — a few hundred bytes). */
-  private static final int MAX_JSON_BYTES = 256 * 1024;
 
   /**
    * Entire raw request body — a webhook payload, an uploaded file. Refuses with 413 once {@code
