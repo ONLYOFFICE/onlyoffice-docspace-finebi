@@ -41,7 +41,7 @@ public final class DebugDashboardHttpHandler extends PluginHttpHandler {
       return;
     }
 
-    if (RequestUser.from(request).isAdmin()) {
+    if (!RequestUser.from(request).isAdmin()) {
       HttpJson.writeHtml(
           response,
           HttpServletResponse.SC_FORBIDDEN,

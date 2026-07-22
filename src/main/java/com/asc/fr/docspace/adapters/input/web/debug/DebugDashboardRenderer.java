@@ -1,5 +1,6 @@
 package com.asc.fr.docspace.adapters.input.web.debug;
 
+import com.asc.fr.docspace.adapters.input.web.ErrorPageRenderer;
 import com.asc.fr.docspace.adapters.input.web.PluginRoutes;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
@@ -29,12 +30,16 @@ public final class DebugDashboardRenderer {
   private final SynchronizationLinkRegistry linkRegistry;
   private final DocSpaceTenantService tenantService;
   private final TemplateEngine templateEngine;
+  private final ErrorPageRenderer errorPage;
 
   @Inject
   DebugDashboardRenderer(
-      SynchronizationLinkRegistry linkRegistry, DocSpaceTenantService tenantService) {
+      SynchronizationLinkRegistry linkRegistry,
+      DocSpaceTenantService tenantService,
+      ErrorPageRenderer errorPage) {
     this.linkRegistry = linkRegistry;
     this.tenantService = tenantService;
+    this.errorPage = errorPage;
 
     ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
     resolver.setPrefix("templates/");
@@ -80,9 +85,7 @@ public final class DebugDashboardRenderer {
   }
 
   public String renderError(String message) {
-    Context ctx = new Context();
-    ctx.setVariable("message", message != null ? message : "");
-    return templateEngine.process("error", ctx);
+    return errorPage.render(message);
   }
 
   public String render(HttpServletRequest request, int page) {
