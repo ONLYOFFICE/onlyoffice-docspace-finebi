@@ -9,9 +9,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-/**
- * Renders the shared placeholder-style error page.
- */
+/** Renders the shared placeholder-style error page. */
 @Singleton
 public final class ErrorPageRenderer {
   private final TemplateEngine templateEngine;
