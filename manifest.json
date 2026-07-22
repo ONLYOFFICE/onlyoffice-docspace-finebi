@@ -1,7 +1,7 @@
 {
   "pluginId": "com.asc.fr.docspace",
   "sdkVersion": "2.2.0",
-  "debug": true,
+  "debug": false,
   "module": {
     "id": "decision-management-docspace",
     "value": "docspace",

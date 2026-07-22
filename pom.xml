@@ -23,6 +23,8 @@
         <servlet.version>4.0.1</servlet.version>
         <thymeleaf.version>3.1.5.RELEASE</thymeleaf.version>
 
+
+        <maven.antrun.plugin.version>3.1.0</maven.antrun.plugin.version>
         <maven.assembly.plugin.version>3.8.0</maven.assembly.plugin.version>
         <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
         <maven.formatter.plugin.version>2.29</maven.formatter.plugin.version>
@@ -34,6 +36,7 @@
         <maven.spotbugs.version>4.10.3</maven.spotbugs.version>
         <maven.findsecbugs.version>1.14.0</maven.findsecbugs.version>
 
+        <plugin.debug.flag>true</plugin.debug.flag>
         <maven.compiler.release>8</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -42,8 +45,12 @@
         <repository>
             <id>fanruan</id>
             <url>https://mvn.fanruan.com/repository/maven-public/</url>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>true</enabled></snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
@@ -208,7 +215,9 @@
                     <execution>
                         <id>install-node-and-npm</id>
                         <phase>generate-resources</phase>
-                        <goals><goal>install-node-and-npm</goal></goals>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
                         <configuration>
                             <nodeVersion>v22.12.0</nodeVersion>
                         </configuration>
@@ -216,7 +225,9 @@
                     <execution>
                         <id>npm-install</id>
                         <phase>generate-resources</phase>
-                        <goals><goal>npm</goal></goals>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
                         <configuration>
                             <arguments>install --no-audit --no-fund --prefer-offline</arguments>
                         </configuration>
@@ -224,7 +235,9 @@
                     <execution>
                         <id>npm-build</id>
                         <phase>generate-resources</phase>
-                        <goals><goal>npm</goal></goals>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
                         <configuration>
                             <arguments>run build</arguments>
                         </configuration>
@@ -322,20 +335,66 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${maven.antrun.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>build-debug-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <property name="prod.jar"
+                                          value="${project.build.directory}/${project.build.finalName}.jar"/>
+                                <property name="debug.jar"
+                                          value="${project.build.directory}/${project.build.finalName}-debug.jar"/>
+                                <property name="debug.dir"
+                                          value="${project.build.directory}/debug-jar"/>
+
+                                <delete dir="${debug.dir}"/>
+                                <unzip src="${prod.jar}" dest="${debug.dir}"/>
+
+                                <replace file="${debug.dir}/manifest.json"
+                                         token="&quot;debug&quot;: false"
+                                         value="&quot;debug&quot;: ${plugin.debug.flag}"/>
+
+                                <zip destfile="${debug.jar}" basedir="${debug.dir}"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>${maven.assembly.plugin.version}</version>
                 <configuration>
                     <appendAssemblyId>false</appendAssemblyId>
-                    <finalName>docspace-plugin-${project.version}</finalName>
-                    <descriptors>
-                        <descriptor>src/main/resources/assembly.xml</descriptor>
-                    </descriptors>
                 </configuration>
                 <executions>
                     <execution>
                         <id>plugin-zip</id>
                         <phase>package</phase>
                         <goals><goal>single</goal></goals>
+                        <configuration>
+                            <finalName>docspace-plugin-${project.version}</finalName>
+                            <descriptors>
+                                <descriptor>src/main/resources/assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>plugin-zip-debug</id>
+                        <phase>package</phase>
+                        <goals><goal>single</goal></goals>
+                        <configuration>
+                            <finalName>docspace-plugin-${project.version}-debug</finalName>
+                            <descriptors>
+                                <descriptor>src/main/resources/assembly-debug.xml</descriptor>
+                            </descriptors>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
