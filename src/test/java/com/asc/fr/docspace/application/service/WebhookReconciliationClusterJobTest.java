@@ -3,6 +3,7 @@ package com.asc.fr.docspace.application.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.asc.fr.docspace.application.job.JobSchedule;
 import com.asc.fr.docspace.application.job.WebhookReconciliationClusterJob;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceTenantConfiguration;
@@ -30,7 +31,8 @@ class WebhookReconciliationClusterJobTest {
         new WebhookReconciliationClusterJob(
             synchronizationService,
             new DefaultDocSpaceTenantService(tenantService),
-            webhookRegistrar);
+            webhookRegistrar,
+            new JobSchedule(5000, 300000));
   }
 
   @Test

@@ -7,6 +7,7 @@ import com.asc.fr.docspace.adapters.output.client.http.Calls;
 import com.asc.fr.docspace.adapters.output.client.http.RedirectingDownloader;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceAuthenticator;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileDownloadService;
+import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileRetrievalService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileUploadService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpacePathService;
 import com.asc.fr.docspace.application.port.output.docspace.transfer.DocSpaceDownloadFileCommand;
@@ -16,18 +17,23 @@ import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceRawFile;
 import com.asc.fr.docspace.domain.docspace.DocSpaceUploadedFile;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import retrofit2.Response;
 
 @RequiredArgsConstructor
 public final class DocSpaceFileClient
-    implements DocSpaceFileUploadService, DocSpaceFileDownloadService {
+    implements DocSpaceFileUploadService,
+        DocSpaceFileDownloadService,
+        DocSpaceFileRetrievalService {
   private static final int MAX_UPLOAD_BYTES = PluginManifest.get().limits.docSpaceUploadBytes;
   private static final int MAX_DOWNLOAD_BYTES = PluginManifest.get().limits.docSpaceDownloadBytes;
   private static final String DEFAULT_FILENAME = "file";
@@ -64,6 +70,23 @@ public final class DocSpaceFileClient
       throw new IOException("DocSpace returned no download URL for file " + id);
 
     return pathService.absolutize(base, viewUrl);
+  }
+
+  @Override
+  public boolean fileExists(URL docSpaceUrl, String fileId, DocSpaceAccountCredentials credentials)
+      throws IOException {
+    if (Strings.isNullOrEmpty(fileId)) return false;
+
+    String base = docSpaceUrl.getValue();
+    String bearer = authenticationClient.bearer(docSpaceUrl, credentials);
+    Response<DocSpaceEnvelope<JsonNode>> response =
+        rest.fileMeta(base + Paths.file(fileId.trim()), bearer).execute();
+
+    if (response.code() == HttpURLConnection.HTTP_NOT_FOUND) return false;
+    if (response.isSuccessful()) return true;
+
+    throw new IOException(
+        "DocSpace file existence check for " + fileId + " failed with status " + response.code());
   }
 
   @Override

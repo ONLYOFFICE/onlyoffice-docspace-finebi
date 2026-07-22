@@ -65,7 +65,7 @@ class DefaultSynchronizationServiceTest {
     @Test
     void givenTenantNotConfigured_whenScheduling_thenDoesNothing() throws IOException {
       synchronizationService.put(
-          "22", new FileSynchronizationRecord("Report", "folder-7", "uuid-1"));
+          new FileSynchronizationRecord("22", "Report", "folder-7", "uuid-1"));
       tenantService.config = DocSpaceTenantConfiguration.empty();
 
       service.schedule(commandFor("22"));
@@ -79,7 +79,7 @@ class DefaultSynchronizationServiceTest {
     @Test
     void givenKnownFile_whenScheduling_thenReplacesDatasetAndNotifies() throws IOException {
       synchronizationService.put(
-          "22", new FileSynchronizationRecord("Report", "folder-7", "uuid-1"));
+          new FileSynchronizationRecord("22", "Report", "folder-7", "uuid-1"));
 
       service.schedule(commandFor("22"));
 
@@ -95,7 +95,7 @@ class DefaultSynchronizationServiceTest {
     void givenDatasetDeletedInFineBi_whenScheduling_thenUnregistersWithoutRecreating()
         throws IOException {
       synchronizationService.put(
-          "22", new FileSynchronizationRecord("Report", "folder-7", "uuid-1"));
+          new FileSynchronizationRecord("22", "Report", "folder-7", "uuid-1"));
       recordingFineService.datasetAbsent = true;
 
       service.schedule(commandFor("22"));
@@ -108,7 +108,7 @@ class DefaultSynchronizationServiceTest {
     @Test
     void givenTransientReplaceFailure_whenScheduling_thenKeepsTrackingEntry() throws IOException {
       synchronizationService.put(
-          "22", new FileSynchronizationRecord("Report", "folder-7", "uuid-1"));
+          new FileSynchronizationRecord("22", "Report", "folder-7", "uuid-1"));
       recordingFineService.failReplace = true;
 
       service.schedule(commandFor("22"));
@@ -120,7 +120,7 @@ class DefaultSynchronizationServiceTest {
 
     @Test
     void givenEntryWithNoDatasetUuid_whenScheduling_thenUnregistersEntry() throws IOException {
-      synchronizationService.put("22", new FileSynchronizationRecord("Report", "folder-7", ""));
+      synchronizationService.put(new FileSynchronizationRecord("22", "Report", "folder-7", ""));
 
       service.schedule(commandFor("22"));
 
@@ -152,7 +152,7 @@ class DefaultSynchronizationServiceTest {
     void givenBurstOfEventsForSameFile_whenScheduling_thenDebouncesToSingleResync()
         throws IOException {
       synchronizationService.put(
-          "22", new FileSynchronizationRecord("Report", "folder-7", "uuid-1"));
+          new FileSynchronizationRecord("22", "Report", "folder-7", "uuid-1"));
 
       service.schedule(commandFor("22"));
       service.schedule(commandFor("22"));
@@ -167,7 +167,7 @@ class DefaultSynchronizationServiceTest {
     @Test
     void givenEventAfterDebounceWindow_whenScheduling_thenTriggersNewResync() throws IOException {
       synchronizationService.put(
-          "22", new FileSynchronizationRecord("Report", "folder-7", "uuid-1"));
+          new FileSynchronizationRecord("22", "Report", "folder-7", "uuid-1"));
 
       service.schedule(commandFor("22"));
       scheduler.flush();

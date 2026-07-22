@@ -36,6 +36,17 @@
     "docSpaceUploadBytes": 52428800,
     "docSpaceDownloadBytes": 52428800
   },
+  "schedulers": {
+    "webhookReconciliation": {
+      "initialDelayMillis": 5000,
+      "periodMillis": 300000
+    },
+    "syncLinkReconciliation": {
+      "initialDelayMillis": 30000,
+      "periodMillis": 600000,
+      "staleAfterMillis": 600000
+    }
+  },
   "endpoints": {
     "setup":            "/client/setup",
     "docspace":         "/client/docspace",

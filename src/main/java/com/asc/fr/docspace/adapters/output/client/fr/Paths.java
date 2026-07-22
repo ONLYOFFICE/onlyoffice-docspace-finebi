@@ -3,6 +3,7 @@ package com.asc.fr.docspace.adapters.output.client.fr;
 enum Paths {
   ATTACH_UPLOAD("/v10/attach/upload"),
   PACKS_FOLDERS("/v5/conf/packs/folders"),
+  PACK_TABLES("/v5/conf/packs/%s"),
   TABLE_ADD("/v5/conf/tables/excel/add"),
   SHEET_PREVIEW("/v5/conf/excel/sheet/preview"),
   TABLE_UPDATE("/v5/conf/tables/update");
@@ -18,5 +19,9 @@ enum Paths {
 
   String path() {
     return path;
+  }
+
+  String path(String arg) {
+    return String.format(path, arg);
   }
 }

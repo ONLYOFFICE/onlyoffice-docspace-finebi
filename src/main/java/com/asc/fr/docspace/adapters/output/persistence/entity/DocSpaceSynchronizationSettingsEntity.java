@@ -19,4 +19,7 @@ public class DocSpaceSynchronizationSettingsEntity extends BaseEntity {
 
   @Column(name = "webhookSecret", length = 1024)
   private String webhookSecret = "";
+
+  @Column(name = "decisionBase", length = 2048)
+  private String decisionBase = "";
 }

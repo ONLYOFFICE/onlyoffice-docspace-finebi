@@ -1,13 +1,13 @@
 package com.asc.fr.docspace.adapters.output.persistence.service;
 
 import com.asc.fr.docspace.adapters.output.persistence.access.DocSpaceAccountDAO;
+import com.asc.fr.docspace.adapters.output.persistence.access.DocSpaceKeysetPaginationDAO;
 import com.asc.fr.docspace.adapters.output.persistence.entity.DocSpaceAccountEntity;
 import com.asc.fr.docspace.application.port.output.IUnitOfWork;
 import com.asc.fr.docspace.application.port.output.fr.FineEncryptionService;
 import com.asc.fr.docspace.domain.DocSpaceUserAccountService;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.exception.InvalidCredentialsException;
-import com.fr.stable.query.QueryFactory;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
@@ -101,14 +101,7 @@ public final class FineDocSpaceUserAccountService implements DocSpaceUserAccount
 
   @Override
   public void clearAll() throws IOException {
-    uow.write(
-        ctx -> {
-          DocSpaceAccountDAO dao = ctx.getDAO(DocSpaceAccountDAO.class);
-          for (DocSpaceAccountEntity row : dao.find(QueryFactory.create())) {
-            dao.remove(row.getId());
-          }
-        });
-
+    DocSpaceKeysetPaginationDAO.deleteAll(uow, DocSpaceAccountDAO.class);
     cache.invalidateAll();
   }
 }

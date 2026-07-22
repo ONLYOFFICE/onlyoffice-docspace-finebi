@@ -7,6 +7,7 @@ import com.asc.fr.docspace.application.port.output.TaskSchedulerService;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceCspService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileDownloadService;
+import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileRetrievalService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileUploadService;
 import com.asc.fr.docspace.application.port.output.docspace.transfer.DocSpaceDownloadFileCommand;
 import com.asc.fr.docspace.application.port.output.docspace.transfer.DocSpaceDownloadFileFromUrlCommand;
@@ -21,7 +22,8 @@ import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceDatase
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineUploadAttachmentCommand;
 import com.asc.fr.docspace.domain.DocSpaceTenantService;
 import com.asc.fr.docspace.domain.DocSpaceUserAccountService;
-import com.asc.fr.docspace.domain.SynchronizationService;
+import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
+import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.FileSynchronizationRecord;
 import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
@@ -35,9 +37,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 final class TestPorts {
   private TestPorts() {}
@@ -120,31 +124,81 @@ final class TestPorts {
     }
   }
 
-  static final class InMemorySynchronizationService implements SynchronizationService {
+  static final class RecordingDocSpaceFileRetrievalService implements DocSpaceFileRetrievalService {
+    final List<String> existsProbes = new ArrayList<>();
+    final Set<String> absentFileIds = new HashSet<>();
+    IOException failWith;
+
+    @Override
+    public boolean fileExists(URL docSpaceUrl, String fileId, DocSpaceAccountCredentials creds)
+        throws IOException {
+      existsProbes.add(fileId);
+      if (failWith != null) throw failWith;
+      return !absentFileIds.contains(fileId);
+    }
+  }
+
+  static final class InMemorySynchronizationService
+      implements SynchronizationLinkRegistry, SynchronizationSettings {
     final Map<String, FileSynchronizationRecord> entries = new LinkedHashMap<>();
+
     String callbackUrl = "";
     String secret = "TestSecret123";
+    String decisionBase = "";
     IOException failPutWith;
 
     @Override
-    public void put(String fileId, FileSynchronizationRecord entry) throws IOException {
+    public void put(FileSynchronizationRecord entry) throws IOException {
       if (failPutWith != null) throw failPutWith;
-      entries.put(fileId, entry);
+      if (entry == null || entry.getTableId().isEmpty()) return;
+      entries.put(entry.getTableId(), entry);
     }
 
     @Override
-    public FileSynchronizationRecord find(String fileId) {
-      return entries.get(fileId);
+    public List<FileSynchronizationRecord> findByFile(String fileId) {
+      List<FileSynchronizationRecord> matches = new ArrayList<>();
+      for (FileSynchronizationRecord entry : entries.values())
+        if (entry.getFileId().equals(fileId)) matches.add(entry);
+      return matches;
+    }
+
+    FileSynchronizationRecord find(String fileId) {
+      List<FileSynchronizationRecord> matches = findByFile(fileId);
+      return matches.isEmpty() ? null : matches.get(0);
     }
 
     @Override
-    public void remove(String fileId) {
-      entries.remove(fileId);
+    public void remove(String tableId) {
+      entries.remove(tableId);
     }
 
     @Override
-    public Map<String, FileSynchronizationRecord> entries() {
-      return entries;
+    public void removeByFile(String fileId) {
+      entries.values().removeIf(entry -> entry.getFileId().equals(fileId));
+    }
+
+    @Override
+    public void removeAll() {
+      entries.clear();
+    }
+
+    private List<FileSynchronizationRecord> links(String afterTableId, int limit) {
+      String after = afterTableId == null ? "" : afterTableId;
+      List<FileSynchronizationRecord> page = new ArrayList<>();
+      List<String> keys = new ArrayList<>(entries.keySet());
+      Collections.sort(keys);
+      for (String key : keys) {
+        if (key.compareTo(after) <= 0) continue;
+        page.add(entries.get(key));
+        if (page.size() >= limit) break;
+      }
+      return page;
+    }
+
+    @Override
+    public List<FileSynchronizationRecord> staleLinks(
+        long reconciledBefore, String afterTableId, int limit) {
+      return links(afterTableId, limit);
     }
 
     @Override
@@ -155,6 +209,16 @@ final class TestPorts {
     @Override
     public String loadCallbackUrl() {
       return callbackUrl;
+    }
+
+    @Override
+    public void storeDecisionBase(String decisionBase) {
+      this.decisionBase = decisionBase;
+    }
+
+    @Override
+    public String loadDecisionBase() {
+      return decisionBase;
     }
 
     @Override
@@ -207,9 +271,12 @@ final class TestPorts {
     final List<FineCreateDatasetCommand> createDatasetCalls = new ArrayList<>();
     final List<FineReplaceDatasetCommand> replaceDatasetCalls = new ArrayList<>();
     final List<FineRefreshDatasetCommand> refreshDatasetCalls = new ArrayList<>();
+    final List<String> datasetExistsProbes = new ArrayList<>();
+    final Set<String> absentTableIds = new HashSet<>();
     String createdUuid = "uuid-created";
     boolean failReplace;
     boolean datasetAbsent;
+    IOException failExistsWith;
 
     boolean noCalls() {
       return uploadAttachmentCalls.isEmpty()
@@ -254,6 +321,14 @@ final class TestPorts {
     @Override
     public void refreshDataset(FineRefreshDatasetCommand command, FineSession s) {
       refreshDatasetCalls.add(command);
+    }
+
+    @Override
+    public boolean datasetExists(String tableId, String folderId, FineSession s)
+        throws IOException {
+      datasetExistsProbes.add(tableId);
+      if (failExistsWith != null) throw failExistsWith;
+      return !absentTableIds.contains(tableId);
     }
   }
 

@@ -9,6 +9,8 @@ import com.asc.fr.docspace.adapters.input.web.imports.transfer.WebhookEvent;
 import com.asc.fr.docspace.application.exception.PluginStatusException;
 import com.asc.fr.docspace.application.port.input.SynchronizationService;
 import com.asc.fr.docspace.application.port.input.transfer.SynchronizationCommand;
+import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
+import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.fr.third.springframework.web.bind.annotation.RequestMethod;
 import com.google.inject.Inject;
 import java.nio.charset.StandardCharsets;
@@ -52,17 +54,20 @@ public class WebhookHttpHandler extends PluginHttpHandler {
   private static final Set<String> DELETION_TRIGGERS =
       new HashSet<>(Arrays.asList("file.deleted", "file.trashed"));
 
-  private final com.asc.fr.docspace.domain.SynchronizationService registry;
+  private final SynchronizationLinkRegistry synchronizationLinkRegistry;
+  private final SynchronizationSettings synchronizationSettings;
   private final WebhookSignatureVerifierService signatures;
   private final SynchronizationService resync;
 
   @Inject
   public WebhookHttpHandler(
-      com.asc.fr.docspace.domain.SynchronizationService registry,
+      SynchronizationLinkRegistry synchronizationLinkRegistry,
+      SynchronizationSettings synchronizationSettings,
       WebhookSignatureVerifierService signatures,
       SynchronizationService resync) {
     super(RequestMethod.POST, PluginManifest.get().endpoints.webhookCallback, true);
-    this.registry = registry;
+    this.synchronizationLinkRegistry = synchronizationLinkRegistry;
+    this.synchronizationSettings = synchronizationSettings;
     this.signatures = signatures;
     this.resync = resync;
   }
@@ -78,7 +83,7 @@ public class WebhookHttpHandler extends PluginHttpHandler {
       return;
     }
 
-    String secret = registry.loadSecret();
+    String secret = synchronizationSettings.loadSecret();
     if (!secret.isEmpty()
         && !signatures.verify(body, secret, request.getHeader(SIGNATURE_HEADER))) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -90,8 +95,7 @@ public class WebhookHttpHandler extends PluginHttpHandler {
     if (event.fileId().isEmpty()) return;
 
     if (DELETION_TRIGGERS.contains(event.trigger())) {
-      // File removed in DocSpace, therefore stop tracking it.
-      registry.remove(event.fileId());
+      synchronizationLinkRegistry.removeByFile(event.fileId());
       return;
     }
 

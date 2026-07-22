@@ -55,6 +55,7 @@ class DefaultDocSpaceImporterServiceTest {
             webhookRegistrar,
             new TestPorts.ImmediateTaskSchedulerService(),
             synchronizationService,
+            synchronizationService,
             new TestPorts.InMemoryCachingService());
   }
 

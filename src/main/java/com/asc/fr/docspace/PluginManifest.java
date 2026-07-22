@@ -24,6 +24,7 @@ public final class PluginManifest {
   public final Events events;
   public final Endpoints endpoints;
   public final Limits limits;
+  public final Schedulers schedulers;
 
   @JsonCreator
   public PluginManifest(
@@ -34,7 +35,8 @@ public final class PluginManifest {
       @JsonProperty("aliases") Aliases aliases,
       @JsonProperty("events") Events events,
       @JsonProperty("endpoints") Endpoints endpoints,
-      @JsonProperty("limits") Limits limits) {
+      @JsonProperty("limits") Limits limits,
+      @JsonProperty("schedulers") Schedulers schedulers) {
     this.pluginId = pluginId;
     this.sdkVersion = sdkVersion;
     this.module = module;
@@ -43,6 +45,7 @@ public final class PluginManifest {
     this.events = events;
     this.endpoints = endpoints;
     this.limits = limits;
+    this.schedulers = schedulers;
   }
 
   public static PluginManifest get() {
@@ -132,6 +135,22 @@ public final class PluginManifest {
 
     /** Spreadsheets pulled from DocSpace for import. */
     @JsonProperty public int docSpaceDownloadBytes;
+  }
+
+  public static final class Schedulers {
+    @JsonProperty public Schedule webhookReconciliation;
+
+    @JsonProperty public SyncLinkSchedule syncLinkReconciliation;
+  }
+
+  public static class Schedule {
+    @JsonProperty public long initialDelayMillis;
+
+    @JsonProperty public long periodMillis;
+  }
+
+  public static final class SyncLinkSchedule extends Schedule {
+    @JsonProperty public long staleAfterMillis;
   }
 
   /** All plugin-private HTTP handler paths, keyed by logical name. */

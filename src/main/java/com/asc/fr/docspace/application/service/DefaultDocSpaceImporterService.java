@@ -15,7 +15,8 @@ import com.asc.fr.docspace.application.port.output.fr.FineDatasetService;
 import com.asc.fr.docspace.application.port.output.fr.FineFolderService;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineCreateDatasetCommand;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineUploadAttachmentCommand;
-import com.asc.fr.docspace.domain.SynchronizationService;
+import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
+import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.FileSynchronizationRecord;
 import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
@@ -41,7 +42,8 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
 
   private final WebhookRegistrar webhookRegistrar;
   private final TaskSchedulerService taskSchedulerService;
-  private final SynchronizationService synchronizationService;
+  private final SynchronizationSettings synchronizationSettings;
+  private final SynchronizationLinkRegistry synchronizationLinkRegistry;
 
   private final CachingService.Cache<String, Boolean> cache;
 
@@ -55,7 +57,8 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
       FineAttachmentService attachmentService,
       WebhookRegistrar webhookRegistrar,
       TaskSchedulerService taskSchedulerService,
-      SynchronizationService synchronizationService,
+      SynchronizationSettings synchronizationSettings,
+      SynchronizationLinkRegistry synchronizationLinkRegistry,
       CachingService cache) {
     this.tenantService = tenantService;
     this.userAccountService = userAccountService;
@@ -65,7 +68,8 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
     this.attachmentService = attachmentService;
     this.webhookRegistrar = webhookRegistrar;
     this.taskSchedulerService = taskSchedulerService;
-    this.synchronizationService = synchronizationService;
+    this.synchronizationSettings = synchronizationSettings;
+    this.synchronizationLinkRegistry = synchronizationLinkRegistry;
     this.cache =
         cache.create("webhook-ensure", WEBHOOK_ENSURE_TTL_SECONDS, WEBHOOK_ENSURE_MAX_ENTRIES);
   }
@@ -104,8 +108,8 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
     URL docSpaceUrl = new URL(tenantService.docSpaceUrl());
     URL callback = new URL(callbackUrl);
 
-    synchronizationService.storeCallbackUrl(callbackUrl);
-    String secret = synchronizationService.ensureSecret();
+    synchronizationSettings.storeCallbackUrl(callbackUrl);
+    String secret = synchronizationSettings.ensureSecret();
     taskSchedulerService.run(
         () ->
             webhookRegistrar.ensureRegistered(
@@ -159,8 +163,9 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
     }
 
     try {
-      synchronizationService.put(
-          command.getFileId(), new FileSynchronizationRecord(tableName, folderId, tableId));
+      synchronizationLinkRegistry.put(
+          new FileSynchronizationRecord(command.getFileId(), tableName, folderId, tableId));
+      synchronizationSettings.storeDecisionBase(session.getBaseUrl().getValue());
       ensureWebhookRegistered(command.getCallbackUrl());
     } catch (Exception bookkeeping) {
       // The dataset already exists; failing the import now would push the user to

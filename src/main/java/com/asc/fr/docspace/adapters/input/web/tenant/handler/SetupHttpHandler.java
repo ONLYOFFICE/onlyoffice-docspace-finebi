@@ -16,7 +16,7 @@ import com.asc.fr.docspace.application.port.input.DocSpaceTenantAdminService;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
-import com.asc.fr.docspace.domain.SynchronizationService;
+import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.exception.InvalidCredentialsException;
@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 public class SetupHttpHandler extends JsonHttpHandler {
   private final DocSpaceTenantAdminService tenantAdminService;
   private final DocSpaceUserAccountService userAccountService;
-  private final SynchronizationService synchronizationService;
+  private final SynchronizationSettings synchronizationService;
   private final DocSpaceTenantService tenantService;
   private final DocSpaceOriginService originService;
   private final WebhookRegistrar webhookRegistrar;
@@ -42,7 +42,7 @@ public class SetupHttpHandler extends JsonHttpHandler {
   public SetupHttpHandler(
       DocSpaceTenantAdminService tenantAdminService,
       DocSpaceUserAccountService userAccountService,
-      SynchronizationService synchronizationService,
+      SynchronizationSettings synchronizationService,
       DocSpaceTenantService tenantService,
       DocSpaceOriginService originService,
       WebhookRegistrar webhookRegistrar) {

@@ -57,26 +57,37 @@ public final class FineResponses {
     return single == null || single.getName() == null ? "" : single.getName();
   }
 
-  public static List<FineFolder> foldersFromPacks(FineEnvelope envelope) {
-    FinePacksFoldersDataResponse data = envelope.dataAs(FinePacksFoldersDataResponse.class);
-    List<FineFolder> result = new ArrayList<>();
-    if (data != null) collectFolders(data.getFolders(), result, 0);
-
-    return result;
+  private static JsonNode firstArray(JsonNode... candidates) {
+    for (JsonNode candidate : candidates)
+      if (candidate != null && candidate.isArray()) return candidate;
+    return null;
   }
 
   private static List<FineTableSummaryResponse> tablesOf(JsonNode root) {
     if (root == null || root.isNull() || root.isMissingNode()) return Collections.emptyList();
 
     JsonNode arr =
-        !root.path("data").path("tables").isMissingNode()
-            ? root.path("data").path("tables")
-            : root.has("tables") ? root.path("tables") : (root.isArray() ? root : null);
+        firstArray(
+            root.path("data").path("tables").path("availableTables"),
+            root.path("data").path("tables"),
+            root.path("data").path("availableTables"),
+            root.path("tables").path("availableTables"),
+            root.path("tables"),
+            root.path("availableTables"),
+            root);
 
-    if (arr == null || !arr.isArray()) return Collections.emptyList();
+    if (arr == null) return Collections.emptyList();
 
     List<FineTableSummaryResponse> tables = Json.convert(arr, TABLE_SUMMARY_LIST);
     return tables == null ? Collections.<FineTableSummaryResponse>emptyList() : tables;
+  }
+
+  public static List<FineFolder> foldersFromPacks(FineEnvelope envelope) {
+    FinePacksFoldersDataResponse data = envelope.dataAs(FinePacksFoldersDataResponse.class);
+    List<FineFolder> result = new ArrayList<>();
+    if (data != null) collectFolders(data.getFolders(), result, 0);
+
+    return result;
   }
 
   /**

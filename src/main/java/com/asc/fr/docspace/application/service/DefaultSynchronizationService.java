@@ -15,6 +15,7 @@ import com.asc.fr.docspace.application.port.output.fr.FineSessionFactory;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineRefreshDatasetCommand;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceDatasetCommand;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineUploadAttachmentCommand;
+import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
 import com.asc.fr.docspace.domain.common.FileSynchronizationRecord;
 import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
@@ -24,6 +25,7 @@ import com.asc.fr.docspace.domain.fr.FineAttachment;
 import com.asc.fr.docspace.domain.fr.FineSession;
 import com.google.inject.Inject;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +45,7 @@ public final class DefaultSynchronizationService implements SynchronizationServi
   private final FineSessionFactory sessionFactory;
   private final TaskSchedulerService taskSchedulerService;
   private final SynchronizationEventPublisher eventPublisher;
-  private final com.asc.fr.docspace.domain.SynchronizationService synchronizationService;
+  private final SynchronizationLinkRegistry synchronizationService;
 
   /**
    * Replaces the tracked dataset's source in-place, keeping its UUID (and all dashboards
@@ -68,24 +70,14 @@ public final class DefaultSynchronizationService implements SynchronizationServi
    *     instead.
    */
   private boolean reimport(
-      FineSession session,
-      FileSynchronizationRecord entry,
-      String fileId,
-      String fileName,
-      byte[] content)
+      FineSession session, FileSynchronizationRecord entry, String fileName, byte[] content)
       throws IOException {
     String filename = new DocSpaceSpreadsheet(fileName).getFileName();
     if (content.length > DocSpaceImporterService.MAX_FILE_BYTES)
       throw new IOException("File exceeds the 50 MB import limit");
 
     String uuid = entry.getTableId();
-    if (uuid.isEmpty()) {
-      // No UUID means the original import response carried none — we
-      // cannot replace in-place, and creating by name would duplicate.
-      // Unregister; the user re-imports to get a properly tracked entry.
-      synchronizationService.remove(fileId);
-      return false;
-    }
+    if (uuid.isEmpty()) return false;
 
     FineAttachment attachment =
         attachmentService.uploadAttachment(
@@ -103,7 +95,7 @@ public final class DefaultSynchronizationService implements SynchronizationServi
           session,
           attachment);
     } catch (DatasetAbsentException e) {
-      synchronizationService.remove(fileId);
+      synchronizationService.remove(uuid);
       return false;
     }
 
@@ -118,11 +110,10 @@ public final class DefaultSynchronizationService implements SynchronizationServi
     return true;
   }
 
-  private void resync(
-      String decisionBase,
-      String fileId,
-      FileSynchronizationRecord entry,
-      DocSpaceAccountCredentials credentials) {
+  private void resync(String decisionBase, String fileId, DocSpaceAccountCredentials credentials) {
+    List<FileSynchronizationRecord> entries = synchronizationService.findByFile(fileId);
+    if (entries.isEmpty()) return;
+
     FineSession session = sessionFactory.generateSession(decisionBase);
     try {
       DocSpaceRawFile download =
@@ -132,9 +123,10 @@ public final class DefaultSynchronizationService implements SynchronizationServi
                   .fileId(fileId)
                   .build(),
               credentials);
-      boolean synced =
-          reimport(session, entry, fileId, download.getFileName(), download.getRawContent());
-      if (synced) eventPublisher.datasetUpdated(entry.getTableName());
+      for (FileSynchronizationRecord entry : entries) {
+        boolean synced = reimport(session, entry, download.getFileName(), download.getRawContent());
+        if (synced) eventPublisher.datasetUpdated(entry.getTableName());
+      }
     } catch (Exception ignored) {
       // TODO: Handle it somehow
     }
@@ -144,8 +136,7 @@ public final class DefaultSynchronizationService implements SynchronizationServi
   public void schedule(SynchronizationCommand command) {
     String fileId = command.getFileId();
     String decisionBase = command.getDecisionBase();
-    FileSynchronizationRecord entry = synchronizationService.find(fileId);
-    if (entry == null) return;
+    if (synchronizationService.findByFile(fileId).isEmpty()) return;
 
     if (!tenantService.isConfigured()) return;
 
@@ -159,7 +150,7 @@ public final class DefaultSynchronizationService implements SynchronizationServi
                 DOCSPACE_WRITE_DELAY_MS,
                 () -> {
                   pending.remove(fileId);
-                  resync(decisionBase, fileId, entry, credentials);
+                  resync(decisionBase, fileId, credentials);
                 }));
 
     if (replaced != null) replaced.cancel();

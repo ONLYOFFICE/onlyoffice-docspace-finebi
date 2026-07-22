@@ -6,7 +6,7 @@ import com.asc.fr.docspace.adapters.input.web.imports.transfer.WebhookRegistered
 import com.asc.fr.docspace.application.exception.PluginStatusException;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
-import com.asc.fr.docspace.domain.SynchronizationService;
+import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.fr.third.springframework.web.bind.annotation.RequestMethod;
@@ -21,14 +21,16 @@ import javax.servlet.http.HttpServletRequest;
 public class WebhookRegisterHttpHandler extends JsonHttpHandler {
   private final WebhookRegistrar webhooks;
   private final DocSpaceTenantService tenant;
-  private final SynchronizationService registry;
+  private final SynchronizationSettings synchronizationSettings;
 
   @Inject
   public WebhookRegisterHttpHandler(
-      DocSpaceTenantService tenant, SynchronizationService registry, WebhookRegistrar webhooks) {
+      DocSpaceTenantService tenant,
+      SynchronizationSettings synchronizationSettings,
+      WebhookRegistrar webhooks) {
     super(RequestMethod.POST, PluginManifest.get().endpoints.webhookRegister);
     this.tenant = tenant;
-    this.registry = registry;
+    this.synchronizationSettings = synchronizationSettings;
     this.webhooks = webhooks;
   }
 
@@ -43,10 +45,13 @@ public class WebhookRegisterHttpHandler extends JsonHttpHandler {
       throw new PluginStatusException(400, "Admin credentials are missing. Re-run setup.");
 
     String callbackUrl = ImportRoutes.webhookCallbackUrl(request);
-    registry.storeCallbackUrl(callbackUrl);
+    synchronizationSettings.storeCallbackUrl(callbackUrl);
 
     webhooks.register(
-        new URL(tenant.docSpaceUrl()), new URL(callbackUrl), registry.ensureSecret(), credentials);
+        new URL(tenant.docSpaceUrl()),
+        new URL(callbackUrl),
+        synchronizationSettings.ensureSecret(),
+        credentials);
 
     return new WebhookRegisteredResponse(callbackUrl);
   }

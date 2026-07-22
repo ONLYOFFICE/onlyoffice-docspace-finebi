@@ -1,5 +1,6 @@
 package com.asc.fr.docspace.adapters.output.client.fr;
 
+import com.asc.fr.docspace.adapters.format.Json;
 import com.asc.fr.docspace.adapters.output.client.fr.transfer.FineDatasetRequests;
 import com.asc.fr.docspace.adapters.output.client.fr.transfer.FineEnvelope;
 import com.asc.fr.docspace.adapters.output.client.fr.transfer.FineResponses;
@@ -84,6 +85,14 @@ public final class FineDataClient
       throw new IOException("FineBI sheet preview returned no base attachment");
 
     return preview;
+  }
+
+  private String fetchTables(String folderId, FineSession session) throws IOException {
+    return Calls.string(
+        rest.get(
+            session.getBaseUrl() + Paths.PACK_TABLES.path(folderId),
+            token(session),
+            session.getCookie()));
   }
 
   @Override
@@ -186,6 +195,27 @@ public final class FineDataClient
     } catch (Exception ignored) {
       // Best-effort Spider refresh — failures must not fail the replace flow.
       // TODO: Handle exception somehow? UI event?
+    }
+  }
+
+  @Override
+  public boolean datasetExists(String tableId, String folderId, FineSession session)
+      throws IOException {
+    if (folderId == null || folderId.isEmpty())
+      throw new IOException("FineBI dataset existence probe requires folder id");
+
+    String body = fetchTables(folderId, session);
+    FineEnvelope envelope = FineEnvelope.parse(body);
+    if (envelope.authFailed(body))
+      throw new IOException("FineBI dataset existence probe authentication failed");
+
+    if (envelope.tableAbsent()) return false;
+    if (envelope.isExplicitFailure()) throw new IOException("FineBI pack tables probe failed");
+
+    try {
+      return FineResponses.findTable(Json.MAPPER.readTree(body), tableId, "") != null;
+    } catch (Exception e) {
+      throw new IOException("FineBI pack tables json failed", e);
     }
   }
 }

@@ -15,4 +15,6 @@ public interface FineDatasetService {
       throws IOException;
 
   void refreshDataset(FineRefreshDatasetCommand command, FineSession session);
+
+  boolean datasetExists(String tableId, String folderId, FineSession session) throws IOException;
 }

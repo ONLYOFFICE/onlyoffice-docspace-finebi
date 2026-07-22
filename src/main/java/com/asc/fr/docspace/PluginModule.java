@@ -28,12 +28,15 @@ import com.asc.fr.docspace.adapters.output.client.http.HttpClients;
 import com.asc.fr.docspace.adapters.output.client.http.RedirectingDownloader;
 import com.asc.fr.docspace.adapters.output.client.http.RetrofitFactory;
 import com.asc.fr.docspace.adapters.output.persistence.FineUnitOfWork;
+import com.asc.fr.docspace.adapters.output.persistence.service.FineDocSpaceSynchronizationService;
 import com.asc.fr.docspace.adapters.output.persistence.service.FineDocSpaceTenantService;
 import com.asc.fr.docspace.adapters.output.persistence.service.FineDocSpaceUserAccountService;
-import com.asc.fr.docspace.adapters.output.persistence.service.FineSynchronizationService;
 import com.asc.fr.docspace.adapters.output.service.*;
 import com.asc.fr.docspace.adapters.resource.DefaultResourceLoader;
 import com.asc.fr.docspace.adapters.resource.ResourceLoader;
+import com.asc.fr.docspace.application.job.JobSchedule;
+import com.asc.fr.docspace.application.job.SyncLinkJobSchedule;
+import com.asc.fr.docspace.application.job.SyncLinkReconciliationClusterJob;
 import com.asc.fr.docspace.application.job.WebhookReconciliationClusterJob;
 import com.asc.fr.docspace.application.port.input.DocSpaceExporterService;
 import com.asc.fr.docspace.application.port.input.DocSpaceImporterService;
@@ -54,6 +57,7 @@ import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceAuthenticator;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceCspService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileDownloadService;
+import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileRetrievalService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileUploadService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpacePathService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceSecretGenerator;
@@ -71,6 +75,8 @@ import com.asc.fr.docspace.application.service.DefaultDocSpaceTenantService;
 import com.asc.fr.docspace.application.service.DefaultDocSpaceUserAccountService;
 import com.asc.fr.docspace.application.service.DefaultPageSelectorService;
 import com.asc.fr.docspace.application.service.DefaultSynchronizationService;
+import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
+import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.fr.decision.fun.HttpHandler;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -187,9 +193,9 @@ final class PluginModule extends AbstractModule {
     bind(com.asc.fr.docspace.domain.DocSpaceUserAccountService.class)
         .to(FineDocSpaceUserAccountService.class)
         .in(Singleton.class);
-    bind(com.asc.fr.docspace.domain.SynchronizationService.class)
-        .to(FineSynchronizationService.class)
-        .in(Singleton.class);
+    bind(FineDocSpaceSynchronizationService.class).in(Singleton.class);
+    bind(SynchronizationLinkRegistry.class).to(FineDocSpaceSynchronizationService.class);
+    bind(SynchronizationSettings.class).to(FineDocSpaceSynchronizationService.class);
   }
 
   private void bindApplicationServices() {
@@ -217,10 +223,25 @@ final class PluginModule extends AbstractModule {
 
     bind(DocSpaceFileUploadService.class).to(DocSpaceFileClient.class);
     bind(DocSpaceFileDownloadService.class).to(DocSpaceFileClient.class);
+    bind(DocSpaceFileRetrievalService.class).to(DocSpaceFileClient.class);
 
     bind(FineAttachmentService.class).to(FineDataClient.class);
     bind(FineFolderService.class).to(FineDataClient.class);
     bind(FineDatasetService.class).to(FineDataClient.class);
+  }
+
+  @Provides
+  @Singleton
+  JobSchedule webhookReconciliationSchedule() {
+    PluginManifest.Schedule s = PluginManifest.get().schedulers.webhookReconciliation;
+    return new JobSchedule(s.initialDelayMillis, s.periodMillis);
+  }
+
+  @Provides
+  @Singleton
+  SyncLinkJobSchedule syncLinkReconciliationSchedule() {
+    PluginManifest.SyncLinkSchedule s = PluginManifest.get().schedulers.syncLinkReconciliation;
+    return new SyncLinkJobSchedule(s.initialDelayMillis, s.periodMillis, s.staleAfterMillis);
   }
 
   private void bindScheduledJobs() {
@@ -229,6 +250,7 @@ final class PluginModule extends AbstractModule {
     Multibinder<ScheduledClusterJob> clusterJobs =
         Multibinder.newSetBinder(binder(), ScheduledClusterJob.class);
     clusterJobs.addBinding().to(WebhookReconciliationClusterJob.class).in(Singleton.class);
+    clusterJobs.addBinding().to(SyncLinkReconciliationClusterJob.class).in(Singleton.class);
   }
 
   private void bindHttpHandlers() {

@@ -12,12 +12,15 @@ import lombok.Setter;
 @Entity
 @Table(name = "plugin_docspace_synchronization")
 public class DocSpaceSynchronizationEntryEntity extends BaseEntity {
-  @Column(name = "tableId")
-  private String tableId = "";
+  @Column(name = "fileId", length = 512)
+  private String fileId = "";
 
   @Column(name = "folderId")
   private String folderId = "";
 
   @Column(name = "tableName", length = 512)
   private String tableName = "";
+
+  @Column(name = "lastReconciledAt")
+  private Long lastReconciledAt = 0L;
 }

@@ -96,7 +96,10 @@ public final class FineEnvelope {
   public boolean tableAbsent() {
     String code = errorCode == null ? "" : errorCode;
     String msg = errorMsg == null ? "" : errorMsg;
-    return "61310034".equals(code) || msg.contains("FineTableAbsentException");
+    String detail = msg + " " + (message == null ? "" : message);
+    return "61310034".equals(code)
+        || detail.contains("FineTableAbsentException")
+        || detail.contains("TableAbsentException");
   }
 
   public boolean authFailed(String raw) {

@@ -3,20 +3,17 @@ package com.asc.fr.docspace.application.job;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.ScheduledClusterJob;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
-import com.asc.fr.docspace.domain.SynchronizationService;
+import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.URL;
 import com.google.inject.Inject;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(onConstructor_ = @__(@Inject))
 public final class WebhookReconciliationClusterJob implements ScheduledClusterJob {
-  private static final long INITIAL_DELAY_MS = TimeUnit.SECONDS.toMillis(5);
-  private static final long PERIOD_MS = TimeUnit.MINUTES.toMillis(5);
-
-  private final SynchronizationService synchronizationService;
+  private final SynchronizationSettings synchronizationService;
   private final DocSpaceTenantService tenantService;
   private final WebhookRegistrar webhookRegistrar;
+  private final JobSchedule schedule;
 
   @Override
   public String name() {
@@ -25,12 +22,12 @@ public final class WebhookReconciliationClusterJob implements ScheduledClusterJo
 
   @Override
   public long initialDelayMillis() {
-    return INITIAL_DELAY_MS;
+    return schedule.initialDelayMillis;
   }
 
   @Override
   public long periodMillis() {
-    return PERIOD_MS;
+    return schedule.periodMillis;
   }
 
   @Override
