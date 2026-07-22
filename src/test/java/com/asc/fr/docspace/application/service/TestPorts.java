@@ -268,6 +268,12 @@ final class TestPorts {
       task.run();
       return () -> {};
     }
+
+    @Override
+    public Cancellable scheduleAtFixedRate(long initialDelayMs, long periodMs, Runnable task) {
+      task.run();
+      return () -> {};
+    }
   }
 
   static final class RejectingTaskSchedulerService implements TaskSchedulerService {
@@ -283,6 +289,12 @@ final class TestPorts {
       scheduled++;
       return () -> {};
     }
+
+    @Override
+    public Cancellable scheduleAtFixedRate(long initialDelayMs, long periodMs, Runnable task) {
+      scheduled++;
+      return () -> {};
+    }
   }
 
   static final class DeferredTaskSchedulerService implements TaskSchedulerService {
@@ -295,6 +307,12 @@ final class TestPorts {
 
     @Override
     public Cancellable schedule(long delayMs, Runnable task) {
+      queued.add(task);
+      return () -> queued.remove(task);
+    }
+
+    @Override
+    public Cancellable scheduleAtFixedRate(long initialDelayMs, long periodMs, Runnable task) {
       queued.add(task);
       return () -> queued.remove(task);
     }

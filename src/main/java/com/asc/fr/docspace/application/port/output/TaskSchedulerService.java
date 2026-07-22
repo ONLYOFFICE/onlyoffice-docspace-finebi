@@ -19,4 +19,12 @@ public interface TaskSchedulerService {
    *     already ran (or is running) is a no-op
    */
   Cancellable schedule(long delay, Runnable task);
+
+  /**
+   * Runs {@code task} repeatedly: first after {@code initialDelay} milliseconds, then once every
+   * {@code period} milliseconds. A single failing run is swallowed and does not stop the schedule.
+   *
+   * @return a handle that stops future runs; cancelling is idempotent
+   */
+  Cancellable scheduleAtFixedRate(long initialDelay, long period, Runnable task);
 }

@@ -34,6 +34,7 @@ import com.asc.fr.docspace.adapters.output.persistence.service.FineSynchronizati
 import com.asc.fr.docspace.adapters.output.service.*;
 import com.asc.fr.docspace.adapters.resource.DefaultResourceLoader;
 import com.asc.fr.docspace.adapters.resource.ResourceLoader;
+import com.asc.fr.docspace.application.job.WebhookReconciliationClusterJob;
 import com.asc.fr.docspace.application.port.input.DocSpaceExporterService;
 import com.asc.fr.docspace.application.port.input.DocSpaceImporterService;
 import com.asc.fr.docspace.application.port.input.DocSpaceOriginService;
@@ -41,8 +42,11 @@ import com.asc.fr.docspace.application.port.input.DocSpaceTenantAdminService;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
 import com.asc.fr.docspace.application.port.input.PageSelectorService;
+import com.asc.fr.docspace.application.port.input.ScheduledClusterJob;
+import com.asc.fr.docspace.application.port.input.ScheduledJob;
 import com.asc.fr.docspace.application.port.input.SynchronizationService;
 import com.asc.fr.docspace.application.port.output.CachingService;
+import com.asc.fr.docspace.application.port.output.ClusterLockService;
 import com.asc.fr.docspace.application.port.output.IUnitOfWork;
 import com.asc.fr.docspace.application.port.output.SynchronizationEventPublisher;
 import com.asc.fr.docspace.application.port.output.TaskSchedulerService;
@@ -164,7 +168,8 @@ final class PluginModule extends AbstractModule {
   private void bindInfrastructure() {
     bind(CachingService.class).to(FineCachingService.class).in(Singleton.class);
     bind(FineEncryptionService.class).to(FineStorageEncryptorsService.class).in(Singleton.class);
-    bind(TaskSchedulerService.class).to(FineTaskScheduler.class).in(Singleton.class);
+    bind(TaskSchedulerService.class).to(FineTaskSchedulerService.class).in(Singleton.class);
+    bind(ClusterLockService.class).to(FineClusterLockService.class).in(Singleton.class);
     bind(FineSessionFactory.class).to(FinePlatformSessionFactory.class).in(Singleton.class);
     bind(DocSpaceSecretGenerator.class)
         .to(DocSpaceWebhookSecretGenerator.class)
@@ -218,6 +223,14 @@ final class PluginModule extends AbstractModule {
     bind(FineDatasetService.class).to(FineDataClient.class);
   }
 
+  private void bindScheduledJobs() {
+    Multibinder.newSetBinder(binder(), ScheduledJob.class);
+
+    Multibinder<ScheduledClusterJob> clusterJobs =
+        Multibinder.newSetBinder(binder(), ScheduledClusterJob.class);
+    clusterJobs.addBinding().to(WebhookReconciliationClusterJob.class).in(Singleton.class);
+  }
+
   private void bindHttpHandlers() {
     Multibinder<HttpHandler> web = Multibinder.newSetBinder(binder(), HttpHandler.class);
     // Tenant pages and auth
@@ -249,8 +262,9 @@ final class PluginModule extends AbstractModule {
     bindInfrastructure();
     bindDomainServices();
     bindApplicationServices();
+    bindScheduledJobs();
     bindHttpHandlers();
 
-    bind(DocSpacePluginWebhookStartupRunner.class).asEagerSingleton();
+    bind(FineScheduledJobRunner.class).asEagerSingleton();
   }
 }

@@ -1,5 +1,6 @@
 package com.asc.fr.docspace;
 
+import com.asc.fr.docspace.adapters.output.service.FineScheduledJobRunner;
 import com.fr.decision.fun.HttpHandler;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -20,7 +21,7 @@ public final class DocSpacePluginApplicationContext {
 
   private DocSpacePluginApplicationContext() {
     injector = Guice.createInjector(Stage.PRODUCTION, new PluginModule());
-    injector.getInstance(DocSpacePluginWebhookStartupRunner.class);
+    injector.getInstance(FineScheduledJobRunner.class);
   }
 
   public static DocSpacePluginApplicationContext get() {
