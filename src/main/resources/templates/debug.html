@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>DocSpace Debug — File Links</title>
+    <title>ONLYOFFICE DocSpace</title>
     <style>
         :root {
-            --oo-blue: #5299E0;
-            --oo-text: #333333;
-            --oo-muted: #A3A9AE;
-            --oo-border: #D0D5DA;
-            --oo-bg: #F8F9F9;
+            --onlyoffice-blue: #5299E0;
+            --onlyoffice-text: #333333;
+            --onlyoffice-muted: #A3A9AE;
+            --onlyoffice-border: #D0D5DA;
+            --onlyoffice-bg: #F8F9F9;
         }
 
         * { box-sizing: border-box; }
@@ -19,16 +19,16 @@
             margin: 0;
             padding: 32px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: var(--oo-text);
+            color: var(--onlyoffice-text);
             background: #FFFFFF;
         }
 
-        .oo-debug {
+        .onlyoffice-debug {
             max-width: 1120px;
             margin: 0 auto;
         }
 
-        .oo-debug__header {
+        .onlyoffice-debug__header {
             display: flex;
             align-items: baseline;
             justify-content: space-between;
@@ -36,13 +36,13 @@
             margin-bottom: 4px;
         }
 
-        .oo-debug__title {
+        .onlyoffice-debug__title {
             margin: 0;
             font-size: 1.5rem;
             font-weight: 700;
         }
 
-        .oo-debug__badge {
+        .onlyoffice-debug__badge {
             display: inline-block;
             padding: 2px 10px;
             border-radius: 3px;
@@ -51,82 +51,77 @@
             letter-spacing: 0.04em;
             text-transform: uppercase;
             color: #fff;
-            background: var(--oo-blue);
+            background: var(--onlyoffice-blue);
         }
 
-        .oo-debug__subtitle {
+        .onlyoffice-debug__subtitle {
             margin: 0 0 24px;
             font-size: 0.9rem;
-            color: var(--oo-muted);
+            color: var(--onlyoffice-muted);
         }
 
-        .oo-card {
-            border: 1px solid var(--oo-border);
+        .onlyoffice-debug__card {
+            border: 1px solid var(--onlyoffice-border);
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
         }
 
-        table.oo-table {
+        table.onlyoffice-debug-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.875rem;
         }
 
-        .oo-table thead th {
+        .onlyoffice-debug-table__heading {
             padding: 12px 16px;
             text-align: left;
             font-weight: 600;
-            color: var(--oo-muted);
+            color: var(--onlyoffice-muted);
             text-transform: uppercase;
             font-size: 0.72rem;
             letter-spacing: 0.04em;
-            background: var(--oo-bg);
-            border-bottom: 1px solid var(--oo-border);
+            background: var(--onlyoffice-bg);
+            border-bottom: 1px solid var(--onlyoffice-border);
             white-space: nowrap;
         }
 
-        .oo-table tbody td {
+        .onlyoffice-debug-table__cell {
             padding: 12px 16px;
             border-bottom: 1px solid #EDEEF0;
             vertical-align: top;
         }
 
-        .oo-table tbody tr:last-child td {
+        .onlyoffice-debug-table__row:last-child .onlyoffice-debug-table__cell {
             border-bottom: none;
         }
 
-        .oo-table tbody tr:hover {
+        .onlyoffice-debug-table__row:hover {
             background: #FBFCFC;
         }
 
-        .oo-mono {
+        .onlyoffice-debug__mono {
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
             font-size: 0.8rem;
             word-break: break-all;
         }
 
-        .oo-link {
-            color: var(--oo-blue);
+        .onlyoffice-debug__link {
+            color: var(--onlyoffice-blue);
             text-decoration: none;
             font-weight: 600;
         }
 
-        .oo-link:hover { text-decoration: underline; }
+        .onlyoffice-debug__link:hover { text-decoration: underline; }
 
-        .oo-link--disabled {
-            color: var(--oo-muted);
-            pointer-events: none;
-        }
-
-        .oo-empty {
+        .onlyoffice-debug__empty {
             padding: 48px 16px;
             text-align: center;
-            color: var(--oo-muted);
+            color: var(--onlyoffice-muted);
             font-size: 0.95rem;
         }
 
-        .oo-pagination {
+        .onlyoffice-debug__pagination {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -134,98 +129,98 @@
             margin-top: 20px;
         }
 
-        .oo-pagination__info {
+        .onlyoffice-debug__pagination-info {
             font-size: 0.85rem;
-            color: var(--oo-muted);
+            color: var(--onlyoffice-muted);
         }
 
-        .oo-pagination__controls {
+        .onlyoffice-debug__pagination-controls {
             display: flex;
             gap: 12px;
         }
 
-        .oo-btn {
+        .onlyoffice-debug__button {
             display: inline-flex;
             align-items: center;
             height: 36px;
             padding: 0 18px;
-            border: 1px solid var(--oo-border);
+            border: 1px solid var(--onlyoffice-border);
             border-radius: 3px;
             font-size: 0.85rem;
             font-weight: 600;
             font-family: inherit;
             text-decoration: none;
-            color: var(--oo-text);
+            color: var(--onlyoffice-text);
             background: #FFFFFF;
             cursor: pointer;
         }
 
-        .oo-btn:hover {
+        .onlyoffice-debug__button:hover {
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
             transition: box-shadow 0.3s;
         }
 
-        .oo-btn--disabled {
-            color: var(--oo-muted);
-            background: var(--oo-bg);
+        .onlyoffice-debug__button--disabled {
+            color: var(--onlyoffice-muted);
+            background: var(--onlyoffice-bg);
             box-shadow: none;
             pointer-events: none;
         }
     </style>
 </head>
 <body>
-<div class="oo-debug">
-    <div class="oo-debug__header">
-        <h1 class="oo-debug__title">DocSpace &mdash; File Links</h1>
-        <span class="oo-debug__badge">Debug</span>
+<div class="onlyoffice-debug">
+    <div class="onlyoffice-debug__header">
+        <h1 class="onlyoffice-debug__title">DocSpace &mdash; File Links</h1>
+        <span class="onlyoffice-debug__badge">Debug</span>
     </div>
-    <p class="oo-debug__subtitle">
+    <p class="onlyoffice-debug__subtitle">
         Synchronization links between DocSpace files and FineBI datasets. Administrators only.
     </p>
 
-    <div class="oo-card">
-        <table class="oo-table" th:if="${!links.isEmpty()}">
+    <div class="onlyoffice-debug__card">
+        <table class="onlyoffice-debug-table" th:if="${!links.isEmpty()}">
             <thead>
             <tr>
-                <th>Dataset (tableId)</th>
-                <th>Table name</th>
-                <th>DocSpace file</th>
-                <th>Folder</th>
-                <th>Last reconciled</th>
+                <th class="onlyoffice-debug-table__heading">Dataset (tableId)</th>
+                <th class="onlyoffice-debug-table__heading">Table name</th>
+                <th class="onlyoffice-debug-table__heading">DocSpace file</th>
+                <th class="onlyoffice-debug-table__heading">Folder</th>
+                <th class="onlyoffice-debug-table__heading">Last reconciled</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="link : ${links}">
-                <td class="oo-mono" th:text="${link.tableId}">uuid</td>
-                <td th:text="${link.tableName}">name.xlsx</td>
-                <td>
-                    <a class="oo-link" th:if="${link.fileUrl != null}"
+            <tr class="onlyoffice-debug-table__row" th:each="link : ${links}">
+                <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono" th:text="${link.tableId}">uuid</td>
+                <td class="onlyoffice-debug-table__cell" th:text="${link.tableName}">name.xlsx</td>
+                <td class="onlyoffice-debug-table__cell">
+                    <a class="onlyoffice-debug__link" th:if="${link.fileUrl != null}"
                        th:href="${link.fileUrl}" target="_blank" rel="noopener noreferrer"
                        th:text="${link.fileId}">fileId</a>
-                    <span class="oo-mono" th:if="${link.fileUrl == null}" th:text="${link.fileId}">fileId</span>
+                    <span class="onlyoffice-debug__mono" th:if="${link.fileUrl == null}" th:text="${link.fileId}">fileId</span>
                 </td>
-                <td>
-                    <a class="oo-link" th:if="${link.folderUrl != null}"
+                <td class="onlyoffice-debug-table__cell">
+                    <a class="onlyoffice-debug__link" th:if="${link.folderUrl != null}"
                        th:href="${link.folderUrl}" target="_blank" rel="noopener noreferrer"
                        th:text="${link.folderId}">folderId</a>
-                    <span class="oo-mono" th:if="${link.folderUrl == null}" th:text="${link.folderId}">folderId</span>
+                    <span class="onlyoffice-debug__mono" th:if="${link.folderUrl == null}" th:text="${link.folderId}">folderId</span>
                 </td>
-                <td class="oo-mono" th:text="${link.lastReconciledAt}">timestamp</td>
+                <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono" th:text="${link.lastReconciledAt}">timestamp</td>
             </tr>
             </tbody>
         </table>
-        <div class="oo-empty" th:if="${links.isEmpty()}">
+        <div class="onlyoffice-debug__empty" th:if="${links.isEmpty()}">
             No file links found on this page.
         </div>
     </div>
 
-    <div class="oo-pagination">
-        <span class="oo-pagination__info" th:text="'Page ' + ${page}">Page 1</span>
-        <div class="oo-pagination__controls">
-            <a class="oo-btn" th:classappend="${hasPrev} ? '' : 'oo-btn--disabled'"
-               th:href="${hasPrev} ? @{${baseUrl}(page=${prevPage})} : '#'">&larr; Previous</a>
-            <a class="oo-btn" th:classappend="${hasNext} ? '' : 'oo-btn--disabled'"
-               th:href="${hasNext} ? @{${baseUrl}(page=${nextPage})} : '#'">Next &rarr;</a>
+    <div class="onlyoffice-debug__pagination">
+        <span class="onlyoffice-debug__pagination-info" th:text="'Page ' + ${page}">Page 1</span>
+        <div class="onlyoffice-debug__pagination-controls">
+            <a class="onlyoffice-debug__button" th:classappend="${hasPrev} ? '' : 'onlyoffice-debug__button--disabled'"
+               th:href="${hasPrev} ? @{${baseUrl}(page=${prevPage})} : '#'">Previous</a>
+            <a class="onlyoffice-debug__button" th:classappend="${hasNext} ? '' : 'onlyoffice-debug__button--disabled'"
+               th:href="${hasNext} ? @{${baseUrl}(page=${nextPage})} : '#'">Next</a>
         </div>
     </div>
 </div>
