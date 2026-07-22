@@ -7,7 +7,6 @@ import com.fr.third.javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-// TODO: Handle invalid webhooks somehow. Scheduler to hit docspace periodically?
 @Getter
 @Setter
 @Entity
