@@ -2,10 +2,79 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>ONLYOFFICE DocSpace</title>
+    <style>
+        html, body { height: 100%; margin: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .onlyoffice-page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            background: #FFFFFF;
+        }
+
+        .onlyoffice-placeholder-container {
+            padding: 16px;
+
+            text-align: center;
+        }
+
+        .onlyoffice-placeholder-container__logo {
+            max-width: 386px;
+            margin: 0 auto;
+        }
+
+        .onlyoffice-placeholder-container__logo svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .onlyoffice-placeholder-container__owl {
+            margin-top: 20px;
+        }
+
+        .onlyoffice-placeholder-container__text {
+            max-width: 288px;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+
+            margin: 40px auto 0;
+        }
+
+        .onlyoffice-placeholder-container__header {
+            margin-bottom: 8px;
+
+            font-weight: 700;
+            font-size: 1.25rem;
+
+            color: #333333;
+        }
+
+        .onlyoffice-subtext {
+            line-height: 1.4;
+            font-size: 0.85rem;
+
+            color: #A3A9AE;
+        }
+    </style>
 </head>
 <body>
-    <h1>DocSpace page error</h1>
-    <pre th:text="${message}"></pre>
+<div class="onlyoffice-page-container onlyoffice-placeholder-container">
+    <div class="onlyoffice-placeholder-container__logo" th:utext="${logoSvg}"></div>
+    <div class="onlyoffice-placeholder-container__owl" th:utext="${owlSvg}"></div>
+    <div class="onlyoffice-placeholder-container__text">
+        <span class="onlyoffice-placeholder-container__header">Something went wrong</span>
+        <span class="onlyoffice-subtext" th:text="${message}">Please reload the page to try again.</span>
+    </div>
+</div>
 </body>
 </html>

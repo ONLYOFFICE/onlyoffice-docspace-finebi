@@ -1,6 +1,7 @@
 package com.asc.fr.docspace.adapters.input.web.tenant.handler;
 
 import com.asc.fr.docspace.PluginManifest;
+import com.asc.fr.docspace.adapters.input.web.ErrorPageRenderer;
 import com.asc.fr.docspace.adapters.resource.ResourceLoader;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.domain.common.URL;
@@ -25,10 +26,13 @@ public final class PageRenderer {
 
   private final DocSpaceTenantService tenantService;
   private final TemplateEngine templateEngine;
+  private final ErrorPageRenderer errorPage;
 
   @Inject
-  PageRenderer(DocSpaceTenantService tenantService, ResourceLoader resources) {
+  PageRenderer(
+      DocSpaceTenantService tenantService, ResourceLoader resources, ErrorPageRenderer errorPage) {
     this.tenantService = tenantService;
+    this.errorPage = errorPage;
     PluginManifest manifest = PluginManifest.get();
 
     try {
@@ -61,8 +65,6 @@ public final class PageRenderer {
   }
 
   public String renderError(String message) {
-    Context ctx = new Context();
-    ctx.setVariable("message", message != null ? message : "");
-    return templateEngine.process("error", ctx);
+    return errorPage.render(message);
   }
 }
