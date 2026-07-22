@@ -44,6 +44,10 @@ public final class FineDocSpaceSynchronizationService
     return QueryFactory.create().addRestriction(RestrictionFactory.eq("fileId", fileId));
   }
 
+  private static QueryCondition byAll() {
+    return QueryFactory.create();
+  }
+
   private List<FileSynchronizationRecord> page(QueryCondition condition) {
     List<DocSpaceSynchronizationEntryEntity> rows =
         uow.query(ctx -> ctx.getDAO(DocSpaceSynchronizationEntryDAO.class).find(condition))
@@ -86,6 +90,13 @@ public final class FineDocSpaceSynchronizationService
   public List<FileSynchronizationRecord> findByFile(String fileId) {
     if (fileId == null || fileId.isEmpty()) return Collections.emptyList();
     return page(byFileId(fileId));
+  }
+
+  @Override
+  public List<FileSynchronizationRecord> listLinks(int offset, int limit) {
+    if (limit <= 0) return Collections.emptyList();
+    int skip = Math.max(0, offset);
+    return page(byAll().addSort("id", true).skip(skip).count(limit));
   }
 
   @Override

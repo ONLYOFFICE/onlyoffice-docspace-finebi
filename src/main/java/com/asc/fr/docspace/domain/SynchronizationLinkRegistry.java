@@ -26,4 +26,10 @@ public interface SynchronizationLinkRegistry {
   void removeAll() throws IOException;
 
   List<FileSynchronizationRecord> staleLinks(long reconciledBefore, String afterTableId, int limit);
+
+  /**
+   * A page of links ordered by dataset UUID: {@code offset} rows skipped, at most {@code limit}
+   * returned.
+   */
+  List<FileSynchronizationRecord> listLinks(int offset, int limit);
 }

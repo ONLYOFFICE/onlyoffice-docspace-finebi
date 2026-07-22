@@ -202,6 +202,17 @@ final class TestPorts {
     }
 
     @Override
+    public List<FileSynchronizationRecord> listLinks(int offset, int limit) {
+      if (limit <= 0) return new ArrayList<>();
+      List<String> keys = new ArrayList<>(entries.keySet());
+      Collections.sort(keys);
+      List<FileSynchronizationRecord> page = new ArrayList<>();
+      for (int i = Math.max(0, offset); i < keys.size() && page.size() < limit; i++)
+        page.add(entries.get(keys.get(i)));
+      return page;
+    }
+
+    @Override
     public void storeCallbackUrl(String url) {
       this.callbackUrl = url;
     }

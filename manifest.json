@@ -1,6 +1,7 @@
 {
   "pluginId": "com.asc.fr.docspace",
   "sdkVersion": "2.2.0",
+  "debug": true,
   "module": {
     "id": "decision-management-docspace",
     "value": "docspace",
@@ -16,6 +17,7 @@
   "aliases": {
     "main":    { "from": "/docspace",         "to": "/client/docspace",              "public": false },
     "admin":   { "from": "/docspace/admin",   "to": "/client/docspace/admin",        "public": false },
+    "debug":   { "from": "/docspace-debug",   "to": "/client/debug",        "public": false },
     "webhook": { "from": "/docspace/webhook", "to": "/api/import/docspace/webhook",  "public": true  },
     "events":  { "from": "/docspace/events",  "to": "/api/import/docspace/events",   "public": false }
   },
@@ -51,6 +53,7 @@
     "setup":            "/client/setup",
     "docspace":         "/client/docspace",
     "docspaceAdmin":    "/client/docspace/admin",
+    "pluginDebug":      "/client/debug",
     "session":          "/api/session",
     "login":            "/api/login",
     "logout":           "/api/logout",

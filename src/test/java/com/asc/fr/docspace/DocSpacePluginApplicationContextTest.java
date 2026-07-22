@@ -12,7 +12,7 @@ class DocSpacePluginApplicationContextTest {
   void givenApplicationContext_whenBootingGuiceGraph_thenExposesAllHttpHandlers() {
     HttpHandler[] handlers = DocSpacePluginApplicationContext.get().httpHandlers();
     assertEquals(
-        17,
+        18,
         handlers.length,
         () ->
             "Registered handlers changed: "

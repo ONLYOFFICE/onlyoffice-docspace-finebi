@@ -18,6 +18,7 @@ public final class PluginManifest {
 
   public final String pluginId;
   public final String sdkVersion;
+  public final boolean debug;
   public final Module module;
   public final Assets assets;
   public final Aliases aliases;
@@ -30,6 +31,7 @@ public final class PluginManifest {
   public PluginManifest(
       @JsonProperty("pluginId") String pluginId,
       @JsonProperty("sdkVersion") String sdkVersion,
+      @JsonProperty("debug") boolean debug,
       @JsonProperty("module") Module module,
       @JsonProperty("assets") Assets assets,
       @JsonProperty("aliases") Aliases aliases,
@@ -39,6 +41,7 @@ public final class PluginManifest {
       @JsonProperty("schedulers") Schedulers schedulers) {
     this.pluginId = pluginId;
     this.sdkVersion = sdkVersion;
+    this.debug = debug;
     this.module = module;
     this.assets = assets;
     this.aliases = aliases;
@@ -162,6 +165,7 @@ public final class PluginManifest {
     @JsonProperty public String reset;
     @JsonProperty public String docspace;
     @JsonProperty public String docspaceAdmin;
+    @JsonProperty public String pluginDebug;
     @JsonProperty public String importFile;
     @JsonProperty public String folders;
     @JsonProperty public String webhookCallback;
@@ -175,11 +179,12 @@ public final class PluginManifest {
   public static final class Aliases {
     @JsonProperty public Alias main;
     @JsonProperty public Alias admin;
+    @JsonProperty public Alias debug;
     @JsonProperty public Alias webhook;
     @JsonProperty public Alias events;
 
     public List<Alias> all() {
-      return Arrays.asList(main, admin, webhook, events);
+      return Arrays.asList(main, admin, debug, webhook, events);
     }
   }
 

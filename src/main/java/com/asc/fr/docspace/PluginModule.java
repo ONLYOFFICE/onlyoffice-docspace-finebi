@@ -1,5 +1,6 @@
 package com.asc.fr.docspace;
 
+import com.asc.fr.docspace.adapters.input.web.debug.DebugDashboardHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.export.handler.ExportConfigHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.export.handler.ExportTriggerHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.export.handler.ExportUploadHttpHandler;
@@ -258,6 +259,7 @@ final class PluginModule extends AbstractModule {
     // Tenant pages and auth
     web.addBinding().to(DocSpacePageHttpHandler.class);
     web.addBinding().to(AdminSettingsHttpHandler.class);
+    web.addBinding().to(DebugDashboardHttpHandler.class);
     web.addBinding().to(SessionConfigHttpHandler.class);
     web.addBinding().to(SetupHttpHandler.class);
     web.addBinding().to(LoginHttpHandler.class);

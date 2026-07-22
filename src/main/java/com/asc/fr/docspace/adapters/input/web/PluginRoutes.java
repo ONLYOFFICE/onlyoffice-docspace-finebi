@@ -26,6 +26,11 @@ public final class PluginRoutes {
     return request.getContextPath() + "/decision/url" + PluginManifest.get().aliases.admin.from;
   }
 
+  /** Admin-only debug dashboard listing the stored DocSpace/FineBI file links. */
+  public static String debugUrl(HttpServletRequest request) {
+    return request.getContextPath() + "/decision/url" + PluginManifest.get().aliases.debug.from;
+  }
+
   /** SSE stream shared by dataset-refresh and tenant-reset notifications. */
   public static String syncEventsUrl(HttpServletRequest request) {
     return request.getContextPath() + "/decision/url" + PluginManifest.get().aliases.events.from;
