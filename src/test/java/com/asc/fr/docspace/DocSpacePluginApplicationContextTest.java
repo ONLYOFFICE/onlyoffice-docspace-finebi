@@ -1,6 +1,6 @@
 package com.asc.fr.docspace;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fr.decision.fun.HttpHandler;
 import java.util.Arrays;
@@ -11,13 +11,13 @@ class DocSpacePluginApplicationContextTest {
   @Test
   void givenApplicationContext_whenBootingGuiceGraph_thenExposesAllHttpHandlers() {
     HttpHandler[] handlers = DocSpacePluginApplicationContext.get().httpHandlers();
-    assertEquals(
-        18,
-        handlers.length,
-        () ->
-            "Registered handlers changed: "
-                + Arrays.stream(handlers)
-                    .map(h -> h.getClass().getSimpleName())
-                    .collect(Collectors.joining(", ")));
+    assertThat(handlers)
+        .as(
+            () ->
+                "Registered handlers changed: "
+                    + Arrays.stream(handlers)
+                        .map(h -> h.getClass().getSimpleName())
+                        .collect(Collectors.joining(", ")))
+        .hasSize(18);
   }
 }

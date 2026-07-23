@@ -1,135 +1,92 @@
 package com.asc.fr.docspace.adapters.output.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.asc.fr.docspace.application.port.input.ScheduledClusterJob;
 import com.asc.fr.docspace.application.port.input.ScheduledJob;
 import com.asc.fr.docspace.application.port.output.ClusterLockService;
 import com.asc.fr.docspace.application.port.output.TaskSchedulerService;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class FineScheduledJobRunnerTest {
+  @Mock private TaskSchedulerService scheduler;
+  @Mock private ClusterLockService clusterLock;
 
-  /** Fires every scheduled task once, synchronously, so the wiring can be observed. */
-  private static final class ImmediateScheduler implements TaskSchedulerService {
-    @Override
-    public void run(Runnable task) {
-      task.run();
-    }
-
-    @Override
-    public Cancellable schedule(long delayMs, Runnable task) {
-      task.run();
-      return () -> {};
-    }
-
-    @Override
-    public Cancellable scheduleAtFixedRate(long initialDelayMs, long periodMs, Runnable task) {
-      task.run();
-      return () -> {};
-    }
+  @BeforeEach
+  void runScheduledTasksImmediately() {
+    when(scheduler.scheduleAtFixedRate(anyLong(), anyLong(), any()))
+        .thenAnswer(
+            invocation -> {
+              invocation.getArgument(2, Runnable.class).run();
+              return (TaskSchedulerService.Cancellable) () -> {};
+            });
   }
 
-  private static final class FakeClusterLock implements ClusterLockService {
-    final List<String> lockNames = new ArrayList<>();
-    boolean acquired = true;
-
-    @Override
-    public void runExclusive(String lockName, Runnable task) {
-      lockNames.add(lockName);
-      if (acquired) task.run();
-    }
+  private FineScheduledJobRunner runnerFor(ScheduledJob plainJob) {
+    return new FineScheduledJobRunner(
+        Collections.singleton(plainJob), Collections.emptySet(), scheduler, clusterLock);
   }
 
-  private static final class CountingJob implements ScheduledJob {
-    int runs;
-
-    @Override
-    public String name() {
-      return "plain";
-    }
-
-    @Override
-    public long initialDelayMillis() {
-      return 0;
-    }
-
-    @Override
-    public long periodMillis() {
-      return 1000;
-    }
-
-    @Override
-    public void run() {
-      runs++;
-    }
-  }
-
-  private static final class CountingClusterJob implements ScheduledClusterJob {
-    int runs;
-
-    @Override
-    public String name() {
-      return "clustered";
-    }
-
-    @Override
-    public long initialDelayMillis() {
-      return 0;
-    }
-
-    @Override
-    public long periodMillis() {
-      return 1000;
-    }
-
-    @Override
-    public void run() {
-      runs++;
-    }
+  private FineScheduledJobRunner runnerFor(ScheduledClusterJob clusterJob) {
+    return new FineScheduledJobRunner(
+        Collections.emptySet(), Collections.singleton(clusterJob), scheduler, clusterLock);
   }
 
   @Test
   void givenClusterJob_whenLockAcquired_thenRunsThroughLockKeyedOnName() {
-    CountingClusterJob job = new CountingClusterJob();
-    FakeClusterLock lock = new FakeClusterLock();
+    ScheduledClusterJob job = clusterJob("clustered");
+    doAnswer(invocation -> runTask(invocation.getArgument(1)))
+        .when(clusterLock)
+        .runExclusive(eq("clustered"), any());
 
-    new FineScheduledJobRunner(
-        Collections.emptySet(), Collections.singleton(job), new ImmediateScheduler(), lock);
+    runnerFor(job);
 
-    assertEquals(1, job.runs);
-    assertEquals(Collections.singletonList("clustered"), lock.lockNames);
+    verify(clusterLock).runExclusive(eq("clustered"), any());
+    verify(job).run();
   }
 
   @Test
   void givenClusterJob_whenLockNotAcquired_thenSkipsThisNode() {
-    CountingClusterJob job = new CountingClusterJob();
-    FakeClusterLock lock = new FakeClusterLock();
-    lock.acquired = false;
+    ScheduledClusterJob job = clusterJob("clustered");
 
-    new FineScheduledJobRunner(
-        Collections.emptySet(), Collections.singleton(job), new ImmediateScheduler(), lock);
+    runnerFor(job);
 
-    assertEquals(0, job.runs);
-    assertEquals(Collections.singletonList("clustered"), lock.lockNames);
+    verify(clusterLock).runExclusive(eq("clustered"), any());
+    verify(job, never()).run();
   }
 
   @Test
   void givenPlainJob_whenScheduling_thenRunsWithoutTheClusterLock() {
-    CountingJob job = new CountingJob();
-    FakeClusterLock lock = new FakeClusterLock();
+    ScheduledJob job = mock(ScheduledJob.class);
 
-    new FineScheduledJobRunner(
-        Collections.<ScheduledJob>singleton(job),
-        Collections.<ScheduledClusterJob>emptySet(),
-        new ImmediateScheduler(),
-        lock);
+    runnerFor(job);
 
-    assertEquals(1, job.runs);
-    assertTrue(lock.lockNames.isEmpty());
+    verify(job).run();
+    verifyNoInteractions(clusterLock);
+  }
+
+  private static ScheduledClusterJob clusterJob(String name) {
+    ScheduledClusterJob job = mock(ScheduledClusterJob.class);
+    when(job.name()).thenReturn(name);
+    return job;
+  }
+
+  private static Object runTask(Runnable task) {
+    task.run();
+    return null;
   }
 }

@@ -1,7 +1,6 @@
 package com.asc.fr.docspace.adapters.output.client.fr.transfer;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.asc.fr.docspace.adapters.format.Json;
 import com.asc.fr.docspace.adapters.output.client.fr.transfer.response.FineTableSummaryResponse;
@@ -25,12 +24,14 @@ class FineResponsesTest {
     FineTableSummaryResponse found =
         FineResponses.findTable(root(PACK_TABLES), "05cb755fa0424f9e86675d430fd5ce08", "");
 
-    assertNotNull(found, "dataset present under data.tables.availableTables must be found");
+    assertThat(found)
+        .as("dataset present under data.tables.availableTables must be found")
+        .isNotNull();
   }
 
   @Test
   void givenNestedPackTablesShape_whenUuidAbsent_thenReturnsNull() throws IOException {
-    assertNull(FineResponses.findTable(root(PACK_TABLES), "does-not-exist", ""));
+    assertThat(FineResponses.findTable(root(PACK_TABLES), "does-not-exist", "")).isNull();
   }
 
   @Test
@@ -41,6 +42,6 @@ class FineResponsesTest {
 
     JsonNode dataArray = root(body).path("data");
 
-    assertNotNull(FineResponses.findTable(dataArray, "", "Products"));
+    assertThat(FineResponses.findTable(dataArray, "", "Products")).isNotNull();
   }
 }

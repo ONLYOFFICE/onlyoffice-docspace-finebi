@@ -1,7 +1,6 @@
 package com.asc.fr.docspace.adapters.input.web.imports.handler;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.asc.fr.docspace.adapters.input.web.imports.WebhookSignatureVerifierService;
 import java.nio.charset.StandardCharsets;
@@ -31,17 +30,13 @@ class WebhookSignatureVerifierServiceTest {
     return hex.toString();
   }
 
-  static Stream<Arguments> validSignatureCases() {
-    try {
-      byte[] jsonBody = "{\"event\":\"file.updated\"}".getBytes(StandardCharsets.UTF_8);
-      byte[] plainBody = "payload".getBytes(StandardCharsets.UTF_8);
-      return Stream.of(
-          Arguments.of(jsonBody, "sha256=" + hmacHex(jsonBody, SECRET)),
-          Arguments.of(plainBody, hmacHex(plainBody, SECRET)),
-          Arguments.of(plainBody, hmacHex(plainBody, SECRET).toLowerCase()));
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+  static Stream<Arguments> validSignatureCases() throws Exception {
+    byte[] jsonBody = "{\"event\":\"file.updated\"}".getBytes(StandardCharsets.UTF_8);
+    byte[] plainBody = "payload".getBytes(StandardCharsets.UTF_8);
+    return Stream.of(
+        Arguments.of(jsonBody, "sha256=" + hmacHex(jsonBody, SECRET)),
+        Arguments.of(plainBody, hmacHex(plainBody, SECRET)),
+        Arguments.of(plainBody, hmacHex(plainBody, SECRET).toLowerCase()));
   }
 
   @Nested
@@ -49,9 +44,8 @@ class WebhookSignatureVerifierServiceTest {
     @ParameterizedTest
     @MethodSource(
         "com.asc.fr.docspace.adapters.input.web.imports.handler.WebhookSignatureVerifierServiceTest#validSignatureCases")
-    void givenCorrectHmac_whenVerifying_thenReturnsTrue(byte[] body, String signature)
-        throws Exception {
-      assertTrue(verifier.verify(body, SECRET, signature));
+    void givenCorrectHmac_whenVerifying_thenReturnsTrue(byte[] body, String signature) {
+      assertThat(verifier.verify(body, SECRET, signature)).isTrue();
     }
   }
 
@@ -62,7 +56,8 @@ class WebhookSignatureVerifierServiceTest {
       byte[] original = "payload".getBytes(StandardCharsets.UTF_8);
       String signature = "sha256=" + hmacHex(original, SECRET);
       byte[] tampered = "payload!".getBytes(StandardCharsets.UTF_8);
-      assertFalse(verifier.verify(tampered, SECRET, signature));
+
+      assertThat(verifier.verify(tampered, SECRET, signature)).isFalse();
     }
 
     @ParameterizedTest
@@ -70,7 +65,8 @@ class WebhookSignatureVerifierServiceTest {
     @ValueSource(strings = {"sha256=zz-not-hex", "sha256=abc"})
     void givenInvalidHeader_whenVerifying_thenReturnsFalse(String header) {
       byte[] body = "payload".getBytes(StandardCharsets.UTF_8);
-      assertFalse(verifier.verify(body, SECRET, header));
+
+      assertThat(verifier.verify(body, SECRET, header)).isFalse();
     }
   }
 }

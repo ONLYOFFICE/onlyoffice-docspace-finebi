@@ -1,70 +1,90 @@
 package com.asc.fr.docspace.application.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.asc.fr.docspace.application.job.JobSchedule;
 import com.asc.fr.docspace.application.job.WebhookReconciliationClusterJob;
+import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
+import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
+import com.asc.fr.docspace.domain.SynchronizationSettings;
+import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
-import com.asc.fr.docspace.domain.docspace.DocSpaceTenantConfiguration;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class WebhookReconciliationClusterJobTest {
   private static final String CALLBACK = "https://fr.example.com/decision/url/webhook";
+  private static final String DOCSPACE_URL = "https://docspace.example.com";
+  private static final DocSpaceAccountCredentials ADMIN =
+      new DocSpaceAccountCredentials("admin@example.com", "1", "hash");
 
-  private TestPorts.InMemorySynchronizationService synchronizationService;
-  private TestPorts.InMemoryDocSpaceTenantService tenantService;
-  private TestPorts.RecordingWebhookRegistrar webhookRegistrar;
+  @Mock private SynchronizationSettings settings;
+  @Mock private DocSpaceTenantService tenantService;
+  @Mock private WebhookRegistrar webhookRegistrar;
+
   private WebhookReconciliationClusterJob job;
 
   @BeforeEach
   void setUp() {
-    tenantService = new TestPorts.InMemoryDocSpaceTenantService();
-    tenantService.config =
-        new DocSpaceTenantConfiguration(
-            "https://docspace.example.com",
-            new DocSpaceAccountCredentials("admin@example.com", "1", "hash"));
-    synchronizationService = new TestPorts.InMemorySynchronizationService();
-    webhookRegistrar = new TestPorts.RecordingWebhookRegistrar();
     job =
         new WebhookReconciliationClusterJob(
-            synchronizationService,
-            new DefaultDocSpaceTenantService(tenantService),
-            webhookRegistrar,
-            new JobSchedule(5000, 300000));
+            settings, tenantService, webhookRegistrar, new JobSchedule(5000, 300000));
   }
 
-  @Test
-  void givenConfiguredTenantWithCallback_whenRunning_thenReEnsuresWebhook() {
-    synchronizationService.storeCallbackUrl(CALLBACK);
+  @Nested
+  class WhenTenantIsConfigured {
+    @BeforeEach
+    void configureTenant() {
+      when(tenantService.isConfigured()).thenReturn(true);
+      lenient().when(tenantService.docSpaceUrl()).thenReturn(DOCSPACE_URL);
+      lenient().when(tenantService.adminCredentials()).thenReturn(ADMIN);
+    }
 
-    job.run();
+    @Test
+    void givenCallbackAndSecret_whenRunning_thenReEnsuresWebhook() {
+      when(settings.loadCallbackUrl()).thenReturn(CALLBACK);
+      when(settings.loadSecret()).thenReturn("TestSecret123");
 
-    assertTrue(webhookRegistrar.registered.contains(CALLBACK));
-  }
+      job.run();
 
-  @Test
-  void givenNoCallbackStored_whenRunning_thenDoesNothing() {
-    job.run();
+      verify(webhookRegistrar)
+          .ensureRegistered(
+              eq(new URL(DOCSPACE_URL)), eq(new URL(CALLBACK)), eq("TestSecret123"), eq(ADMIN));
+    }
 
-    assertTrue(webhookRegistrar.registered.isEmpty());
+    @Test
+    void givenNoCallbackStored_whenRunning_thenDoesNothing() {
+      when(settings.loadCallbackUrl()).thenReturn("");
+
+      job.run();
+
+      verifyNoInteractions(webhookRegistrar);
+    }
   }
 
   @Test
   void givenTenantNotConfigured_whenRunning_thenDoesNothing() {
-    tenantService.config = DocSpaceTenantConfiguration.empty();
-    synchronizationService.storeCallbackUrl(CALLBACK);
+    when(tenantService.isConfigured()).thenReturn(false);
 
     job.run();
 
-    assertTrue(webhookRegistrar.registered.isEmpty());
+    verifyNoInteractions(webhookRegistrar, settings);
   }
 
   @Test
   void givenSchedule_thenExposesNameAndInterval() {
-    assertEquals("webhook-cluster-reconciliation", job.name());
-    assertTrue(job.periodMillis() > 0);
-    assertTrue(job.initialDelayMillis() >= 0);
+    assertThat(job.name()).isEqualTo("webhook-cluster-reconciliation");
+    assertThat(job.periodMillis()).isPositive();
+    assertThat(job.initialDelayMillis()).isNotNegative();
   }
 }

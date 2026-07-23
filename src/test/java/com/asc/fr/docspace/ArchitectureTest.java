@@ -12,7 +12,6 @@ import com.tngtech.archunit.lang.ArchRule;
     packages = "com.asc.fr.docspace",
     importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
-
   private static final String BASE = "com.asc.fr.docspace";
 
   @ArchTest
