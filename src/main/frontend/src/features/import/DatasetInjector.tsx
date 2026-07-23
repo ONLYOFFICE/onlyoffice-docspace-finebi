@@ -1,16 +1,14 @@
-import { DatasetItem } from "./components/DatasetItem";
+import { DatasetMenuItem } from "./components/DatasetItem";
 
-import { useImportStore } from "@features/import/store/import";
+import { DomInjector } from "@api/injector";
+
+import { openShellOverlay } from "@features/import/components/ShellOverlay";
+import { ImportUrlUtils } from "@features/import/utils/url";
 
 import { useRendererStore } from "@store/renderer";
-import { DomInjector } from "@api/injector";
 
 import finebi from "@config/finebi.json";
 
-/**
- * Imperative FineBI DOM injector for the “Import from DocSpace” Add Dataset row.
- * Clicks call {@link useImportStore}.pick — no external callbacks.
- */
 export class DatasetInjector {
   private readonly injector = new DomInjector();
 
@@ -20,7 +18,7 @@ export class DatasetInjector {
       marker: finebi.dataset.hostMarker,
       filter: (popup) =>
         !!popup.querySelector(finebi.selectors.spiderExcelTable) &&
-        !popup.querySelector(".onlyoffice-import__item"),
+        !popup.querySelector(".onlyoffice-import__host"),
       inject: (popup) => {
         const list = popup.querySelector(finebi.selectors.spiderExcelTable)?.parentElement;
         if (!list) return false;
@@ -39,17 +37,22 @@ export class DatasetInjector {
   }
 
   private createItem(): HTMLElement {
-    return useRendererStore.getState().toElement(
-      <DatasetItem
+    const host = document.createElement("div");
+    host.className = "onlyoffice-import__host";
+    useRendererStore.getState().mount(
+      <DatasetMenuItem
         onActivate={(event) => {
           event.stopPropagation();
           dismissPopup(
             (event.currentTarget as HTMLElement).closest<HTMLElement>(finebi.selectors.popupView),
           );
-          void useImportStore.getState().pick();
+          openShellOverlay(ImportUrlUtils.picker());
         }}
       />,
+      host,
     );
+
+    return host;
   }
 }
 

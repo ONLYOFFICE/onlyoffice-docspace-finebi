@@ -4,12 +4,26 @@ export type EventPublisher = {
   publish(type: string, detail?: Record<string, unknown>): void;
 };
 
-function postParent(payload: Record<string, unknown>): void {
-  if (!window.parent || window.parent === window) return;
-  try {
-    window.parent.postMessage(payload, "*");
-  } catch {
-    console.error("Failed to post message to parent");
+function postAncestors(payload: Record<string, unknown>): void {
+  const seen = new Set<Window>();
+  let current: Window | null = window;
+  while (current && !seen.has(current)) {
+    seen.add(current);
+    let parent: Window | null = null;
+    try {
+      parent = current.parent;
+    } catch {
+      break;
+    }
+
+    if (!parent || parent === current) break;
+    try {
+      parent.postMessage(payload, "*");
+    } catch {
+      console.error("Failed to post message to parent frame");
+    }
+
+    current = parent;
   }
 }
 
@@ -30,7 +44,7 @@ const publisher: EventPublisher = {
   publish(type, detail = {}) {
     const payload = { type, ...detail };
     window.dispatchEvent(new CustomEvent(type, { detail }));
-    postParent(payload);
+    postAncestors(payload);
     postFrames(payload);
   },
 };

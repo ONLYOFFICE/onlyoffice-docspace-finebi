@@ -1,46 +1,17 @@
 import { DomInjector } from "@api/injector";
-import finebi from "@config/finebi.json";
-import { useRegistryStore } from "@store/registry";
+
+import { ExportMenuItem } from "./components/ExportMenuItem";
+
 import { useRendererStore } from "@store/renderer";
-import type { HostWidgetAttached } from "@api/registry";
-import { useExportStore } from "@features/export/store/export";
-import {
-  ExportContent,
-  ExportItem,
-} from "./components/ExportItem";
+
+import finebi from "@config/finebi.json";
 
 import exportCss from "./components/export.css?inline";
 
-interface ExportWidgetOptions extends Record<string, unknown> {
-  handler?: () => void;
-}
-
 export class ExportInjector {
   private readonly injector = new DomInjector();
-  private menuItem: HTMLElement | null = null;
 
   constructor() {
-    useRegistryStore.getState().define<ExportWidgetOptions>({
-      type: finebi.export.widgetType,
-      defaultConfig: {
-        cls: [
-          "cursor-pointer", "bi-down-list-item", "bi-list-item-active",
-          "bi-f-v-c", "bi-f-h", "v-middle", "h-left", "onlyoffice-export",
-        ].join(" "),
-      },
-      init(el: HTMLElement, options: ExportWidgetOptions, on: HostWidgetAttached) {
-        el.setAttribute(finebi.export.itemAttr, "1");
-        el.setAttribute("role", "button");
-        el.style.height = "30px";
-        el.style.position = "relative";
-        el.title = "Export this dashboard as Excel and upload to DocSpace";
-        useRendererStore.getState().mount(<ExportContent />, el);
-
-        on("EVENT_CHANGE", () => options.handler?.());
-        el.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
-      },
-    });
-
     this.injector.addRule<HTMLElement>({
       selector: finebi.selectors.popupView,
       marker: finebi.export.hostMarker,
@@ -56,17 +27,10 @@ export class ExportInjector {
       inject: (popup, doc) => {
         const list = this.findMenuList(popup);
         if (!list) return false;
-        const item = this.createItem(doc);
-        list.appendChild(item);
-        this.menuItem = item;
+        list.appendChild(this.createItem(doc));
         return false;
       },
     });
-  }
-
-  sync(): void {
-    if (!this.menuItem) return;
-    this.applyState(this.menuItem);
   }
 
   observeAll(root: Document = document): void {
@@ -91,36 +55,10 @@ export class ExportInjector {
   }
 
   private createItem(doc: Document): HTMLElement {
-    if (doc === document) {
-      const el = useRegistryStore.getState().create<ExportWidgetOptions>(finebi.export.widgetType, {
-        handler: () => void useExportStore.getState().run(),
-      });
-      if (el) { this.applyState(el); return el; }
-    }
-    return this.createItemDom(doc);
-  }
-
-  private createItemDom(doc: Document): HTMLElement {
-    const onActivate = (event: MouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      void useExportStore.getState().run();
-    };
-    const item = useRendererStore.getState().toElement(<ExportItem onActivate={onActivate} />, { doc });
-    item.setAttribute(finebi.export.itemAttr, "1");
-    this.applyState(item);
-    return item;
-  }
-
-  private applyState(item: HTMLElement): void {
-    const { busy, enabled } = useExportStore.getState();
-    item.classList.toggle("onlyoffice-export--disabled", !enabled);
-    item.classList.toggle("onlyoffice-export--busy", busy);
-    const label = item.querySelector(".onlyoffice-export__label");
-    if (label) label.textContent = busy ? "Uploading…" : "Export to DocSpace";
-    item.title = enabled
-      ? "Export this dashboard as Excel and upload to DocSpace"
-      : "Configure DocSpace and sign in to enable this feature";
+    const host = doc.createElement("div");
+    host.setAttribute(finebi.export.itemAttr, "1");
+    useRendererStore.getState().mount(<ExportMenuItem />, host);
+    return host;
   }
 
   private isExportDropdown(popup: HTMLElement): boolean {

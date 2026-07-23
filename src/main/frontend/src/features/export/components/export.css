@@ -9,7 +9,7 @@
   height: 20px;
 }
 
-.onlyoffice-export--busy {
+.onlyoffice-export--running {
   opacity: 0.6;
   cursor: wait;
   pointer-events: none;

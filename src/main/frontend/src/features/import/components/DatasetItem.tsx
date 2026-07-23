@@ -1,6 +1,8 @@
 import type { FunctionComponent } from "preact";
 import OnlyofficeIcon from "@resources/images/onlyoffice-logo.svg";
 
+import { useLoggedIn } from "@hooks/useSessionMode";
+
 import "./dataset.css";
 
 interface ItemProps {
@@ -36,3 +38,9 @@ export const DatasetItem: FunctionComponent<ItemProps> = ({ onActivate }) => (
     </div>
   </div>
 );
+
+export const DatasetMenuItem: FunctionComponent<ItemProps> = ({ onActivate }) => {
+  const loggedIn = useLoggedIn();
+  if (!loggedIn) return null;
+  return <DatasetItem onActivate={onActivate} />;
+};
