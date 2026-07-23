@@ -105,11 +105,13 @@ export class DocSpaceClient {
     const sdk = await this.ensureSdk(url);
     if (typeof sdk.initSystem !== "function") throw new Error(SDK_MISSING);
 
-    const id = this.frameId();
+    const id = this.systemFrameId();
     return new Promise((resolve, reject) => {
       sdk.initSystem({
         src: url,
         frameId: id,
+        width: "0px",
+        height: "0px",
         checkCSP: false,
         events: {
           onAppReady: () => {
@@ -145,6 +147,10 @@ export class DocSpaceClient {
 
   frameId(): string {
     return docspace.frameId;
+  }
+
+  systemFrameId(): string {
+    return docspace.systemFrameId;
   }
 
   pickerFrameId(): string {
@@ -197,7 +203,25 @@ export class DocSpaceClient {
   /** Drop the cached system frame and clear its mount node. */
   reset(): void {
     this.cached = null;
-    const el = document.getElementById(this.frameId());
+    this.destroyById(this.systemFrameId());
+    this.destroyById(this.frameId());
+  }
+
+  /** Tear down the visible manager iframe and clear its mount node. */
+  destroyManager(): void {
+    this.destroyById(this.frameId());
+  }
+
+  private destroyById(id: string): void {
+    const sdk = window.DocSpace?.SDK;
+    const frame = sdk?.frames[id];
+    try {
+      frame?.destroyFrame();
+    } catch {
+      // best-effort — DOM wipe below still runs
+    }
+
+    const el = document.getElementById(id);
     if (el) el.innerHTML = "";
   }
 

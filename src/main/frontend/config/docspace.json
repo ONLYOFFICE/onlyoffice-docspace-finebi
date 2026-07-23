@@ -1,5 +1,6 @@
 {
   "frameId": "onlyoffice-frame",
+  "systemFrameId": "onlyoffice-system-frame",
   "sdkScriptId": "onlyoffice-sdk-script",
   "pickerFrameId": "onlyoffice-dialog"
 }

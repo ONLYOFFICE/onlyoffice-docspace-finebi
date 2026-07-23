@@ -12,11 +12,14 @@ export interface DocSpaceFrame {
   ): Promise<LoginResult | null | undefined>;
   logout(): Promise<unknown>;
   getUserInfo(): Promise<UserInfo | null | undefined>;
+  destroyFrame(): void;
 }
 
 export interface SystemOptions {
   src: string;
   frameId: string;
+  width?: string;
+  height?: string;
   checkCSP: boolean;
   events: {
     onAppReady?: () => void;

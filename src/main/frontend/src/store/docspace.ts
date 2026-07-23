@@ -8,6 +8,7 @@ interface DocSpaceState {
   frameVisible: boolean;
   setFrameVisible(visible: boolean): void;
   frameId(): string;
+  systemFrameId(): string;
   pickerFrameId(): string;
   /** Open the hidden system frame (cached per URL). */
   ensureFrame(docSpaceUrl: string): Promise<DocSpaceFrame>;
@@ -17,6 +18,8 @@ interface DocSpaceState {
   logout(docSpaceUrl: string): Promise<void>;
   /** Drop the cached system frame (e.g. after tenant reset). */
   reset(): void;
+  /** Destroy the manager iframe; keeps the system auth frame. */
+  destroyManager(): void;
   /** Open the DocSpace manager UI in the frame. */
   launchManager(docSpaceUrl: string): Promise<void>;
   /** Open the DocSpace file selector (import picker). */
@@ -32,6 +35,7 @@ export const useDocSpaceStore = create<DocSpaceState>()((set) => {
     frameVisible: false,
     setFrameVisible: (visible) => set({ frameVisible: visible }),
     frameId: () => client.frameId(),
+    systemFrameId: () => client.systemFrameId(),
     pickerFrameId: () => client.pickerFrameId(),
     ensureFrame: (url) => client.ensureFrame(url),
     connect: (config) => client.connect(config),
@@ -41,6 +45,10 @@ export const useDocSpaceStore = create<DocSpaceState>()((set) => {
     },
     reset: () => {
       client.reset();
+      set({ frameVisible: false });
+    },
+    destroyManager: () => {
+      client.destroyManager();
       set({ frameVisible: false });
     },
     launchManager: (url) => client.launchManager(url),

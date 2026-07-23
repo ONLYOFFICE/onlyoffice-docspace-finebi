@@ -11,21 +11,34 @@ export function useDocSpace(config: PluginCoreServerConfiguration) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const { setFrameVisible, connect, launchManager } = useDocSpaceStore.getState();
+    let cancelled = false;
+    const { setFrameVisible, connect, launchManager, destroyManager } =
+      useDocSpaceStore.getState();
     setFrameVisible(true);
     void usePluginStore.getState().registerWebhook(config.locations.webhookRegistrationUrl);
 
     connect(config)
-      .then((url) => launchManager(url))
-      .then(() => setStatus("ready"))
+      .then((url) => {
+        if (cancelled) return;
+        return launchManager(url);
+      })
+      .then(() => {
+        if (cancelled) {
+          destroyManager();
+          return;
+        }
+        setStatus("ready");
+      })
       .catch((e: unknown) => {
+        if (cancelled) return;
         setFrameVisible(false);
         setError(e instanceof Error && e.message ? e.message : String(e));
         setStatus("error");
       });
 
     return () => {
-      setFrameVisible(false);
+      cancelled = true;
+      destroyManager();
     };
   }, []);
 
