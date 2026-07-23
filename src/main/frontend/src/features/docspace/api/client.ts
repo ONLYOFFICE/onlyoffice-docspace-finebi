@@ -212,6 +212,11 @@ export class DocSpaceClient {
     this.destroyById(this.frameId());
   }
 
+  /** Tear down the file-selector iframe and clear its mount node. */
+  destroyPicker(): void {
+    this.destroyById(this.pickerFrameId());
+  }
+
   private destroyById(id: string): void {
     const sdk = window.DocSpace?.SDK;
     const frame = sdk?.frames[id];
@@ -249,9 +254,19 @@ export class DocSpaceClient {
   async launchFileSelector(
     url: string,
     events: NonNullable<FileSelectorOptions["events"]>,
+    isCancelled?: () => boolean,
   ): Promise<void> {
     const sdk = await this.ensureSdk(url);
-    if (!sdk.initFileSelector) throw new Error(SDK_MISSING);
+    if (isCancelled?.())
+      return;
+
+    if (!sdk.initFileSelector)
+      throw new Error(SDK_MISSING);
+
+    this.destroyPicker();
+
+    if (isCancelled?.())
+      return;
 
     sdk.initFileSelector({
       frameId: this.pickerFrameId(),

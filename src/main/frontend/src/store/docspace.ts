@@ -20,12 +20,15 @@ interface DocSpaceState {
   reset(): void;
   /** Destroy the manager iframe; keeps the system auth frame. */
   destroyManager(): void;
+  /** Destroy the file-selector iframe. */
+  destroyPicker(): void;
   /** Open the DocSpace manager UI in the frame. */
   launchManager(docSpaceUrl: string): Promise<void>;
   /** Open the DocSpace file selector (import picker). */
   launchFileSelector(
     docSpaceUrl: string,
     events: NonNullable<FileSelectorOptions["events"]>,
+    isCancelled?: () => boolean,
   ): Promise<void>;
 }
 
@@ -51,7 +54,9 @@ export const useDocSpaceStore = create<DocSpaceState>()((set) => {
       client.destroyManager();
       set({ frameVisible: false });
     },
+    destroyPicker: () => client.destroyPicker(),
     launchManager: (url) => client.launchManager(url),
-    launchFileSelector: (url, events) => client.launchFileSelector(url, events),
+    launchFileSelector: (url, events, isCancelled) =>
+      client.launchFileSelector(url, events, isCancelled),
   };
 });

@@ -25,7 +25,9 @@ export function ShellOverlay() {
   const [pickerUrl, setPickerUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    showPicker = setPickerUrl;
+    showPicker = (url) => {
+      setPickerUrl((current) => current ?? url);
+    };
     return () => { showPicker = null; };
   }, []);
 

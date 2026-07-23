@@ -30,7 +30,7 @@
     background: var(--onlyoffice-color-surface);
     box-shadow: var(--onlyoffice-shadow-dialog);
 
-    animation: onlyoffice-scale-in var(--onlyoffice-duration-base) var(--onlyoffice-ease-out) both;
+    animation: none;
 }
 
 .onlyoffice-dialog-overlay {
@@ -96,7 +96,7 @@
     align-items: center;
     justify-content: center;
 
-    inset: 42px 0 0 0;
+    inset: 0;
 
     font-size: 0.82rem;
 
