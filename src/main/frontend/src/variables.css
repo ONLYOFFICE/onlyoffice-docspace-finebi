@@ -1,0 +1,103 @@
+:root {
+  /* Typography */
+  --onlyoffice-font-sans: ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", Ubuntu, Cantarell,
+    "Helvetica Neue", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* Brand */
+  --onlyoffice-color-primary: #5299e0;
+  --onlyoffice-color-primary-hover: #4781d1;
+  --onlyoffice-color-on-primary: #ffffff;
+  --onlyoffice-color-focus-ring: rgba(82, 153, 224, 0.15);
+
+  /* Surfaces */
+  --onlyoffice-color-surface: #ffffff;
+  --onlyoffice-color-surface-hover: #f8f9f9;
+  --onlyoffice-color-surface-hover-strong: #f2f4f7;
+
+  /* Text */
+  --onlyoffice-color-text: #333333;
+  --onlyoffice-color-text-strong: #222222;
+  --onlyoffice-color-text-secondary: #444444;
+  --onlyoffice-color-text-muted: #555555;
+  --onlyoffice-color-text-tertiary: #666666;
+  --onlyoffice-color-text-subtle: #a3a9ae;
+
+  /* Borders */
+  --onlyoffice-color-border: #d0d5da;
+  --onlyoffice-color-border-light: #e6e8ec;
+
+  /* Feedback */
+  --onlyoffice-color-danger: #f21c0e;
+
+  /* Disabled */
+  --onlyoffice-color-disabled-bg: #f8f9f9;
+  --onlyoffice-color-disabled-text: #a3a9ae;
+
+  /* Overlays */
+  --onlyoffice-color-scrim: rgba(0, 0, 0, 0.45);
+  --onlyoffice-color-hover-overlay: rgba(255, 255, 255, 0.08);
+
+  /* Radii */
+  --onlyoffice-radius-sm: 3px;
+  --onlyoffice-radius-md: 6px;
+  --onlyoffice-radius-lg: 8px;
+  --onlyoffice-radius-xl: 10px;
+
+  /* Elevation */
+  --onlyoffice-shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --onlyoffice-shadow-dialog: 0 8px 40px rgba(0, 0, 0, 0.22);
+
+  /* Motion */
+  --onlyoffice-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --onlyoffice-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --onlyoffice-duration-fast: 200ms;
+  --onlyoffice-duration-base: 320ms;
+  --onlyoffice-duration-slow: 500ms;
+}
+
+@keyframes onlyoffice-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes onlyoffice-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes onlyoffice-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

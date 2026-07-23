@@ -5,16 +5,16 @@ import { useHeaderSession } from "./useHeaderSession";
 import { LogoutButton } from "./components/LogoutButton";
 
 const POPUP_WIDTH = 140;
-const CLOSE_DELAY = 120;
+const POPUP_CLASS = "onlyoffice-header-logout__popup";
 
 interface PopupProps {
   anchor: HTMLElement | null;
-  onKeep(): void;
-  onLeave(): void;
+  open: boolean;
+  onExited(): void;
   onLogout(): void;
 }
 
-function LogoutPopup({ anchor, onKeep, onLeave, onLogout }: PopupProps) {
+function LogoutPopup({ anchor, open, onExited, onLogout }: PopupProps) {
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
 
   useLayoutEffect(() => {
@@ -29,15 +29,18 @@ function LogoutPopup({ anchor, onKeep, onLeave, onLogout }: PopupProps) {
   return createPortal(
     <div
       role="menu"
-      className="bi-popup-view bi-card list-view-shadow onlyoffice-header-logout__popup"
+      className={`bi-popup-view bi-card list-view-shadow ${POPUP_CLASS} ${POPUP_CLASS}--${
+        open ? "open" : "closing"
+      }`}
       style={{
         position: "fixed",
         top: position?.top ?? -9999,
         left: position?.left ?? -9999,
         zIndex: 10000,
       }}
-      onMouseEnter={onKeep}
-      onMouseLeave={onLeave}
+      onAnimationEnd={() => {
+        if (!open) onExited();
+      }}
     >
       <div
         role="menuitem"
@@ -56,30 +59,41 @@ function LogoutPopup({ anchor, onKeep, onLeave, onLogout }: PopupProps) {
 }
 
 export function HeaderLogout() {
-  const closeTimer = useRef(0);
   const [open, setOpen] = useState(false);
+  const [rendered, setRendered] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
 
   const { visible, isLoggingOut, logout } = useHeaderSession();
 
-  const cancelClose = () => {
-    window.clearTimeout(closeTimer.current);
-    closeTimer.current = 0;
-  };
-  
-  const scheduleClose = () => {
-    cancelClose();
-    closeTimer.current = window.setTimeout(() => setOpen(false), CLOSE_DELAY);
-  };
-
-  useEffect(() => cancelClose, []);
+  useEffect(() => {
+    if (open) setRendered(true);
+  }, [open]);
 
   useEffect(() => {
-    if (!visible || isLoggingOut) {
-      cancelClose();
-      setOpen(false);
-    }
+    if (!visible || isLoggingOut) setOpen(false);
   }, [visible, isLoggingOut]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (anchorRef.current?.contains(target)) return;
+      if (target?.closest(`.${POPUP_CLASS}`)) return;
+      setOpen(false);
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("mousedown", onPointerDown, true);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown, true);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
 
   if (!visible) return null;
 
@@ -91,19 +105,20 @@ export function HeaderLogout() {
         isLoggingOut ? " onlyoffice-header-logout--busy" : ""
       }`}
       aria-haspopup="menu"
+      aria-expanded={open}
       title="DocSpace"
-      onMouseEnter={() => {
-        cancelClose();
-        if (!isLoggingOut) setOpen(true);
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!isLoggingOut) setOpen((value) => !value);
       }}
-      onMouseLeave={scheduleClose}
     >
       <LogoutButton />
-      {open && (
+      {rendered && (
         <LogoutPopup
           anchor={anchorRef.current}
-          onKeep={cancelClose}
-          onLeave={scheduleClose}
+          open={open}
+          onExited={() => setRendered(false)}
           onLogout={() => {
             setOpen(false);
             void logout();

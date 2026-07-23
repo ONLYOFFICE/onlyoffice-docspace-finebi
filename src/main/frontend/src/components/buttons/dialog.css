@@ -1,26 +1,35 @@
 .onlyoffice-dialog__button {
-    font-size: 0.83rem;
     padding: 7px 16px;
-    border-radius: 3px;
-    border: 1px solid #D0D5DA;
+
+    font-size: 0.83rem;
+    font-family: var(--onlyoffice-font-sans);
+
+    border-radius: var(--onlyoffice-radius-sm);
+    border: 1px solid var(--onlyoffice-color-border);
+
+    background: var(--onlyoffice-color-surface);
+    color: var(--onlyoffice-color-text-secondary);
+
     cursor: pointer;
-    font-family: inherit;
-    background: #fff;
-    color: #444;
+    transition: background var(--onlyoffice-duration-fast) var(--onlyoffice-ease),
+        opacity var(--onlyoffice-duration-fast) var(--onlyoffice-ease);
 }
 
 .onlyoffice-dialog__button:hover {
-    background: #F8F9F9;
+    background: var(--onlyoffice-color-surface-hover);
 }
 
 .onlyoffice-dialog__button--primary {
-    background: #5299E0;
-    color: #fff;
-    border-color: #5299E0;
+    border-color: var(--onlyoffice-color-primary);
+
+    background: var(--onlyoffice-color-primary);
+    color: var(--onlyoffice-color-on-primary);
 }
 
 .onlyoffice-dialog__button--primary:hover {
-    opacity: 0.92;
+    border-color: var(--onlyoffice-color-primary-hover);
+
+    background: var(--onlyoffice-color-primary-hover);
 }
 
 .onlyoffice-dialog__button:disabled {

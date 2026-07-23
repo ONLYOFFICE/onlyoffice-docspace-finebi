@@ -9,7 +9,7 @@
 
   font-size: 0.9rem;
 
-  color: #333333;
+  color: var(--onlyoffice-color-text);
 }
 
 .onlyoffice-input__control {
@@ -19,30 +19,34 @@
   padding: 8px 12px;
 
   font-size: 0.95rem;
-  font-family: inherit;
+  font-family: var(--onlyoffice-font-sans);
 
-  border-radius: 6px;
-  border: 1px solid #d0d5da;
+  border-radius: var(--onlyoffice-radius-md);
+  border: 1px solid var(--onlyoffice-color-border);
 
-  color: #333333;
-  background: #ffffff;
+  color: var(--onlyoffice-color-text);
+  background: var(--onlyoffice-color-surface);
+
+  transition: border-color var(--onlyoffice-duration-fast) var(--onlyoffice-ease),
+    box-shadow var(--onlyoffice-duration-fast) var(--onlyoffice-ease);
 }
 
 .onlyoffice-input__control::placeholder {
-  color: #a3a9ae;
+  color: var(--onlyoffice-color-text-subtle);
 }
 
 .onlyoffice-input__control:disabled {
-  color: #a3a9ae;
+  color: var(--onlyoffice-color-disabled-text);
   cursor: not-allowed;
-  background: #f8f9f9;
+  background: var(--onlyoffice-color-disabled-bg);
 }
 
 .onlyoffice-input__control:focus {
   outline: none;
-  border-color: #5299e0;
+  border-color: var(--onlyoffice-color-primary);
+  box-shadow: 0 0 0 3px var(--onlyoffice-color-focus-ring);
 }
 
 .onlyoffice-input__control:invalid:not(:placeholder-shown):not(:focus) {
-  border-color: #f21c0e;
+  border-color: var(--onlyoffice-color-danger);
 }

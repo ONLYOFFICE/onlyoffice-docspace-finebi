@@ -8,7 +8,12 @@
 
   inset: 0;
 
-  background: #ffffff;
+  font-family: var(--onlyoffice-font-sans);
+  color: var(--onlyoffice-color-text);
+
+  background: var(--onlyoffice-color-surface);
+
+  animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }
 
 .onlyoffice-centered-card__body {
@@ -16,12 +21,12 @@
   max-width: 100%;
 
   padding: 32px;
-  border-radius: 8px;
+  border-radius: var(--onlyoffice-radius-lg);
 
   text-align: center;
 
-  background: #fff;
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  background: var(--onlyoffice-color-surface);
+  box-shadow: var(--onlyoffice-shadow-card);
+
+  animation: onlyoffice-fade-in-up var(--onlyoffice-duration-slow) var(--onlyoffice-ease-out) both;
 }

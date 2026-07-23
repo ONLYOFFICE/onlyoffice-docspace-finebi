@@ -1,3 +1,8 @@
+.onlyoffice-export {
+  transition: opacity var(--onlyoffice-duration-fast, 150ms)
+    var(--onlyoffice-ease, ease);
+}
+
 .onlyoffice-export svg {
   display: block;
   width: 20px;

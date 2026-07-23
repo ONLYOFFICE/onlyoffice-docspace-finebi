@@ -1,10 +1,10 @@
 .onlyoffice-spinner {
-    color: #D0D5DA;
+    color: var(--onlyoffice-color-border);
     animation: spin 1s linear infinite;
 }
 
 .onlyoffice-spinner path:last-child {
-     color: #5299E0;
+     color: var(--onlyoffice-color-primary);
 }
 
 .onlyoffice-spinner--sm {

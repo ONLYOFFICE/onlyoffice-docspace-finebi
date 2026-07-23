@@ -23,6 +23,8 @@
   z-index: 0;
 
   overflow: hidden;
+
+  animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }
 
 .onlyoffice-frame-host--visible,
@@ -65,7 +67,9 @@
 .onlyoffice-overlay {
   overflow: auto;
 
-  background: #fff;
+  background: var(--onlyoffice-color-surface);
+
+  animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }
 
 .onlyoffice-status--error {
@@ -80,7 +84,12 @@
   overflow: auto;
   text-align: center;
 
-  background: #fff;
+  font-family: var(--onlyoffice-font-sans);
+  color: var(--onlyoffice-color-text);
+
+  background: var(--onlyoffice-color-surface);
+
+  animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }
 
 .onlyoffice-status__title {
@@ -94,7 +103,7 @@
 
   margin: 0;
 
-  color: #555;
+  color: var(--onlyoffice-color-text-muted);
 }
 
 .onlyoffice-status__actions {

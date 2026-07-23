@@ -1,11 +1,13 @@
 .onlyoffice-form-error {
   margin: 0 0 16px;
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: var(--onlyoffice-radius-md);
 
   font-size: 0.9rem;
 
-  color: #f21c0e;
-  background: #fff;
-  border: 1px solid #f21c0e;
+  color: var(--onlyoffice-color-danger);
+  background: var(--onlyoffice-color-surface);
+  border: 1px solid var(--onlyoffice-color-danger);
+
+  animation: onlyoffice-fade-in-up var(--onlyoffice-duration-base) var(--onlyoffice-ease-out) both;
 }

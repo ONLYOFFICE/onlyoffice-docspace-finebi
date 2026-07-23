@@ -6,6 +6,8 @@
 
     inset: 0;
     z-index: 60;
+
+    font-family: var(--onlyoffice-font-sans);
 }
 
 .onlyoffice-folder-backdrop {
@@ -13,7 +15,9 @@
 
     inset: 0;
 
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--onlyoffice-color-scrim);
+
+    animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }
 
 .onlyoffice-folder-dialog {
@@ -23,11 +27,13 @@
 
     padding: 20px 22px 18px;
 
-    border-radius: 10px;
+    border-radius: var(--onlyoffice-radius-xl);
 
     z-index: 1;
-    background: #fff;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+    background: var(--onlyoffice-color-surface);
+    box-shadow: var(--onlyoffice-shadow-dialog);
+
+    animation: onlyoffice-scale-in var(--onlyoffice-duration-base) var(--onlyoffice-ease-out) both;
 }
 
 .onlyoffice-folder-dialog__loading {
@@ -35,7 +41,7 @@
 
     font-size: 0.8rem;
 
-    color: #A3A9AE;
+    color: var(--onlyoffice-color-text-subtle);
 }
 
 .onlyoffice-folder-dialog__label {
@@ -43,7 +49,7 @@
 
     font-size: 0.78rem;
 
-    color: #444;
+    color: var(--onlyoffice-color-text-secondary);
 }
 
 .onlyoffice-folder-dialog__select {
@@ -52,20 +58,23 @@
     padding: 8px 10px;
 
     font-size: 0.84rem;
-    font-family: inherit;
+    font-family: var(--onlyoffice-font-sans);
 
-    border: 1px solid #D0D5DA;
-    border-radius: 6px;
+    border: 1px solid var(--onlyoffice-color-border);
+    border-radius: var(--onlyoffice-radius-md);
 
-    color: #222;
-    background: #fff;
+    color: var(--onlyoffice-color-text-strong);
+    background: var(--onlyoffice-color-surface);
 
     cursor: pointer;
+    transition: border-color var(--onlyoffice-duration-fast) var(--onlyoffice-ease),
+        box-shadow var(--onlyoffice-duration-fast) var(--onlyoffice-ease);
 }
 
 .onlyoffice-folder-dialog__select:focus {
-    border-color: transparent;
-    outline: 2px solid #5299E0;
+    outline: none;
+    border-color: var(--onlyoffice-color-primary);
+    box-shadow: 0 0 0 3px var(--onlyoffice-color-focus-ring);
 }
 
 .onlyoffice-folder-dialog__actions {

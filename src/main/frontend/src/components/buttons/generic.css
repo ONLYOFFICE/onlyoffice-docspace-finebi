@@ -6,28 +6,36 @@
     justify-content: center;
 
     border: none;
-    border-radius: 3px;
+    border-radius: var(--onlyoffice-radius-sm);
 
     font-size: 0.95rem;
     font-weight: 600;
-    font-family: inherit;
+    font-family: var(--onlyoffice-font-sans);
     text-decoration: none;
 
-    color: #fff;
-    background: #5299E0;
+    color: var(--onlyoffice-color-on-primary);
+    background: var(--onlyoffice-color-primary);
 
     cursor: pointer;
+    transition: background var(--onlyoffice-duration-fast) var(--onlyoffice-ease),
+        box-shadow var(--onlyoffice-duration-base) var(--onlyoffice-ease),
+        transform var(--onlyoffice-duration-fast) var(--onlyoffice-ease);
 }
 
 .onlyoffice-button:hover:not(:disabled) {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s;
+    background: var(--onlyoffice-color-primary-hover);
+    box-shadow: var(--onlyoffice-shadow-card);
+}
+
+.onlyoffice-button:active:not(:disabled) {
+    box-shadow: none;
+    transform: translateY(1px);
 }
 
 .onlyoffice-button:disabled {
-    color: #A3A9AE;
+    color: var(--onlyoffice-color-disabled-text);
     box-shadow: none;
-    background: #F8F9F9;
+    background: var(--onlyoffice-color-disabled-bg);
 
     cursor: not-allowed;
 }
@@ -41,28 +49,36 @@
 
     margin-top: 12px;
 
-    border: 1px solid #D0D5DA;
-    border-radius: 3px;
+    border: 1px solid var(--onlyoffice-color-border);
+    border-radius: var(--onlyoffice-radius-sm);
 
     font-size: 0.95rem;
     font-weight: 600;
-    font-family: inherit;
+    font-family: var(--onlyoffice-font-sans);
 
-    background: #FFFFFF;
-    color: #333333;
+    background: var(--onlyoffice-color-surface);
+    color: var(--onlyoffice-color-text);
 
     cursor: pointer;
+    transition: background var(--onlyoffice-duration-fast) var(--onlyoffice-ease),
+        box-shadow var(--onlyoffice-duration-base) var(--onlyoffice-ease),
+        transform var(--onlyoffice-duration-fast) var(--onlyoffice-ease);
 }
 
 .onlyoffice-button--secondary:hover:not(:disabled) {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s;
+    background: var(--onlyoffice-color-surface-hover);
+    box-shadow: var(--onlyoffice-shadow-card);
+}
+
+.onlyoffice-button--secondary:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: none;
 }
 
 .onlyoffice-button--secondary:disabled {
-    color: #A3A9AE;
+    color: var(--onlyoffice-color-disabled-text);
     box-shadow: none;
-    background: #F8F9F9;
+    background: var(--onlyoffice-color-disabled-bg);
 
     cursor: not-allowed;
 }

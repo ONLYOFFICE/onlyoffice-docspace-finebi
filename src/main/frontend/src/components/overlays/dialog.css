@@ -19,13 +19,18 @@
     height: 560px;
     flex-direction: column;
 
-    border-radius: 10px;
+    border-radius: var(--onlyoffice-radius-xl);
 
     z-index: 1;
     overflow: hidden;
-    
-    background: #fff;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+
+    font-family: var(--onlyoffice-font-sans);
+    color: var(--onlyoffice-color-text);
+
+    background: var(--onlyoffice-color-surface);
+    box-shadow: var(--onlyoffice-shadow-dialog);
+
+    animation: onlyoffice-scale-in var(--onlyoffice-duration-base) var(--onlyoffice-ease-out) both;
 }
 
 .onlyoffice-dialog-overlay {
@@ -44,7 +49,9 @@
 
     inset: 0;
 
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--onlyoffice-color-scrim);
+
+    animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }
 
 .onlyoffice-dialog__title {
@@ -55,31 +62,32 @@
 
     padding: 10px 14px;
 
-    border-bottom: 1px solid #e6e8ec;
+    border-bottom: 1px solid var(--onlyoffice-color-border-light);
 
     font-size: 0.85rem;
     font-weight: 600;
 
-    color: #333;
+    color: var(--onlyoffice-color-text);
 }
 
 .onlyoffice-dialog__cancel {
     padding: 4px 10px;
 
     font-size: 0.78rem;
-    font-family: inherit;
+    font-family: var(--onlyoffice-font-sans);
 
-    border: 1px solid #D0D5DA;
-    border-radius: 5px;
+    border: 1px solid var(--onlyoffice-color-border);
+    border-radius: var(--onlyoffice-radius-md);
 
-    color: #666;
+    color: var(--onlyoffice-color-text-tertiary);
     background: none;
 
     cursor: pointer;
+    transition: background var(--onlyoffice-duration-fast) var(--onlyoffice-ease);
 }
 
 .onlyoffice-dialog__cancel:hover {
-    background: #F8F9F9;
+    background: var(--onlyoffice-color-surface-hover);
 }
 
 .onlyoffice-dialog__loader {
@@ -93,6 +101,8 @@
     font-size: 0.82rem;
 
     z-index: 2;
-    color: #A3A9AE;
-    background: #fff;
+    color: var(--onlyoffice-color-text-subtle);
+    background: var(--onlyoffice-color-surface);
+
+    animation: onlyoffice-fade-in var(--onlyoffice-duration-fast) var(--onlyoffice-ease) both;
 }

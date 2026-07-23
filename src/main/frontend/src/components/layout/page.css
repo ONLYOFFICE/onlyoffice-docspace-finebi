@@ -5,5 +5,10 @@
     justify-content: center;
     align-items: center;
 
-    background: #FFFFFF;
+    font-family: var(--onlyoffice-font-sans);
+    color: var(--onlyoffice-color-text);
+
+    background: var(--onlyoffice-color-surface);
+
+    animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }

@@ -1,3 +1,5 @@
+@import "./variables.css";
+
 html {
   box-sizing: border-box;
 }
@@ -17,4 +19,9 @@ body,
 
 #app {
   position: relative;
+
+  font-family: var(--onlyoffice-font-sans);
+  color: var(--onlyoffice-color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

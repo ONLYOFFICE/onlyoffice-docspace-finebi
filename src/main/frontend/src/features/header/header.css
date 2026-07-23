@@ -13,7 +13,10 @@
 
   border-radius: 4px;
 
-  color: #fff;
+  color: var(--onlyoffice-color-on-primary, #fff);
+
+  transition: background var(--onlyoffice-duration-fast, 150ms)
+    var(--onlyoffice-ease, ease);
 }
 
 .onlyoffice-header-logout--visible {
@@ -26,7 +29,7 @@
 }
 
 .onlyoffice-header-logout:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--onlyoffice-color-hover-overlay, rgba(255, 255, 255, 0.08));
 }
 
 .onlyoffice-header-logout svg {
@@ -40,7 +43,21 @@
 
   padding: 4px 0;
 
-  background: #fff;
+  font-family: var(--onlyoffice-font-sans, sans-serif);
+
+  background: var(--onlyoffice-color-surface, #fff);
+
+  transform-origin: top right;
+}
+
+.onlyoffice-header-logout__popup--open {
+  animation: onlyoffice-fade-in-up var(--onlyoffice-duration-fast, 200ms)
+    var(--onlyoffice-ease-out, ease) both;
+}
+
+.onlyoffice-header-logout__popup--closing {
+  animation: onlyoffice-fade-in-up var(--onlyoffice-duration-fast, 200ms)
+    var(--onlyoffice-ease-out, ease) reverse both;
 }
 
 .onlyoffice-header-logout__item {
@@ -51,11 +68,14 @@
   line-height: 30px;
   white-space: nowrap;
 
-  color: #333;
+  color: var(--onlyoffice-color-text, #333);
+
+  transition: background var(--onlyoffice-duration-fast, 150ms)
+    var(--onlyoffice-ease, ease);
 }
 
 .onlyoffice-header-logout__item:hover {
-  background: #f2f4f7;
+  background: var(--onlyoffice-color-surface-hover-strong, #f2f4f7);
 }
 
 .onlyoffice-header-logout--busy {
