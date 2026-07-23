@@ -13,10 +13,25 @@ function postParent(payload: Record<string, unknown>): void {
   }
 }
 
+function postFrames(payload: Record<string, unknown>): void {
+  const { origin } = window.location;
+  for (const frame of document.querySelectorAll("iframe")) {
+    try {
+      if (new URL(frame.src, window.location.href).origin !== origin)
+        continue;
+      frame.contentWindow?.postMessage(payload, origin);
+    } catch {
+      console.error("Failed to post message to frame");
+    }
+  }
+}
+
 const publisher: EventPublisher = {
   publish(type, detail = {}) {
+    const payload = { type, ...detail };
     window.dispatchEvent(new CustomEvent(type, { detail }));
-    postParent({ type, ...detail });
+    postParent(payload);
+    postFrames(payload);
   },
 };
 

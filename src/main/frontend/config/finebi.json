@@ -16,5 +16,11 @@
   "dataset": {
     "widgetType": "docspace.dataset.item",
     "hostMarker": "data-docspace-dataset"
+  },
+  "header": {
+    "itemAttr": "data-docspace-header-logout",
+    "hostMarker": "data-docspace-header-host",
+    "styleId": "docspace-header-logout-css",
+    "messageCombo": ".dec-frame-header-message, .dec-header-message"
   }
 }

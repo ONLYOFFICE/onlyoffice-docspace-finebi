@@ -1,0 +1,69 @@
+[data-docspace-header-logout] {
+  display: contents;
+}
+
+.onlyoffice-header-logout {
+  width: 24px;
+  height: 24px;
+  display: none;
+  flex: 0 0 auto;
+
+  margin-left: 16px;
+  margin-right: 0;
+
+  border-radius: 4px;
+
+  color: #fff;
+}
+
+.onlyoffice-header-logout--visible {
+  position: relative;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+
+  vertical-align: middle;
+}
+
+.onlyoffice-header-logout:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.onlyoffice-header-logout svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.onlyoffice-header-logout__popup {
+  min-width: 140px;
+
+  padding: 4px 0;
+
+  background: #fff;
+}
+
+.onlyoffice-header-logout__item {
+  height: 30px;
+
+  padding: 0 12px;
+
+  line-height: 30px;
+  white-space: nowrap;
+
+  color: #333;
+}
+
+.onlyoffice-header-logout__item:hover {
+  background: #f2f4f7;
+}
+
+.onlyoffice-header-logout--busy {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+[data-docspace-header-logout] + .dec-frame-header-message,
+[data-docspace-header-logout] + .dec-header-message {
+  margin-left: 16px;
+}

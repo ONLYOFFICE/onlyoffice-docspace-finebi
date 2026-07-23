@@ -20,7 +20,6 @@ const notify: INotification = {
   },
 };
 
-/** Menu + System Management nav cards injected into FineBI. */
 export const NAV_ENTRIES: { configKey: string; entry: IRegisterableWidgetConfigEntry }[] = [
   {
     configKey: finebi.navMenuKey,
@@ -44,7 +43,7 @@ export const NAV_ENTRIES: { configKey: string; entry: IRegisterableWidgetConfigE
   },
 ];
 
-/** Start dataset-sync SSE + FineBI socket listeners (nav shell only). */
+/** Start dataset-sync SSE + FineBI socket listeners. */
 export function startNavigationRuntime(): void {
   useEventSourceStore.getState().init(`${UrlUtils.hostBaseUrl()}/url${manifest.aliases.events.from}`, {
     accepts: (payload) => {
