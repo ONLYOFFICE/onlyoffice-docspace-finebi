@@ -242,7 +242,8 @@ final class PluginModule extends AbstractModule {
   @Singleton
   SyncLinkJobSchedule syncLinkReconciliationSchedule() {
     PluginManifest.SyncLinkSchedule s = PluginManifest.get().schedulers.syncLinkReconciliation;
-    return new SyncLinkJobSchedule(s.initialDelayMillis, s.periodMillis, s.staleAfterMillis);
+    return new SyncLinkJobSchedule(
+        s.initialDelayMillis, s.periodMillis, s.staleAfterMillis, s.maxPerRun);
   }
 
   private void bindScheduledJobs() {

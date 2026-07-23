@@ -13,7 +13,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class FineResponses {
   private static final FineMapper MAPPER = FineMapper.INSTANCE;
@@ -117,6 +119,16 @@ public final class FineResponses {
     }
 
     return null;
+  }
+
+  public static Set<String> tableIds(JsonNode root) {
+    Set<String> ids = new HashSet<>();
+    for (FineTableSummaryResponse item : tablesOf(root)) {
+      String name = item.getName();
+      if (name != null && !name.isEmpty()) ids.add(name);
+    }
+
+    return ids;
   }
 
   public static void requireValidAuthentication(String body, FineEnvelope envelope)

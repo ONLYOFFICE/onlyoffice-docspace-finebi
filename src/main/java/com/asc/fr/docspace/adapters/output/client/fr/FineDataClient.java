@@ -24,7 +24,11 @@ import com.asc.fr.docspace.domain.fr.FineFolder;
 import com.asc.fr.docspace.domain.fr.FineSession;
 import com.google.common.base.Strings;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import lombok.RequiredArgsConstructor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -87,12 +91,23 @@ public final class FineDataClient
     return preview;
   }
 
-  private String fetchTables(String folderId, FineSession session) throws IOException {
-    return Calls.string(
-        rest.get(
-            session.getBaseUrl() + Paths.PACK_TABLES.path(folderId),
-            token(session),
-            session.getCookie()));
+  private static Set<String> parseTableIds(String body) {
+    try {
+      FineEnvelope envelope = FineEnvelope.parse(body);
+      if (envelope.authFailed(body))
+        throw new CompletionException(
+            new IOException("FineBI dataset existence probe authentication failed"));
+      if (envelope.tableAbsent()) return Collections.emptySet();
+      if (envelope.isExplicitFailure())
+        throw new CompletionException(new IOException("FineBI pack tables probe failed"));
+      try {
+        return FineResponses.tableIds(Json.MAPPER.readTree(body));
+      } catch (Exception e) {
+        throw new CompletionException(new IOException("FineBI pack tables json failed", e));
+      }
+    } catch (IOException e) {
+      throw new CompletionException(e);
+    }
   }
 
   @Override
@@ -199,23 +214,20 @@ public final class FineDataClient
   }
 
   @Override
-  public boolean datasetExists(String tableId, String folderId, FineSession session)
-      throws IOException {
-    if (folderId == null || folderId.isEmpty())
-      throw new IOException("FineBI dataset existence probe requires folder id");
-
-    String body = fetchTables(folderId, session);
-    FineEnvelope envelope = FineEnvelope.parse(body);
-    if (envelope.authFailed(body))
-      throw new IOException("FineBI dataset existence probe authentication failed");
-
-    if (envelope.tableAbsent()) return false;
-    if (envelope.isExplicitFailure()) throw new IOException("FineBI pack tables probe failed");
-
-    try {
-      return FineResponses.findTable(Json.MAPPER.readTree(body), tableId, "") != null;
-    } catch (Exception e) {
-      throw new IOException("FineBI pack tables json failed", e);
+  public CompletableFuture<Set<String>> tableIdsInFolderAsync(
+      String folderId, FineSession session) {
+    if (folderId == null || folderId.isEmpty()) {
+      CompletableFuture<Set<String>> failed = new CompletableFuture<>();
+      failed.completeExceptionally(
+          new IOException("FineBI dataset existence probe requires folder id"));
+      return failed;
     }
+
+    return Calls.stringAsync(
+            rest.get(
+                session.getBaseUrl() + Paths.PACK_TABLES.path(folderId),
+                token(session),
+                session.getCookie()))
+        .thenApply(FineDataClient::parseTableIds);
   }
 }

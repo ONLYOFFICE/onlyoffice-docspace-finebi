@@ -45,8 +45,9 @@
     },
     "syncLinkReconciliation": {
       "initialDelayMillis": 30000,
-      "periodMillis": 600000,
-      "staleAfterMillis": 600000
+      "periodMillis": 150000,
+      "staleAfterMillis": 300000,
+      "maxPerRun": 25
     }
   },
   "endpoints": {

@@ -17,17 +17,19 @@ import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceRawFile;
 import com.asc.fr.docspace.domain.docspace.DocSpaceUploadedFile;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import lombok.RequiredArgsConstructor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import retrofit2.Response;
 
 @RequiredArgsConstructor
 public final class DocSpaceFileClient
@@ -72,21 +74,35 @@ public final class DocSpaceFileClient
     return pathService.absolutize(base, viewUrl);
   }
 
-  @Override
-  public boolean fileExists(URL docSpaceUrl, String fileId, DocSpaceAccountCredentials credentials)
-      throws IOException {
-    if (Strings.isNullOrEmpty(fileId)) return false;
+  private CompletableFuture<Boolean> fileExistsAsync(String base, String fileId, String bearer) {
+    if (Strings.isNullOrEmpty(fileId)) return CompletableFuture.completedFuture(false);
+    return Calls.responseAsync(rest.fileMeta(base + Paths.file(fileId.trim()), bearer))
+        .thenApply(
+            response -> {
+              if (response.code() == HttpURLConnection.HTTP_NOT_FOUND) return false;
+              if (response.isSuccessful()) return true;
 
+              throw new CompletionException(
+                  new IOException(
+                      "DocSpace file existence check for "
+                          + fileId
+                          + " failed with status "
+                          + response.code()));
+            });
+  }
+
+  @Override
+  public Map<String, CompletableFuture<Boolean>> fileExistenceProbes(
+      URL docSpaceUrl, Collection<String> fileIds, DocSpaceAccountCredentials credentials)
+      throws IOException {
     String base = docSpaceUrl.getValue();
     String bearer = authenticationClient.bearer(docSpaceUrl, credentials);
-    Response<DocSpaceEnvelope<JsonNode>> response =
-        rest.fileMeta(base + Paths.file(fileId.trim()), bearer).execute();
 
-    if (response.code() == HttpURLConnection.HTTP_NOT_FOUND) return false;
-    if (response.isSuccessful()) return true;
+    Map<String, CompletableFuture<Boolean>> probes = new LinkedHashMap<>();
+    for (String fileId : fileIds)
+      probes.computeIfAbsent(fileId, id -> fileExistsAsync(base, id, bearer));
 
-    throw new IOException(
-        "DocSpace file existence check for " + fileId + " failed with status " + response.code());
+    return probes;
   }
 
   @Override

@@ -6,6 +6,8 @@ import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceDatase
 import com.asc.fr.docspace.domain.fr.FineAttachment;
 import com.asc.fr.docspace.domain.fr.FineSession;
 import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public interface FineDatasetService {
   String createDataset(FineCreateDatasetCommand command, FineSession session) throws IOException;
@@ -16,5 +18,5 @@ public interface FineDatasetService {
 
   void refreshDataset(FineRefreshDatasetCommand command, FineSession session);
 
-  boolean datasetExists(String tableId, String folderId, FineSession session) throws IOException;
+  CompletableFuture<Set<String>> tableIdsInFolderAsync(String folderId, FineSession session);
 }

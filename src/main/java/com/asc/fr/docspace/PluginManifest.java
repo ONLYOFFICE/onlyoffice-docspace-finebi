@@ -154,6 +154,8 @@ public final class PluginManifest {
 
   public static final class SyncLinkSchedule extends Schedule {
     @JsonProperty public long staleAfterMillis;
+
+    @JsonProperty public int maxPerRun;
   }
 
   /** All plugin-private HTTP handler paths, keyed by logical name. */

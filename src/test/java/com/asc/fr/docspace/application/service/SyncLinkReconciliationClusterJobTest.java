@@ -26,11 +26,20 @@ import com.asc.fr.docspace.domain.fr.FineSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -46,6 +55,8 @@ class SyncLinkReconciliationClusterJobTest {
   @Mock private DocSpaceTenantService tenantService;
   @Mock private FineDatasetService datasetService;
   @Mock private FineSessionFactory sessionFactory;
+
+  @Captor private ArgumentCaptor<Collection<String>> fileIdsCaptor;
 
   private SyncLinkReconciliationClusterJob job;
 
@@ -66,15 +77,43 @@ class SyncLinkReconciliationClusterJobTest {
             tenantService,
             datasetService,
             sessionFactory,
-            new SyncLinkJobSchedule(120000, 3600000, 86400000));
+            new SyncLinkJobSchedule(120000, 3600000, 86400000, 100));
   }
 
   private static FileSynchronizationRecord record(String fileId, String tableId) {
-    return new FileSynchronizationRecord(fileId, "Report", "folder-1", tableId);
+    return record(fileId, tableId, "folder-1");
+  }
+
+  private static FileSynchronizationRecord record(String fileId, String tableId, String folderId) {
+    return new FileSynchronizationRecord(fileId, "Report", folderId, tableId);
   }
 
   private void staleLinks(FileSynchronizationRecord... records) {
     when(registry.staleLinks(anyLong(), any(), anyInt())).thenReturn(Arrays.asList(records));
+  }
+
+  private void docSpaceProbes(Function<String, CompletableFuture<Boolean>> perId)
+      throws IOException {
+    when(docSpaceFiles.fileExistenceProbes(any(), any(), any()))
+        .thenAnswer(
+            invocation -> {
+              Collection<String> ids = invocation.getArgument(1);
+              Map<String, CompletableFuture<Boolean>> probes = new HashMap<>();
+              for (String id : ids) probes.put(id, perId.apply(id));
+              return probes;
+            });
+  }
+
+  private void fineBiHolds(String... tableIds) {
+    Set<String> ids = new HashSet<>(Arrays.asList(tableIds));
+    when(datasetService.tableIdsInFolderAsync(any(), any()))
+        .thenReturn(CompletableFuture.completedFuture(ids));
+  }
+
+  private static CompletableFuture<Boolean> failed() {
+    CompletableFuture<Boolean> future = new CompletableFuture<>();
+    future.completeExceptionally(new IOException("docspace unreachable"));
+    return future;
   }
 
   @Test
@@ -99,37 +138,37 @@ class SyncLinkReconciliationClusterJobTest {
   void givenDocSpaceFileDeleted_whenRunning_thenRemovesLinkWithoutProbingFineBi()
       throws IOException {
     staleLinks(record("1", "uuid-1"));
-    when(docSpaceFiles.fileExists(any(), eq("1"), any())).thenReturn(false);
+    docSpaceProbes(id -> CompletableFuture.completedFuture(false));
 
     job.run();
 
     verify(registry).remove("uuid-1");
-    verify(datasetService, never()).datasetExists(any(), any(), any());
+    verify(datasetService, never()).tableIdsInFolderAsync(any(), any());
   }
 
   @Test
   void givenFineBiDatasetDeleted_whenRunning_thenRemovesLink() throws IOException {
     staleLinks(record("1", "uuid-gone"));
-    when(docSpaceFiles.fileExists(any(), eq("1"), any())).thenReturn(true);
-    when(datasetService.datasetExists(eq("uuid-gone"), any(), any())).thenReturn(false);
+    docSpaceProbes(id -> CompletableFuture.completedFuture(true));
+    fineBiHolds("some-other-uuid");
 
     job.run();
 
     verify(registry).remove("uuid-gone");
-    verify(datasetService).datasetExists(eq("uuid-gone"), any(), any());
+    verify(datasetService).tableIdsInFolderAsync(eq("folder-1"), any());
   }
 
   @Test
   void givenBothSidesAlive_whenRunning_thenKeepsAndProbesBoth() throws IOException {
     FileSynchronizationRecord link = record("1", "uuid-live");
     staleLinks(link);
-    when(docSpaceFiles.fileExists(any(), eq("1"), any())).thenReturn(true);
-    when(datasetService.datasetExists(eq("uuid-live"), any(), any())).thenReturn(true);
+    docSpaceProbes(id -> CompletableFuture.completedFuture(true));
+    fineBiHolds("uuid-live");
 
     job.run();
 
-    verify(docSpaceFiles).fileExists(any(), eq("1"), any());
-    verify(datasetService).datasetExists(eq("uuid-live"), any(), any());
+    verify(docSpaceFiles).fileExistenceProbes(any(), any(), any());
+    verify(datasetService).tableIdsInFolderAsync(eq("folder-1"), any());
     verify(registry).put(link);
     verify(registry, never()).remove(any());
   }
@@ -137,8 +176,7 @@ class SyncLinkReconciliationClusterJobTest {
   @Test
   void givenProbeFails_whenRunning_thenKeepsTheLink() throws IOException {
     staleLinks(record("1", "uuid-1"));
-    when(docSpaceFiles.fileExists(any(), eq("1"), any()))
-        .thenThrow(new IOException("docspace unreachable"));
+    docSpaceProbes(id -> failed());
 
     job.run();
 
@@ -147,17 +185,33 @@ class SyncLinkReconciliationClusterJobTest {
   }
 
   @Test
+  void givenManyRecordsInOneFolder_whenRunning_thenProbesFineBiOncePerFolder() throws IOException {
+    staleLinks(
+        record("file-a", "uuid-a", "folder-1"),
+        record("file-b", "uuid-b", "folder-1"),
+        record("file-c", "uuid-c", "folder-2"));
+    docSpaceProbes(id -> CompletableFuture.completedFuture(true));
+    fineBiHolds("uuid-a", "uuid-b", "uuid-c");
+
+    job.run();
+
+    verify(datasetService).tableIdsInFolderAsync(eq("folder-1"), any());
+    verify(datasetService).tableIdsInFolderAsync(eq("folder-2"), any());
+    verify(datasetService, times(2)).tableIdsInFolderAsync(any(), any());
+  }
+
+  @Test
   void givenMoreLinksThanOneRunCap_whenRunning_thenStopsAtTheCap() throws IOException {
     List<FileSynchronizationRecord> page = new ArrayList<>();
     for (int i = 0; i < 250; i++) page.add(record("file-" + i, "uuid-" + i));
     when(registry.staleLinks(anyLong(), any(), anyInt())).thenReturn(page);
-    when(docSpaceFiles.fileExists(any(), any(), any())).thenReturn(true);
-    when(datasetService.datasetExists(any(), any(), any())).thenReturn(true);
+    docSpaceProbes(id -> CompletableFuture.completedFuture(true));
+    fineBiHolds();
 
     job.run();
 
-    verify(docSpaceFiles, times(100)).fileExists(any(), any(), any());
-    verify(datasetService, times(100)).datasetExists(any(), any(), any());
+    verify(docSpaceFiles).fileExistenceProbes(any(), fileIdsCaptor.capture(), any());
+    assertThat(fileIdsCaptor.getValue()).hasSize(100);
   }
 
   @Test
