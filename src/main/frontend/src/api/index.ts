@@ -1,9 +1,23 @@
-export { PluginClient, type FoldersResult, type FolderEntry } from "./plugin";
-export { HostEventSource, type IEventSourceConfig } from "./eventsource";
+export { PluginClient, PluginCoreServer, type FoldersResult, type FolderEntry } from "./plugin";
 export { DomInjector, type InjectionRule } from "./injector";
 export { HostNotification } from "./notification";
-export { HostWidgetRefresher, type IWidgetRefresher } from "./refresher";
-export { RegisterableWidgetRegistry, type IRegisterableWidgetConfiguration, type IRegisterableWidgetDefinition, type IRegisterableWidgetConfigEntry } from "./registry";
+export {
+  RegisterableWidgetRegistry,
+  type IRegisterableWidgetConfiguration,
+  type IRegisterableWidgetDefinition,
+  type IRegisterableWidgetConfigEntry,
+} from "./registry";
 export { ReportTemplateHelperService, type ReportTemplateHelper } from "./report";
-export { HostSocketEmitterListener, type ISocketChannelConfig, type ISocketFactory, type ISocketEmitterListener } from "./socket";
-export { Synchronizer, type INotification } from "./synchronizer";
+export { Renderer } from "./renderer";
+export {
+  HostEventSource,
+  HostSocketEmitterListener,
+  HostWidgetRefresher,
+  Synchronizer,
+  type IEventSource,
+  type IEventSourceConfig,
+  type INotification,
+  type ISocketChannelConfig,
+  type ISocketEmitterListener,
+  type IWidgetRefresher,
+} from "./sync";

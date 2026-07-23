@@ -1,7 +1,7 @@
 import { useLocation } from "preact-iso";
 import manifest from "@manifest";
 
-import { usePageStore } from "@store/page";
+import { usePluginStore } from "@store/plugin";
 import { ImportUrlUtils } from "@features/import/utils/url";
 import { AuthenticationPage } from "@pages/authentication";
 import { DocSpacePage } from "@pages/docspace";
@@ -10,7 +10,7 @@ import { PlaceholderPage } from "@pages/placeholder";
 import { SettingsPage } from "@pages/settings";
 
 function AdminRoutes() {
-  const mode = usePageStore((s) => s.config!.mode);
+  const mode = usePluginStore((s) => s.config!.mode);
   switch (mode) {
     case "setup":
     case "admin":
@@ -23,7 +23,7 @@ function AdminRoutes() {
 }
 
 function MainRoutes() {
-  const mode = usePageStore((s) => s.config!.mode);
+  const mode = usePluginStore((s) => s.config!.mode);
   switch (mode) {
     case "docspace":
       return ImportUrlUtils.isPicker() ? <PickerPage /> : <DocSpacePage />;

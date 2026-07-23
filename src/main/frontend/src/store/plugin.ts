@@ -1,7 +1,15 @@
 import { create } from "zustand";
-import { PluginClient } from "@api/plugin";
+
+import { PluginClient, PluginCoreServer } from "@api/plugin";
+import type { PluginCorePageMode, PluginCoreServerConfiguration } from "@api/plugin";
 
 interface PluginState {
+  config: PluginCoreServerConfiguration | null;
+  mode: PluginCorePageMode | null;
+  loggedIn: boolean;
+  load(): Promise<PluginCoreServerConfiguration>;
+  init(mode: PluginCorePageMode): void;
+  setMode(mode: PluginCorePageMode): void;
   login: PluginClient["login"];
   clearTenant: PluginClient["clearTenant"];
   logout: PluginClient["logout"];
@@ -10,9 +18,22 @@ interface PluginState {
   getFolders: PluginClient["getFolders"];
 }
 
-export const usePluginStore = create<PluginState>()(() => {
+export const usePluginStore = create<PluginState>()((set, get) => {
+  const server = new PluginCoreServer();
   const client = new PluginClient();
   return {
+    config: null,
+    mode: null,
+    loggedIn: false,
+    async load() {
+      const config = await server.load();
+      set({ config });
+      return config;
+    },
+    init: (mode) => {
+      if (get().mode === null) set({ mode, loggedIn: mode === "docspace" });
+    },
+    setMode: (mode) => set({ mode, loggedIn: mode === "docspace" }),
     login: (action, fields) => client.login(action, fields),
     clearTenant: (action) => client.clearTenant(action),
     logout: (action) => client.logout(action),

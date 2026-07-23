@@ -5,7 +5,6 @@ import type { DocSpaceItem } from "@features/docspace/types";
 import { ImportUrlUtils } from "@features/import/utils/url";
 
 import { useNotificationStore } from "@store/notification";
-import { usePageStore } from "@store/page";
 import { usePluginStore } from "@store/plugin";
 
 import { EventUtils } from "@utils/event";
@@ -19,7 +18,7 @@ import type { Stage } from "./stage";
 const close = () => EventUtils.send(manifest.events.frontend.filePicker, "close");
 
 export function PickerPage() {
-  const config = usePageStore((s) => s.config);
+  const config = usePluginStore((s) => s.config);
   const [stage, setStage] = useState<Stage>({ name: "picker" });
 
   if (!config) return null;

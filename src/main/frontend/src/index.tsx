@@ -1,7 +1,7 @@
 import { render } from "preact";
 
 import { NavigationApp, PageApp } from "@/App";
-import { usePageStore } from "@store/page";
+import { usePluginStore } from "@store/plugin";
 import { useRegistryStore } from "@store/registry";
 import { PlaceholderPage } from "@pages/placeholder";
 import type { IHostGlobal } from "@/types/host";
@@ -14,7 +14,7 @@ function getHostGlobal(): IHostGlobal | undefined {
 
 async function BootPage(root: HTMLElement): Promise<void> {
   try {
-    await usePageStore.getState().load();
+    await usePluginStore.getState().load();
     render(<PageApp />, root);
   } catch {
     render(<PlaceholderPage />, root);

@@ -3,12 +3,11 @@ import { useState } from "preact/hooks";
 import { LoaderButton, RoomIllustration } from "@components";
 import { useDocSpace } from "@features/docspace/hooks/useDocSpace";
 import { useDocSpaceStore } from "@store/docspace";
-import { usePageStore } from "@store/page";
 import { usePluginStore } from "@store/plugin";
 import { UrlUtils } from "@utils/url";
 
 export function Room() {
-  const config = usePageStore((s) => s.config)!;
+  const config = usePluginStore((s) => s.config)!;
   const room = useDocSpace(config);
   const [resetting, setResetting] = useState(false);
   const tenantUrl = UrlUtils.normalize(config.tenant.docSpaceUrl);
@@ -21,7 +20,7 @@ export function Room() {
     try {
       await usePluginStore.getState().logout(config.actions.logout);
     } catch {}
-    await usePageStore.getState().load();
+    await usePluginStore.getState().load();
   }
 
   if (room.status !== "error") return null;

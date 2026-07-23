@@ -2,7 +2,8 @@ import { useEffect } from "preact/hooks";
 
 import { UrlUtils } from "@utils/url";
 import { useDocSpaceStore } from "@store/docspace";
-import { usePageStore } from "@store/page";
+import { usePluginStore } from "@store/plugin";
+
 import manifest from "@manifest";
 
 function parseEventType(data: string): string {
@@ -15,7 +16,7 @@ function parseEventType(data: string): string {
 
 export function useTenantListener(): void {
   useEffect(() => {
-    const session = usePageStore.getState().config;
+    const session = usePluginStore.getState().config;
     if (!session?.locations.eventStreamUrl) return;
 
     const docSpaceUrl = UrlUtils.normalize(session.tenant.docSpaceUrl);
@@ -27,7 +28,7 @@ export function useTenantListener(): void {
       void useDocSpaceStore
         .getState()
         .logout(docSpaceUrl)
-        .finally(() => void usePageStore.getState().load());
+        .finally(() => void usePluginStore.getState().load());
     };
 
     return () => eventSource.close();

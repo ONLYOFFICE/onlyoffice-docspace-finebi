@@ -2,7 +2,7 @@ import { LocationProvider } from "preact-iso";
 import { useCallback, useEffect } from "preact/hooks";
 
 import { useDocSpaceStore } from "@store/docspace";
-import { usePageStore } from "@store/page";
+import { usePluginStore } from "@store/plugin";
 import { Frame } from "@features/docspace/components/Frame";
 import { DatasetObserver } from "@features/import/DatasetObserver";
 import { ExportObserver } from "@features/export";
@@ -18,7 +18,7 @@ import { AppRoutes } from "@/routes";
 import "@features/navigation/navigation.css";
 
 export function PageApp() {
-  const config = usePageStore((s) => s.config);
+  const config = usePluginStore((s) => s.config);
   const framed = useDocSpaceStore((s) => s.frameVisible);
   const { publish } = useEventPublisher();
 
@@ -30,7 +30,7 @@ export function PageApp() {
   useEventListener(
     DocSpaceStateEvents.reset,
     useCallback(() => {
-      void usePageStore.getState().load();
+      void usePluginStore.getState().load();
     }, []),
   );
 

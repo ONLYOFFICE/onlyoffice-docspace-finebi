@@ -2,12 +2,12 @@ import { useEffect } from "preact/hooks";
 
 import { PlaceholderContainer } from "@components";
 import { ImportUrlUtils } from "@features/import/utils/url";
-import { usePageStore } from "@store/page";
+import { usePluginStore } from "@store/plugin";
 import { EventUtils } from "@utils/event";
 import manifest from "@manifest";
 
 export function PlaceholderPage() {
-  const config = usePageStore((s) => s.config);
+  const config = usePluginStore((s) => s.config);
 
   const picker = ImportUrlUtils.isPicker();
 

@@ -10,12 +10,12 @@ import { AuthenticationContainer } from "@/features/authentication/components/Co
 import { useAuthentication } from "@/features/authentication/hooks/useAuthentication";
 import { useTenantListener } from "@features/authentication/hooks/useTenantListener";
 import type { PluginCoreAuthenticationMode } from "@api/plugin";
-import { usePageStore } from "@store/page";
+import { usePluginStore } from "@store/plugin";
 import { UrlUtils } from "@utils/url";
 import { MODES } from "./mode";
 
 export function AuthenticationPage() {
-  const config = usePageStore((s) => s.config);
+  const config = usePluginStore((s) => s.config);
   const authentication = useAuthentication();
   useTenantListener();
 

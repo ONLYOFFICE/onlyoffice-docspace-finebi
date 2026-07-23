@@ -4,13 +4,12 @@ import { FormError, Field, GenericButton, LoaderButton } from "@components";
 import { AuthenticationContainer } from "@features/authentication/components/Container";
 import { useTenantListener } from "@features/authentication/hooks/useTenantListener";
 import { useDocSpaceStore } from "@store/docspace";
-import { usePageStore } from "@store/page";
 import { usePluginStore } from "@store/plugin";
 import { FuncUtils } from "@utils/func";
 import { UrlUtils } from "@utils/url";
 
 export function SettingsPage() {
-  const config = usePageStore((s) => s.config);
+  const config = usePluginStore((s) => s.config);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   useTenantListener();
@@ -36,7 +35,7 @@ export function SettingsPage() {
     void run(async () => {
       await useDocSpaceStore.getState().logout(tenantUrl);
       await usePluginStore.getState().logout(session.actions.logout);
-      await usePageStore.getState().load();
+      await usePluginStore.getState().load();
     });
   }
 
@@ -44,7 +43,7 @@ export function SettingsPage() {
     void run(async () => {
       await useDocSpaceStore.getState().logout(tenantUrl);
       await usePluginStore.getState().clearTenant(session.actions.reset);
-      await usePageStore.getState().load();
+      await usePluginStore.getState().load();
     });
   }
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 
 import { usePluginStore } from "@store/plugin";
-import { usePageStore } from "@store/page";
 import { useAuthenticationStore } from "@store/authentication";
 import { useDocSpaceStore } from "@store/docspace";
 import { FuncUtils } from "@utils/func";
@@ -14,7 +13,7 @@ interface AuthFields {
 }
 
 export function useAuthentication() {
-  const config = usePageStore((s) => s.config);
+  const config = usePluginStore((s) => s.config);
   if (!config) {
     throw new Error("Auth form requires a loaded session config");
   }
@@ -79,7 +78,7 @@ export function useAuthentication() {
         extraFields: isSetup ? { docspaceUrl: url } : {},
       });
 
-      await usePageStore.getState().load();
+      await usePluginStore.getState().load();
     });
   }
 
@@ -89,7 +88,7 @@ export function useAuthentication() {
       if (url) await useDocSpaceStore.getState().logout(url);
       else useDocSpaceStore.getState().reset();
       await usePluginStore.getState().clearTenant(session.actions.reset);
-      await usePageStore.getState().load();
+      await usePluginStore.getState().load();
     });
   }
 
