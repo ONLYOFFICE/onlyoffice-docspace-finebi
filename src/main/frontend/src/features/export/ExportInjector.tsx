@@ -24,13 +24,15 @@ export class ExportInjector {
       type: finebi.export.widgetType,
       defaultConfig: {
         cls: [
-          "cursor-pointer", "bi-icon-text-item",
+          "cursor-pointer", "bi-down-list-item", "bi-list-item-active",
           "bi-f-v-c", "bi-f-h", "v-middle", "h-left", "onlyoffice-export",
         ].join(" "),
       },
       init(el: HTMLElement, options: ExportWidgetOptions, on: HostWidgetAttached) {
         el.setAttribute(finebi.export.itemAttr, "1");
         el.setAttribute("role", "button");
+        el.style.height = "30px";
+        el.style.position = "relative";
         el.title = "Export this dashboard as Excel and upload to DocSpace";
         useRendererStore.getState().mount(<ExportContent />, el);
 
@@ -126,7 +128,12 @@ export class ExportInjector {
     return doc.querySelector(finebi.selectors.exportComboOpen) !== null;
   }
 
-  private findMenuList(popup: HTMLElement): HTMLElement {
-    return popup.querySelector<HTMLElement>(".bi-v") ?? popup;
+  private findMenuList(popup: HTMLElement): HTMLElement | null {
+    return (
+      popup.querySelector<HTMLElement>(".bi-down-list-group")
+      ?? popup.querySelector<HTMLElement>(".bi-button-tree")
+      ?? popup.querySelector<HTMLElement>(finebi.selectors.downListPopup)
+      ?? null
+    );
   }
 }

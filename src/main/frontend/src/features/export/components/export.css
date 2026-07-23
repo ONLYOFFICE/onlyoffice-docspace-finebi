@@ -1,48 +1,17 @@
-.onlyoffice-export {
-  height: 24px;
-  display: flex;
-  align-items: center;
-  
-  padding: 0 12px;
-
-  line-height: 24px;
-
-  user-select: none;
-
-  color: #333;
-}
-
-.onlyoffice-export:hover {
-  background-color: #f2f4f7;
+.onlyoffice-export svg {
+  display: block;
+  width: 20px;
+  height: 20px;
 }
 
 .onlyoffice-export--busy {
   opacity: 0.6;
-
   cursor: wait;
   pointer-events: none;
 }
 
 .onlyoffice-export--disabled {
   opacity: 0.4;
-
   cursor: default;
   pointer-events: none;
-}
-
-.onlyoffice-export svg {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-
-  margin-right: 6px;
-}
-
-.onlyoffice-export__label {
-  font-size: 12px !important;
-  line-height: 24px;
-
-  white-space: nowrap !important;
-
-  color: #333 !important;
 }
