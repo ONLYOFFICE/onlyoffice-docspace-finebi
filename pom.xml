@@ -25,9 +25,9 @@
         <servlet.version>4.0.1</servlet.version>
         <thymeleaf.version>3.1.5.RELEASE</thymeleaf.version>
 
-
         <maven.antrun.plugin.version>3.1.0</maven.antrun.plugin.version>
         <maven.assembly.plugin.version>3.8.0</maven.assembly.plugin.version>
+        <maven.build.helper.plugin.version>3.6.1</maven.build.helper.plugin.version>
         <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
         <maven.formatter.plugin.version>2.29</maven.formatter.plugin.version>
         <maven.frontend.plugin.version>2.0.1</maven.frontend.plugin.version>
@@ -172,7 +172,7 @@
     </dependencies>
 
     <build>
-        <finalName>docspace-plugin-${project.version}</finalName>
+        <finalName>${project.artifactId}-${project.version}${current.timestamp}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -217,6 +217,24 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${maven.build.helper.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>timestamp-property</id>
+                        <goals>
+                            <goal>timestamp-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>current.timestamp</name>
+                            <pattern>.yyyyMMdd</pattern>
+                            <timeZone>GMT</timeZone>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>com.github.eirslett</groupId>
@@ -393,7 +411,7 @@
                         <phase>package</phase>
                         <goals><goal>single</goal></goals>
                         <configuration>
-                            <finalName>docspace-plugin-${project.version}</finalName>
+                            <finalName>docspace-plugin-${project.version}${current.timestamp}</finalName>
                             <descriptors>
                                 <descriptor>src/main/resources/assembly.xml</descriptor>
                             </descriptors>
@@ -404,7 +422,7 @@
                         <phase>package</phase>
                         <goals><goal>single</goal></goals>
                         <configuration>
-                            <finalName>docspace-plugin-${project.version}-debug</finalName>
+                            <finalName>docspace-plugin-${project.version}${current.timestamp}-debug</finalName>
                             <descriptors>
                                 <descriptor>src/main/resources/assembly-debug.xml</descriptor>
                             </descriptors>

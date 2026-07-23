@@ -3,7 +3,7 @@
     <id>com.asc.fr.docspace</id>
     <name>ONLYOFFICE DocSpace</name>
     <active>yes</active>
-    <version>0.5.0</version>
+    <version>${project.version}${current.timestamp}</version>
     <env-version>10.0~11.0</env-version>
     <jartime>2019-08-30</jartime>
     <vendor>ONLYOFFICE</vendor>

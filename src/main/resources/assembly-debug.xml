@@ -10,6 +10,7 @@
         <file>
             <source>plugin.xml</source>
             <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
         </file>
         <file>
             <source>${project.build.directory}/${project.build.finalName}-debug.jar</source>
