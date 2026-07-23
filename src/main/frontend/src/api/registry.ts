@@ -33,7 +33,6 @@ export interface IRegisterableWidgetConfigEntry {
 export interface IRegisterableWidgetDefinition<
   O extends Record<string, unknown> = Record<string, unknown>,
 > {
-  /** FineUI shortcut name, e.g. "docspace.dataset.item". */
   type: string;
   /**
    * Extra config fields merged on top of BI.BasicButton's _defaultConfig.

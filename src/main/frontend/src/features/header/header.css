@@ -1,4 +1,4 @@
-[data-docspace-header-logout] {
+[data-onlyoffice-header-logout] {
   display: contents;
 }
 
@@ -83,7 +83,7 @@
   pointer-events: none;
 }
 
-[data-docspace-header-logout] + .dec-frame-header-message,
-[data-docspace-header-logout] + .dec-header-message {
+[data-onlyoffice-header-logout] + .dec-frame-header-message,
+[data-onlyoffice-header-logout] + .dec-header-message {
   margin-left: 16px;
 }
