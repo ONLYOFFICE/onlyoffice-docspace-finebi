@@ -1,4 +1,3 @@
-import { render } from "preact";
 import { useEffect } from "preact/hooks";
 import { DomInjector } from "@api/injector";
 import { useRendererStore } from "@store/renderer";
@@ -51,7 +50,7 @@ export function HeaderLogoutObserver() {
     return () => {
       injector.disconnect();
       if (host) {
-        render(null, host);
+        useRendererStore.getState().unmount(host);
         host.remove();
         host = null;
       }

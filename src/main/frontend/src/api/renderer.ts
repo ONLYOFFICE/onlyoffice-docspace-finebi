@@ -6,10 +6,31 @@ import { render, type ComponentChild } from "preact";
  * detached (ready to move into the page, including cross-document into iframes).
  */
 export class Renderer {
+  private readonly mounted = new Set<Element>();
+
   /** Render `node` into an existing `container` and return it. */
   mount(node: ComponentChild, container: Element): Element {
+    this.sweep();
     render(node, container);
+    this.mounted.add(container);
     return container;
+  }
+
+  /** Unmount the root previously mounted into `container` and stop tracking it. */
+  unmount(container: Element): void {
+    render(null, container);
+    this.mounted.delete(container);
+  }
+
+  /**
+   * Unmount roots whose host has been detached from the document
+   */
+  private sweep(): void {
+    for (const container of this.mounted) {
+      if (container.isConnected) continue;
+      render(null, container);
+      this.mounted.delete(container);
+    }
   }
 
   /**
