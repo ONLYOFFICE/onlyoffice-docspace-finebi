@@ -9,6 +9,4 @@
     color: var(--onlyoffice-color-text);
 
     background: var(--onlyoffice-color-surface);
-
-    animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }

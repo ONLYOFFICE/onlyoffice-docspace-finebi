@@ -14,7 +14,7 @@ function AdminRoutes() {
   switch (mode) {
     case "setup":
     case "admin":
-      return <AuthenticationPage key={mode} />;
+      return <AuthenticationPage />;
     case "settings":
       return <SettingsPage />;
     default:

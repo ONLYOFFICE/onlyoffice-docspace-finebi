@@ -1,7 +1,5 @@
 .onlyoffice-authentication-container {
     padding: 32px 16px;
-
-    animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }
 
 .onlyoffice-authentication-container__column {
@@ -40,6 +38,4 @@
 
     background: var(--onlyoffice-color-surface);
     box-shadow: var(--onlyoffice-shadow-card);
-
-    animation: onlyoffice-fade-in-up var(--onlyoffice-duration-slow) var(--onlyoffice-ease-out) both;
 }
