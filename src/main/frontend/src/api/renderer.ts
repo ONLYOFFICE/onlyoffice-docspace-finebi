@@ -27,7 +27,7 @@ export class Renderer {
    */
   private sweep(): void {
     for (const container of this.mounted) {
-      if (container.isConnected) continue;
+      if (container.isConnected && container.ownerDocument?.defaultView) continue;
       render(null, container);
       this.mounted.delete(container);
     }
