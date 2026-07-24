@@ -205,11 +205,22 @@ export class DocSpaceClient {
     }
   }
 
-  /** Drop the cached system frame and clear its mount node. */
-  reset(): void {
+  /** Every DocSpace frame slot this client manages. */
+  private allFrameIds(): string[] {
+    return [this.systemFrameId(), this.frameId(), this.pickerFrameId()];
+  }
+
+  /**
+   * Enforce the single-active-frame invariant.
+   */
+  private closeAllFrames(): void {
+    for (const id of this.allFrameIds()) this.destroyById(id);
     this.cached = null;
-    this.destroyById(this.systemFrameId());
-    this.destroyById(this.frameId());
+  }
+
+  /** Drop the cached system frame and clear every mount node. */
+  reset(): void {
+    this.closeAllFrames();
   }
 
   /** Tear down the visible manager iframe and clear its mount node. */
@@ -238,6 +249,8 @@ export class DocSpaceClient {
   async launchManager(url: string): Promise<void> {
     const sdk = await this.ensureSdk(url);
     if (!sdk.initManager) throw sdkMissing();
+
+    this.closeAllFrames();
 
     return new Promise((resolve, reject) => {
       sdk.initManager({
@@ -268,7 +281,7 @@ export class DocSpaceClient {
     if (!sdk.initFileSelector)
       throw sdkMissing();
 
-    this.destroyPicker();
+    this.closeAllFrames();
 
     if (isCancelled?.())
       return;
