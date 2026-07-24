@@ -5,7 +5,9 @@ function isViewOpen(): boolean {
   const marker = `/url${manifest.aliases.main.from}`;
   for (const frame of document.querySelectorAll("iframe")) {
     const src = frame.getAttribute("src") ?? "";
-    if (!src.includes(marker) || src.includes("/admin"))
+    // Skip the import picker overlay: it shares the /url/docspace path but is
+    // flagged with ?picker=1.
+    if (!src.includes(marker) || src.includes("/admin") || src.includes("picker="))
       continue;
 
     const rectangle = frame.getBoundingClientRect();
