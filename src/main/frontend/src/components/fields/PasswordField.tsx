@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 import type { ComponentProps } from "preact";
 
 import { Eye, EyeClosed } from "@components";
+
 import { useTranslation } from "@i18n";
 
 import "./common.css";

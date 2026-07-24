@@ -1,4 +1,5 @@
 import type { FunctionComponent } from "preact";
+
 import OnlyofficeIcon from "@resources/images/onlyoffice-logo.svg";
 
 export const LogoutButton: FunctionComponent = () => (

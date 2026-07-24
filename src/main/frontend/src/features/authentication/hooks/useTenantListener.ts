@@ -1,8 +1,9 @@
 import { useEffect } from "preact/hooks";
 
-import { UrlUtils } from "@utils/url";
-import { useDocSpaceStore } from "@store/docspace";
 import { usePluginStore } from "@store/plugin";
+import { useDocSpaceStore } from "@store/docspace";
+
+import { UrlUtils } from "@utils/url";
 
 import manifest from "@manifest";
 

@@ -1,6 +1,7 @@
 import { useSyncStore } from "@store/sync";
 import type { INotification } from "@api/sync";
 import type { IRegisterableWidgetConfigEntry } from "@api/registry";
+
 import { UrlUtils } from "@utils/url";
 
 import finebi from "@config/finebi.json";

@@ -1,17 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+
+import { DocSpaceStateEvents } from "@/types/events";
+
+import { useViewOpen } from "./useViewOpen";
+import { useEventListener } from "@hooks/useEventListener";
+import { useEventPublisher } from "@hooks/useEventPublisher";
+
 import { PluginCoreServer } from "@api/plugin";
 import type { PluginCorePageMode, PluginCoreServerConfiguration } from "@api/plugin";
+
 import { useDocSpaceStore } from "@store/docspace";
 import { usePluginStore } from "@store/plugin";
 import { useNotificationStore } from "@store/notification";
-import { useEventListener } from "@hooks/useEventListener";
-import { useEventPublisher } from "@hooks/useEventPublisher";
+
 import { UrlUtils } from "@utils/url";
 import { FuncUtils } from "@utils/func";
-import { DocSpaceStateEvents } from "@/types/events";
-import manifest from "@manifest";
 
-import { useViewOpen } from "./useViewOpen";
+import manifest from "@manifest";
 
 export interface HeaderSession {
   visible: boolean;

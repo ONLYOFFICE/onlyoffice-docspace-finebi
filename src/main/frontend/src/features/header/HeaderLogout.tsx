@@ -1,8 +1,9 @@
 import { createPortal } from "preact/compat";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 
-import { useHeaderSession } from "./useHeaderSession";
-import { LogoutButton } from "./components/LogoutButton";
+import { useHeaderSession } from "@features/header/useHeaderSession";
+import { LogoutButton } from "@features/header/components/LogoutButton";
+
 import { useTranslation } from "@i18n";
 
 const POPUP_WIDTH = 140;

@@ -1,4 +1,5 @@
 import type { FolderEntry } from "@api/plugin";
+
 import { useTranslation } from "@i18n";
 
 interface FolderSelectorProps {

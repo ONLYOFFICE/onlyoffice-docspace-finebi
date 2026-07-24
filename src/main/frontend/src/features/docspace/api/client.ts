@@ -5,11 +5,13 @@ import type {
   FileSelectorOptions,
   LoginResult,
 } from "@features/docspace/types";
+
 import { FuncUtils } from "@utils/func";
 import { UrlUtils } from "@utils/url";
+
 import { translate } from "@i18n";
-import docspace from "@config/docspace.json";
 import manifest from "@manifest";
+import docspace from "@config/docspace.json";
 
 const LOGOUT_MS = 4_000;
 const LOGIN_BACKOFF_MS = [0, 100, 500] as const;

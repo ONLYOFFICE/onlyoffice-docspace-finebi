@@ -2,8 +2,11 @@ import { useEffect } from "preact/hooks";
 
 import { PlaceholderContainer } from "@components";
 import { ImportUrlUtils } from "@features/import/utils/url";
+
 import { usePluginStore } from "@store/plugin";
+
 import { EventUtils } from "@utils/event";
+
 import { useTranslation } from "@i18n";
 import manifest from "@manifest";
 

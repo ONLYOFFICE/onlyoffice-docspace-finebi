@@ -1,8 +1,10 @@
 import type { FunctionComponent } from "preact";
-import OnlyofficeIcon from "@resources/images/onlyoffice-logo.svg";
 
 import { useLoggedIn } from "@hooks/useSessionMode";
+
 import { useTranslation } from "@i18n";
+
+import OnlyofficeIcon from "@resources/images/onlyoffice-logo.svg";
 
 import "./dataset.css";
 

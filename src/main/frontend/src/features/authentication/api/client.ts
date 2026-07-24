@@ -1,6 +1,8 @@
-import { usePluginStore } from "@store/plugin";
-import type { AuthenticationResult, LoginRequest } from "../types/authentication";
 import type { DocSpaceFrame, UserInfo } from "@features/docspace/types";
+import type { AuthenticationResult, LoginRequest } from "@features/authentication/types/authentication";
+
+import { usePluginStore } from "@store/plugin";
+
 import { translate } from "@i18n";
 
 export class AuthenticationClient {

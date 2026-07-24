@@ -1,7 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
 
-import manifest from "@manifest";
 import { useTranslation } from "@i18n";
+
+import manifest from "@manifest";
 
 import "./overlay.css";
 

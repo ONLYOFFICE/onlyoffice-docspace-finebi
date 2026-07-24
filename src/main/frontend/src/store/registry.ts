@@ -1,7 +1,8 @@
 import { create } from "zustand";
+import type { IHostGlobal, IRegisterableWidgetInstance } from "@/types/host";
+
 import { RegisterableWidgetRegistry } from "@api/registry";
 import type { IRegisterableWidgetDefinition, IRegisterableWidgetConfigEntry } from "@api/registry";
-import type { IHostGlobal, IRegisterableWidgetInstance } from "@/types/host";
 
 interface RegistryState {
   bi: IHostGlobal | null;

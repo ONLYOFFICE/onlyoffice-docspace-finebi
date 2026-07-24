@@ -1,9 +1,9 @@
 import { DatasetMenuItem } from "./components/DatasetItem";
 
-import { DomInjector } from "@api/injector";
-
 import { openShellOverlay } from "@features/import/components/ShellOverlay";
 import { ImportUrlUtils } from "@features/import/utils/url";
+
+import { DomInjector } from "@api/injector";
 
 import { useRendererStore } from "@store/renderer";
 

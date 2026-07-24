@@ -1,4 +1,5 @@
 import { PluginCoreAuthenticationMode } from "@/api/plugin";
+
 import { translate } from "@i18n";
 
 interface ModeText {

@@ -1,8 +1,6 @@
+import { PageContainer, Subtext } from "@components";
+
 import HorizontalLogoSvg from "@resources/images/horizontal-logo.svg";
-
-import { Subtext } from "../typography/Subtext";
-import { PageContainer } from "./PageContainer";
-
 import OwlSvg from "@resources/images/owl.svg";
 
 import "./placeholder.css";

@@ -1,4 +1,5 @@
 import { UrlUtils } from "@utils/url";
+
 import manifest from "@manifest";
 
 export const ImportUrlUtils = Object.freeze({

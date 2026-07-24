@@ -1,19 +1,23 @@
 import { LocationProvider } from "preact-iso";
 import { useCallback, useEffect, useRef } from "preact/hooks";
 
-import { useDocSpaceStore } from "@store/docspace";
-import { usePluginStore } from "@store/plugin";
-import { Frame } from "@features/docspace/components/Frame";
-import { DatasetObserver } from "@features/import/DatasetObserver";
+import { DocSpaceStateEvents } from "@/types/events";
+
 import { ExportObserver } from "@features/export";
 import { HeaderLogoutObserver } from "@features/header";
 import { useViewOpen } from "@features/header/useViewOpen";
+import { Frame } from "@features/docspace/components/Frame";
+import { DatasetObserver } from "@features/import/DatasetObserver";
 import { ShellOverlay } from "@features/import/components/ShellOverlay";
 import { NavigationInjector } from "@features/navigation/NavigationInjector";
 import { NAV_ENTRIES, startNavigationRuntime } from "@features/navigation/runtime";
+
 import { useEventListener } from "@hooks/useEventListener";
 import { useEventPublisher } from "@hooks/useEventPublisher";
-import { DocSpaceStateEvents } from "@/types/events";
+
+import { useDocSpaceStore } from "@store/docspace";
+import { usePluginStore } from "@store/plugin";
+
 import { AppRoutes } from "@/routes";
 
 import "@features/navigation/navigation.css";

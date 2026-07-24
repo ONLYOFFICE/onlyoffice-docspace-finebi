@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { DocSpaceClient } from "@features/docspace/api/client";
-import type { PluginCoreServerConfiguration } from "@api/plugin";
 import type { DocSpaceFrame, FileSelectorOptions } from "@features/docspace/types";
+
+import type { PluginCoreServerConfiguration } from "@api/plugin";
 
 interface DocSpaceState {
   /** Whether the manager frame host should fill the page. */

@@ -9,8 +9,10 @@ import {
 import { AuthenticationContainer } from "@/features/authentication/components/Container";
 import { useAuthentication } from "@/features/authentication/hooks/useAuthentication";
 import { useTenantListener } from "@features/authentication/hooks/useTenantListener";
+
 import type { PluginCoreAuthenticationMode } from "@api/plugin";
 import { usePluginStore } from "@store/plugin";
+
 import { UrlUtils } from "@utils/url";
 
 import { useTranslation } from "@i18n";

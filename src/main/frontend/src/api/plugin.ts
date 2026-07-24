@@ -1,7 +1,7 @@
-import manifest from "@manifest";
+import { translate } from "@i18n";
 import { UrlUtils } from "@utils/url";
 
-import { translate } from "@i18n";
+import manifest from "@manifest";
 
 interface PluginResult {
   ok?: boolean;

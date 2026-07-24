@@ -4,9 +4,11 @@ import { Spinner } from "@components";
 import type { DocSpaceItem } from "@features/docspace/types";
 
 import type { PluginCoreServerConfiguration } from "@api/plugin";
+
 import { useDocSpaceStore } from "@store/docspace";
 
 import { FuncUtils } from "@utils/func";
+
 import { useTranslation } from "@i18n";
 
 import "@components/overlays/dialog.css";

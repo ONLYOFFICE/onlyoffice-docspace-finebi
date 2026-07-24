@@ -1,12 +1,14 @@
 import { useEffect } from "preact/hooks";
-import { DomInjector } from "@api/injector";
-import { useRendererStore } from "@store/renderer";
 
 import { HeaderLogout } from "./HeaderLogout";
 
-import finebi from "@config/finebi.json";
+import { DomInjector } from "@api/injector";
+
+import { useRendererStore } from "@store/renderer";
 
 import headerCss from "./header.css?inline";
+
+import finebi from "@config/finebi.json";
 
 function injectStyles(doc: Document): void {
   if (doc.getElementById(finebi.header.styleId))

@@ -1,6 +1,8 @@
 import { useRef } from "preact/hooks";
-import { useRegistryStore } from "@store/registry";
+
 import type { IRegisterableWidgetConfigEntry } from "@api/registry";
+
+import { useRegistryStore } from "@store/registry";
 
 interface NavigationInjectorProps {
   configKey: string;

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "preact/hooks";
 
 import { usePluginStore } from "@store/plugin";
-import { useAuthenticationStore } from "@store/authentication";
 import { useDocSpaceStore } from "@store/docspace";
+import { useAuthenticationStore } from "@store/authentication";
+
 import { FuncUtils } from "@utils/func";
 import { UrlUtils } from "@utils/url";
+
 import { translate } from "@i18n";
 
 interface AuthFields {

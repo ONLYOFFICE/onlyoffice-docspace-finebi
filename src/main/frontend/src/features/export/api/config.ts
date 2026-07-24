@@ -1,5 +1,6 @@
 import { ExportUrlUtils } from "@features/export/utils/url";
 import type { ExportConfig } from "@features/export/types/config";
+
 import { translate } from "@i18n";
 
 export async function fetchExportConfig(): Promise<ExportConfig> {

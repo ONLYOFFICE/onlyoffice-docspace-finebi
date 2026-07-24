@@ -1,15 +1,19 @@
 import { useState } from "preact/hooks";
+import { DocSpaceStateEvents } from "@/types/events";
 
 import { FormError, Field, GenericButton, LoaderButton } from "@components";
 import { AuthenticationContainer } from "@features/authentication/components/Container";
 import { useTenantListener } from "@features/authentication/hooks/useTenantListener";
+
+import { useEventPublisher } from "@hooks/useEventPublisher";
+
 import { useDocSpaceStore } from "@store/docspace";
 import { usePluginStore } from "@store/plugin";
-import { useEventPublisher } from "@hooks/useEventPublisher";
+
 import { FuncUtils } from "@utils/func";
 import { UrlUtils } from "@utils/url";
+
 import { useTranslation } from "@i18n";
-import { DocSpaceStateEvents } from "@/types/events";
 
 export function SettingsPage() {
   const translate = useTranslation();

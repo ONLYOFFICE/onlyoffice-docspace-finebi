@@ -1,7 +1,8 @@
 import { create } from "zustand";
+import type { IHostGlobal } from "@/types/host";
+
 import { HostNotification } from "@api/notification";
 import type { NotificationLevel } from "@api/notification";
-import type { IHostGlobal } from "@/types/host";
 
 interface NotificationState {
   notify(message: string, level?: NotificationLevel): void;

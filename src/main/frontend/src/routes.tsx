@@ -1,13 +1,16 @@
 import { useLocation } from "preact-iso";
-import manifest from "@manifest";
+
+import { PickerPage } from "@pages/picker";
+import { DocSpacePage } from "@pages/docspace";
+import { SettingsPage } from "@pages/settings";
+import { PlaceholderPage } from "@pages/placeholder";
+import { AuthenticationPage } from "@pages/authentication";
+
+import { ImportUrlUtils } from "@features/import/utils/url";
 
 import { usePluginStore } from "@store/plugin";
-import { ImportUrlUtils } from "@features/import/utils/url";
-import { AuthenticationPage } from "@pages/authentication";
-import { DocSpacePage } from "@pages/docspace";
-import { PickerPage } from "@pages/picker";
-import { PlaceholderPage } from "@pages/placeholder";
-import { SettingsPage } from "@pages/settings";
+
+import manifest from "@manifest";
 
 function AdminRoutes() {
   const mode = usePluginStore((s) => s.config!.mode);

@@ -1,12 +1,15 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { usePluginStore } from "@store/plugin";
-import type { FolderEntry } from "@api/plugin";
-import { Address, DialogButton, FormError, Lead, Spinner } from "@components";
-import type { DocSpaceItem } from "@features/docspace/types";
-import { useTranslation } from "@i18n";
 import { FolderOverlay } from "./FolderOverlay";
 import { FolderSelector } from "./FolderSelector";
+import { Address, DialogButton, FormError, Lead, Spinner } from "@components";
+
+import type { DocSpaceItem } from "@features/docspace/types";
+
+import { usePluginStore } from "@store/plugin";
+import type { FolderEntry } from "@api/plugin";
+
+import { useTranslation } from "@i18n";
 
 import "./picker.css";
 

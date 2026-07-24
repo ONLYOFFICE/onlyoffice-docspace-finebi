@@ -1,12 +1,11 @@
-import { DomInjector } from "@api/injector";
-
 import { ExportMenuItem } from "./components/ExportMenuItem";
 
+import { DomInjector } from "@api/injector";
 import { useRendererStore } from "@store/renderer";
 
-import finebi from "@config/finebi.json";
-
 import exportCss from "./components/export.css?inline";
+
+import finebi from "@config/finebi.json";
 
 export class ExportInjector {
   private readonly injector = new DomInjector();

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { usePluginStore } from "@store/plugin";
 import type { PluginCoreServerConfiguration } from "@api/plugin";
+
+import { usePluginStore } from "@store/plugin";
 import { useDocSpaceStore } from "@store/docspace";
 
 export type DocSpaceStatus = "loading" | "ready" | "error";

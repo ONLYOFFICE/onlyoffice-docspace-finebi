@@ -1,10 +1,13 @@
 import { render } from "preact";
 
+import type { IHostGlobal } from "@/types/host";
+
 import { NavigationApp, PageApp } from "@/App";
+
+import { PlaceholderPage } from "@pages/placeholder";
+
 import { usePluginStore } from "@store/plugin";
 import { useRegistryStore } from "@store/registry";
-import { PlaceholderPage } from "@pages/placeholder";
-import type { IHostGlobal } from "@/types/host";
 
 import "./index.css";
 
