@@ -4,38 +4,60 @@ export type EventPublisher = {
   publish(type: string, detail?: Record<string, unknown>): void;
 };
 
-function postAncestors(payload: Record<string, unknown>): void {
-  const seen = new Set<Window>();
-  let current: Window | null = window;
-  while (current && !seen.has(current)) {
-    seen.add(current);
-    let parent: Window | null = null;
-    try {
-      parent = current.parent;
-    } catch {
-      break;
+function rootWindow(): Window {
+  let root: Window = window;
+  try {
+    while (root.parent && root.parent !== root) {
+      void root.parent.document;
+      root = root.parent;
     }
-
-    if (!parent || parent === current) break;
-    try {
-      parent.postMessage(payload, "*");
-    } catch {
-      console.error("Failed to post message to parent frame");
-    }
-
-    current = parent;
+  } catch {
+    // ignore
   }
+
+  return root;
 }
 
-function postFrames(payload: Record<string, unknown>): void {
+/**
+ * Deliver to every same-origin window in the frame tree — not just the direct
+ * parent/children. FineBI hosts each plugin page (manager, settings, picker) in
+ * a sibling card iframe, so a message published from one must climb to the top
+ * and fan back down to reach the others. The origin window is skipped: it is
+ * handled by the local {@link CustomEvent} dispatch, not by postMessage.
+ */
+function broadcast(payload: Record<string, unknown>): void {
   const { origin } = window.location;
-  for (const frame of document.querySelectorAll("iframe")) {
+  const seen = new Set<Window>();
+  const stack: Window[] = [rootWindow()];
+
+  while (stack.length) {
+    const win = stack.pop();
+    if (!win || seen.has(win)) continue;
+    seen.add(win);
+
+    let doc: Document;
     try {
-      if (new URL(frame.src, window.location.href).origin !== origin)
-        continue;
-      frame.contentWindow?.postMessage(payload, origin);
+      doc = win.document;
     } catch {
-      console.error("Failed to post message to frame");
+      continue; // cross-origin window — cannot enumerate its frames
+    }
+
+    if (win !== window) {
+      try {
+        win.postMessage(payload, origin);
+      } catch {
+        console.error("Failed to post message to frame");
+      }
+    }
+
+    for (const frame of doc.querySelectorAll("iframe")) {
+      try {
+        if (new URL(frame.src, win.location.href).origin !== origin) continue;
+      } catch {
+        continue;
+      }
+      const child = frame.contentWindow;
+      if (child && !seen.has(child)) stack.push(child);
     }
   }
 }
@@ -44,8 +66,7 @@ const publisher: EventPublisher = {
   publish(type, detail = {}) {
     const payload = { type, ...detail };
     window.dispatchEvent(new CustomEvent(type, { detail }));
-    postAncestors(payload);
-    postFrames(payload);
+    broadcast(payload);
   },
 };
 
