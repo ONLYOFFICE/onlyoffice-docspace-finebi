@@ -70,6 +70,7 @@ export function FilePicker({
       cancelled = true;
       useDocSpaceStore.getState().destroyPicker();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, docSpaceUrl]);
 
   return (

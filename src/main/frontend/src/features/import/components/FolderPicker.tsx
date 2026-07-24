@@ -39,6 +39,7 @@ export function FolderPicker({
       .catch((err: unknown) => {
         setFetchError(err instanceof Error ? err.message : translate("import.folder.load.failed"));
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [foldersUrl]);
 
   async function handleImport(): Promise<void> {

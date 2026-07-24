@@ -34,6 +34,7 @@ export function useAuthentication() {
     if (isSetup || !tenantUrl) return;
     useDocSpaceStore.getState().ensureFrame(tenantUrl)
       .catch((err) => setError(FuncUtils.errorMessage(err)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function setField<K extends keyof AuthFields>(key: K, value: string): void {

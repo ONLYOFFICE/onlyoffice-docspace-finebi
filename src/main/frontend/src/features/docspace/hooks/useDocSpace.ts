@@ -40,6 +40,7 @@ export function useDocSpace(config: PluginCoreServerConfiguration) {
       cancelled = true;
       destroyManager();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { status, error };
