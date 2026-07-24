@@ -1,5 +1,5 @@
 import { LocationProvider } from "preact-iso";
-import { useCallback, useEffect } from "preact/hooks";
+import { useCallback, useEffect, useRef } from "preact/hooks";
 
 import { useDocSpaceStore } from "@store/docspace";
 import { usePluginStore } from "@store/plugin";
@@ -7,6 +7,7 @@ import { Frame } from "@features/docspace/components/Frame";
 import { DatasetObserver } from "@features/import/DatasetObserver";
 import { ExportObserver } from "@features/export";
 import { HeaderLogoutObserver } from "@features/header";
+import { useViewOpen } from "@features/header/useViewOpen";
 import { ShellOverlay } from "@features/import/components/ShellOverlay";
 import { NavigationInjector } from "@features/navigation/NavigationInjector";
 import { NAV_ENTRIES, startNavigationRuntime } from "@features/navigation/runtime";
@@ -30,6 +31,7 @@ export function PageApp() {
   useEventListener(
     DocSpaceStateEvents.reset,
     useCallback(() => {
+      useDocSpaceStore.getState().destroyManager();
       void usePluginStore.getState().load();
     }, []),
   );
@@ -49,9 +51,18 @@ export function PageApp() {
 }
 
 export function NavigationApp() {
+  const { publish } = useEventPublisher();
+  const viewOpen = useViewOpen();
+  const wasOpen = useRef(false);
+
   useEffect(() => {
     startNavigationRuntime();
   }, []);
+
+  useEffect(() => {
+    if (viewOpen && !wasOpen.current) publish(DocSpaceStateEvents.reset);
+    wasOpen.current = viewOpen;
+  }, [viewOpen, publish]);
 
   return (
     <>
