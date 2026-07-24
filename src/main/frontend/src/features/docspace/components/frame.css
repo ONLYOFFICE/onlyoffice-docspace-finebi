@@ -23,8 +23,6 @@
   z-index: 0;
 
   overflow: hidden;
-
-  animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }
 
 .onlyoffice-frame-host--visible,
