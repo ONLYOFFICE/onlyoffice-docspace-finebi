@@ -1,20 +1,17 @@
-import { useNotificationStore } from "@store/notification";
 import { useSyncStore } from "@store/sync";
 import type { INotification } from "@api/sync";
 import type { IRegisterableWidgetConfigEntry } from "@api/registry";
 import { UrlUtils } from "@utils/url";
-
-import { translate } from "@i18n";
 
 import finebi from "@config/finebi.json";
 import manifest from "@manifest";
 
 const notify: INotification = {
   showSuccess() {
-    useNotificationStore.getState().notify(translate("sync.refreshed"));
+    // useNotificationStore.getState().notify(translate("sync.refreshed"));
   },
   showFallback() {
-    useNotificationStore.getState().notify(translate("sync.fallback"));
+    // useNotificationStore.getState().notify(translate("sync.fallback"));
   },
 };
 
