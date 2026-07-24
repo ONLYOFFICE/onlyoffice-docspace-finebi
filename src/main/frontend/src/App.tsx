@@ -30,7 +30,8 @@ export function PageApp() {
 
   useEventListener(
     DocSpaceStateEvents.reset,
-    useCallback(() => {
+    useCallback((data: Record<string, unknown>) => {
+      if (data.teardown === true) useDocSpaceStore.getState().destroyManager();
       void usePluginStore.getState().load();
     }, []),
   );

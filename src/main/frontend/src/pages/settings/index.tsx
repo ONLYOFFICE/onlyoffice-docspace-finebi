@@ -5,15 +5,18 @@ import { AuthenticationContainer } from "@features/authentication/components/Con
 import { useTenantListener } from "@features/authentication/hooks/useTenantListener";
 import { useDocSpaceStore } from "@store/docspace";
 import { usePluginStore } from "@store/plugin";
+import { useEventPublisher } from "@hooks/useEventPublisher";
 import { FuncUtils } from "@utils/func";
 import { UrlUtils } from "@utils/url";
 import { useTranslation } from "@i18n";
+import { DocSpaceStateEvents } from "@/types/events";
 
 export function SettingsPage() {
   const translate = useTranslation();
   const config = usePluginStore((s) => s.config);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { publish } = useEventPublisher();
   useTenantListener();
 
   if (!config) return null;
@@ -38,6 +41,7 @@ export function SettingsPage() {
       await useDocSpaceStore.getState().logout(tenantUrl);
       await usePluginStore.getState().logout(session.actions.logout);
       await usePluginStore.getState().load();
+      publish(DocSpaceStateEvents.reset, { teardown: true });
     });
   }
 
@@ -46,6 +50,7 @@ export function SettingsPage() {
       await useDocSpaceStore.getState().logout(tenantUrl);
       await usePluginStore.getState().clearTenant(session.actions.reset);
       await usePluginStore.getState().load();
+      publish(DocSpaceStateEvents.reset, { teardown: true });
     });
   }
 

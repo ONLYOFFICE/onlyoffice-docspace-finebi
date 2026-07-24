@@ -74,7 +74,7 @@ export function useHeaderSession(): HeaderSession {
       await usePluginStore.getState().logout(logoutUrl);
 
       setMode("user");
-      publish(DocSpaceStateEvents.reset);
+      publish(DocSpaceStateEvents.reset, { teardown: true });
     } catch (err) {
       useNotificationStore.getState().notify(FuncUtils.errorMessage(err), "error");
     } finally {
