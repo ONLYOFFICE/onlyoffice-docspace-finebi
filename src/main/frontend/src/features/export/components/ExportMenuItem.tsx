@@ -5,10 +5,13 @@ import { ExportClient } from "@features/export/api/client";
 import { fetchExportConfig } from "@features/export/api/config";
 import { useLoggedIn } from "@hooks/useSessionMode";
 
+import { useTranslation } from "@i18n";
+
 import { ExportItem } from "./ExportItem";
 
 export const ExportMenuItem: FunctionComponent = () => {
   const loggedIn = useLoggedIn();
+  const translate = useTranslation();
   const [running, setRunning] = useState(false);
 
   if (!loggedIn) return null;
@@ -32,7 +35,7 @@ export const ExportMenuItem: FunctionComponent = () => {
 
   return (
     <ExportItem
-      label={running ? "Uploading…" : "Export to DocSpace"}
+      label={running ? translate("export.uploading") : translate("export.menu")}
       running={running}
       onActivate={(event) => void run(event)}
     />

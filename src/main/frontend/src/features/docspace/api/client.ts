@@ -7,19 +7,21 @@ import type {
 } from "@features/docspace/types";
 import { FuncUtils } from "@utils/func";
 import { UrlUtils } from "@utils/url";
+import { translate } from "@i18n";
 import docspace from "@config/docspace.json";
 import manifest from "@manifest";
 
-const SDK_MISSING = "DocSpace SDK is not loaded";
 const LOGOUT_MS = 4_000;
 const LOGIN_BACKOFF_MS = [0, 100, 500] as const;
+
+function sdkMissing(): Error {
+  return new Error(translate("client.sdk.missing"));
+}
 
 function cspError(err: unknown): Error {
   const text = String(err);
   return new Error(
-    /\(CSP\)/.test(text)
-      ? "DocSpace CSP blocked this FineBI origin. Add it under Developer Tools → JavaScript SDK."
-      : text,
+    /\(CSP\)/.test(text) ? translate("client.csp.blocked") : text,
   );
 }
 
@@ -39,7 +41,7 @@ export class DocSpaceClient {
         window.clearTimeout(timer);
         fn();
       };
-      const fail = () => finish(() => reject(new Error(SDK_MISSING)));
+      const fail = () => finish(() => reject(sdkMissing()));
       const succeed = (sdk: DocSpaceSdk) => finish(() => resolve(sdk));
 
       const check = () => {
@@ -83,7 +85,8 @@ export class DocSpaceClient {
       });
     }
 
-    if (!docSpaceUrl) return Promise.reject(new Error(SDK_MISSING));
+    if (!docSpaceUrl) 
+      return Promise.reject(sdkMissing());
     return this.injectSdk(docSpaceUrl);
   }
 
@@ -95,7 +98,7 @@ export class DocSpaceClient {
     const user = await frame.getUserInfo();
     if (user?.id) return;
     if (!email || !hash) {
-      throw new Error("DocSpace session expired. Sign out and sign in again.");
+      throw new Error(translate("client.session.expired"));
     }
 
     await this.login(frame, email, hash);
@@ -103,7 +106,8 @@ export class DocSpaceClient {
 
   private async openSystem(url: string): Promise<DocSpaceFrame> {
     const sdk = await this.ensureSdk(url);
-    if (typeof sdk.initSystem !== "function") throw new Error(SDK_MISSING);
+    if (typeof sdk.initSystem !== "function") 
+      throw sdkMissing();
 
     const id = this.systemFrameId();
     return new Promise((resolve, reject) => {
@@ -119,7 +123,7 @@ export class DocSpaceClient {
             if (frame) resolve(frame);
             else
               reject(
-                new Error("DocSpace SDK is not ready. Refresh and try again."),
+                new Error(translate("client.sdk.not.ready")),
               );
           },
           onAppError: (err) => reject(cspError(err)),
@@ -142,7 +146,8 @@ export class DocSpaceClient {
         if (i === LOGIN_BACKOFF_MS.length - 1) throw err;
       }
     }
-    throw new Error("DocSpace login failed. Sign out and sign in again.");
+
+    throw new Error(translate("client.login.failed"));
   }
 
   frameId(): string {
@@ -172,7 +177,7 @@ export class DocSpaceClient {
 
   async connect(config: PluginCoreServerConfiguration): Promise<string> {
     const url = UrlUtils.normalize(config.tenant.docSpaceUrl);
-    if (!url) throw new Error("DocSpace is not configured.");
+    if (!url) throw new Error(translate("client.not.configured"));
 
     const frame = await this.ensureFrame(url);
     const { email, hash } = config.credentials;
@@ -189,7 +194,7 @@ export class DocSpaceClient {
         await Promise.race([
           frame.logout(),
           FuncUtils.sleep(LOGOUT_MS).then(() => {
-            throw new Error("SDK logout timed out");
+            throw new Error(translate("client.logout.timeout"));
           }),
         ]);
       }
@@ -232,7 +237,7 @@ export class DocSpaceClient {
 
   async launchManager(url: string): Promise<void> {
     const sdk = await this.ensureSdk(url);
-    if (!sdk.initManager) throw new Error(SDK_MISSING);
+    if (!sdk.initManager) throw sdkMissing();
 
     return new Promise((resolve, reject) => {
       sdk.initManager({
@@ -261,7 +266,7 @@ export class DocSpaceClient {
       return;
 
     if (!sdk.initFileSelector)
-      throw new Error(SDK_MISSING);
+      throw sdkMissing();
 
     this.destroyPicker();
 
@@ -274,7 +279,7 @@ export class DocSpaceClient {
       width: "100%",
       height: "100%",
       checkCSP: false,
-      acceptButtonLabel: "Import to FineBI",
+      acceptButtonLabel: translate("import.accept"),
       events,
     });
   }

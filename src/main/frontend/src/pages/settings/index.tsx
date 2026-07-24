@@ -7,8 +7,10 @@ import { useDocSpaceStore } from "@store/docspace";
 import { usePluginStore } from "@store/plugin";
 import { FuncUtils } from "@utils/func";
 import { UrlUtils } from "@utils/url";
+import { useTranslation } from "@i18n";
 
 export function SettingsPage() {
+  const translate = useTranslation();
   const config = usePluginStore((s) => s.config);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -49,34 +51,34 @@ export function SettingsPage() {
 
   return (
     <AuthenticationContainer
-      lead="FineBI is connected to your ONLYOFFICE DocSpace"
+      lead={translate("settings.lead")}
       address={UrlUtils.extractHost(session.tenant.docSpaceUrl)}
     >
       <div className="onlyoffice-authentication-container__card">
         <FormError message={error} />
         <Field
           id="docspaceUrl"
-          label="DocSpace Server Address"
+          label={translate("auth.url.label")}
           type="text"
           disabled
           value={session.tenant.docSpaceUrl}
         />
         <Field
           id="account"
-          label="Signed in as"
+          label={translate("settings.signed.in.as")}
           type="text"
           disabled
           value={session.credentials.email}
         />
         <LoaderButton loading={loading} onClick={logout}>
-          Logout
+          {translate("settings.logout")}
         </LoaderButton>
         <GenericButton
           className="onlyoffice-button--secondary"
           disabled={loading}
           onClick={changeTenant}
         >
-          Change DocSpace
+          {translate("auth.change.tenant")}
         </GenericButton>
       </div>
     </AuthenticationContainer>

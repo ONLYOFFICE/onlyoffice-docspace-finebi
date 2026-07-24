@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 
 import { useHeaderSession } from "./useHeaderSession";
 import { LogoutButton } from "./components/LogoutButton";
+import { useTranslation } from "@i18n";
 
 const POPUP_WIDTH = 140;
 const POPUP_CLASS = "onlyoffice-header-logout__popup";
@@ -15,6 +16,7 @@ interface PopupProps {
 }
 
 function LogoutPopup({ anchor, open, onExited, onLogout }: PopupProps) {
+  const translate = useTranslation();
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
 
   useLayoutEffect(() => {
@@ -51,7 +53,7 @@ function LogoutPopup({ anchor, open, onExited, onLogout }: PopupProps) {
           onLogout();
         }}
       >
-        Logout
+        {translate("header.logout")}
       </div>
     </div>,
     document.body,

@@ -4,6 +4,7 @@ import { usePluginStore } from "@store/plugin";
 import type { FolderEntry } from "@api/plugin";
 import { Address, DialogButton, FormError, Lead, Spinner } from "@components";
 import type { DocSpaceItem } from "@features/docspace/types";
+import { useTranslation } from "@i18n";
 import { FolderOverlay } from "./FolderOverlay";
 import { FolderSelector } from "./FolderSelector";
 
@@ -12,20 +13,23 @@ import "./picker.css";
 interface FolderPickerProps {
   file: DocSpaceItem;
   foldersUrl: string;
-  onConfirm: (file: DocSpaceItem, folderId: string) => void;
+  onConfirm: (file: DocSpaceItem, folderId: string) => void | Promise<void>;
   onCancel: () => void;
 }
 
-export function FolderPicker({ file, foldersUrl, onConfirm, onCancel }: FolderPickerProps) {
+export function FolderPicker({
+  file, foldersUrl, onConfirm, onCancel }: FolderPickerProps) {
+  const translate = useTranslation();
   const [folders, setFolders] = useState<FolderEntry[] | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState("");
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     usePluginStore.getState().getFolders(foldersUrl)
       .then((data) => {
         if (!data.ok || !data.folders?.length) {
-          setFetchError(data.error ?? "No folders found in FineBI Public Data.");
+          setFetchError(data.error ?? translate("import.folder.empty"));
           return;
         }
 
@@ -33,14 +37,24 @@ export function FolderPicker({ file, foldersUrl, onConfirm, onCancel }: FolderPi
         setSelectedId(data.folders[0].id);
       })
       .catch((err: unknown) => {
-        setFetchError(err instanceof Error ? err.message : "Could not load folders.");
+        setFetchError(err instanceof Error ? err.message : translate("import.folder.load.failed"));
       });
   }, [foldersUrl]);
 
+  async function handleImport(): Promise<void> {
+    if (!folders || !selectedId || importing) return;
+    setImporting(true);
+    try {
+      await onConfirm(file, selectedId);
+    } catch {
+      setImporting(false);
+    }
+  }
+
   return (
-    <FolderOverlay onClose={onCancel}>
+    <FolderOverlay onClose={importing ? undefined : onCancel}>
       <div className="onlyoffice-folder-dialog">
-        <Lead>Import to FineBI</Lead>
+        <Lead>{translate("import.folder.title")}</Lead>
         <Address>{`"${file.title}"`}</Address>
 
         {!folders && !fetchError && (
@@ -52,17 +66,24 @@ export function FolderPicker({ file, foldersUrl, onConfirm, onCancel }: FolderPi
         {fetchError && <FormError message={fetchError} />}
 
         {folders && (
-          <FolderSelector folders={folders} value={selectedId} onChange={setSelectedId} />
+          <FolderSelector
+            folders={folders}
+            value={selectedId}
+            onChange={setSelectedId}
+            disabled={importing}
+          />
         )}
 
         <div className="onlyoffice-folder-dialog__actions">
-          <DialogButton onClick={onCancel}>Cancel</DialogButton>
+          <DialogButton onClick={onCancel} disabled={importing}>
+            {translate("import.folder.cancel")}
+          </DialogButton>
           <DialogButton
             primary
-            disabled={!folders || !selectedId}
-            onClick={() => { if (folders && selectedId) onConfirm(file, selectedId); }}
+            disabled={!folders || !selectedId || importing}
+            onClick={() => void handleImport()}
           >
-            Import
+            {importing ? translate("import.folder.importing") : translate("import.folder.confirm")}
           </DialogButton>
         </div>
       </div>

@@ -2,11 +2,15 @@ import type { FunctionComponent } from "preact";
 
 import OnlyofficeIcon from "@resources/images/onlyoffice-logo.svg";
 
+import { translate } from "@i18n";
+
 interface ContentProps {
   label?: string;
 }
 
-export const ExportContent: FunctionComponent<ContentProps> = ({ label = "Export to DocSpace" }) => (
+export const ExportContent: FunctionComponent<ContentProps> = ({
+  label = translate("export.menu"),
+}) => (
   <>
     <div
       className="bi-f-c bi-f-h v-middle h-center f-s-n c-e f-c"

@@ -1,6 +1,8 @@
 import manifest from "@manifest";
 import { UrlUtils } from "@utils/url";
 
+import { translate } from "@i18n";
+
 interface PluginResult {
   ok?: boolean;
   error?: string;
@@ -44,7 +46,7 @@ export class PluginClient {
 
     const data = (await response.json()) as PluginResult;
     if (!response.ok || !data.ok)
-      throw new Error(`Persistence: ${data.error || "Could not save login"}`);
+      throw new Error(`${translate("client.save.login")}`);
   }
 
   async clearTenant(action: string): Promise<void> {
@@ -56,7 +58,7 @@ export class PluginClient {
     const data = (await response.json()) as PluginResult;
     if (!response.ok || !data.ok)
       throw new Error(
-        `Clearing tenant: ${data.error || "Could not reset tenant"}`,
+        `${translate("client.reset.tenant")}`,
       );
   }
 
@@ -100,13 +102,13 @@ export class PluginClient {
     });
 
     const data = (await resp.json().catch(() => null)) as ImportResult | null;
-    return data ?? { ok: false, error: "Could not perform file import" };
+    return data ?? { ok: false, error: translate("client.import.failed") };
   }
 
   async getFolders(foldersUrl: string): Promise<FoldersResult> {
     const resp = await fetch(foldersUrl, { credentials: "same-origin" });
     const data = (await resp.json().catch(() => null)) as FoldersResult | null;
-    return data ?? { ok: false, error: "Could not retrieve folders" };
+    return data ?? { ok: false, error: translate("client.folders.failed") };
   }
 }
 

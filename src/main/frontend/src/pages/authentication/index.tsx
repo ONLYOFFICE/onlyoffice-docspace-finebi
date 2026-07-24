@@ -12,16 +12,20 @@ import { useTenantListener } from "@features/authentication/hooks/useTenantListe
 import type { PluginCoreAuthenticationMode } from "@api/plugin";
 import { usePluginStore } from "@store/plugin";
 import { UrlUtils } from "@utils/url";
-import { MODES } from "./mode";
+
+import { useTranslation } from "@i18n";
+
+import { authModeText } from "./mode";
 
 export function AuthenticationPage() {
+  const translate = useTranslation();
   const config = usePluginStore((s) => s.config);
   const authentication = useAuthentication();
   useTenantListener();
 
   if (!config) return null;
 
-  const mode = MODES[config.mode as PluginCoreAuthenticationMode];
+  const mode = authModeText(config.mode as PluginCoreAuthenticationMode);
   const isLogin = config.mode !== "setup";
   const address =
     isLogin && config.tenant.docSpaceUrl
@@ -38,14 +42,14 @@ export function AuthenticationPage() {
         {authentication.isSetup && (
           <Field
             id="docspaceUrl"
-            label="DocSpace Server Address"
+            label={translate("auth.url.label")}
             type="url"
             required
             value={authentication.fields.url}
             onInput={(e) =>
               authentication.setField("url", e.currentTarget.value)
             }
-            placeholder="Please enter DocSpace address"
+            placeholder={translate("auth.url.placeholder")}
           />
         )}
         <Field
@@ -80,14 +84,14 @@ export function AuthenticationPage() {
             disabled={authentication.loading}
             onClick={authentication.changeTenant}
           >
-            Change DocSpace
+            {translate("auth.change.tenant")}
           </GenericButton>
         )}
         {authentication.isSetup && config.locations.hostOrigin && (
           <Hint>
-            Before saving, add <strong>{config.locations.hostOrigin}</strong>{" "}
-            under DocSpace → Settings → Developer Tools → JavaScript SDK →{" "}
-            <em>Allowed origins</em>.
+            {translate("auth.csp.hint.before")}{" "}
+            <strong>{config.locations.hostOrigin}</strong>{" "}
+            {translate("auth.csp.hint.after")}
           </Hint>
         )}
       </form>

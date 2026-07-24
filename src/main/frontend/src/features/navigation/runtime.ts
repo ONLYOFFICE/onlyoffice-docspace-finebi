@@ -3,17 +3,18 @@ import { useSyncStore } from "@store/sync";
 import type { INotification } from "@api/sync";
 import type { IRegisterableWidgetConfigEntry } from "@api/registry";
 import { UrlUtils } from "@utils/url";
+
+import { translate } from "@i18n";
+
 import finebi from "@config/finebi.json";
 import manifest from "@manifest";
 
 const notify: INotification = {
   showSuccess() {
-    useNotificationStore.getState().notify("DocSpace dataset refreshed");
+    useNotificationStore.getState().notify(translate("sync.refreshed"));
   },
   showFallback() {
-    useNotificationStore.getState().notify(
-      "DocSpace dataset was updated — refresh the page to see the changes.",
-    );
+    useNotificationStore.getState().notify(translate("sync.fallback"));
   },
 };
 
@@ -40,7 +41,6 @@ export const NAV_ENTRIES: { configKey: string; entry: IRegisterableWidgetConfigE
   },
 ];
 
-/** Start dataset-sync SSE + FineBI socket listeners. */
 export function startNavigationRuntime(): void {
   useSyncStore.getState().start({
     eventUrl: `${UrlUtils.hostBaseUrl()}/url${manifest.aliases.events.from}`,

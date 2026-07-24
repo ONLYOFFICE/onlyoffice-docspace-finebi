@@ -2,7 +2,8 @@ import preact from "@preact/preset-vite";
 import { defineConfig, type Plugin } from "vite";
 import { fileURLToPath, URL } from "node:url";
 import svgr from "vite-plugin-svgr";
-import manifest from "../../../manifest.json"; // vite.config itself can't use the alias it defines
+
+import manifest from "../../../manifest.json"
 
 function assetPaths(assetPath: string) {
   const slash = assetPath.lastIndexOf("/");
@@ -60,6 +61,7 @@ export default defineConfig({
       "@pages": fileURLToPath(new URL("./src/pages", import.meta.url)),
       "@utils": fileURLToPath(new URL("./src/utils", import.meta.url)),
       "@store": fileURLToPath(new URL("./src/store", import.meta.url)),
+      "@i18n": fileURLToPath(new URL("./src/i18n", import.meta.url)),
       "@resources": fileURLToPath(new URL("./resources", import.meta.url)),
       "@config": fileURLToPath(new URL("./config", import.meta.url)),
     },

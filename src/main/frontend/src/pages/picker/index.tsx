@@ -11,6 +11,8 @@ import { EventUtils } from "@utils/event";
 import { FileUtils } from "@utils/file";
 import { FuncUtils } from "@utils/func";
 
+import { translate } from "@i18n";
+
 import manifest from "@manifest";
 
 import type { Stage } from "./stage";
@@ -32,20 +34,22 @@ export function PickerPage() {
   function onFileSelect(items: DocSpaceItem[]): void {
     const file = items.find(FileUtils.isImportable);
     if (!file) {
-      finish("Only Excel (.xlsx, .xls) and CSV files can be imported.", "error", "close");
+      finish(translate("import.only.excel.csv"), "error", "close");
       return;
     }
 
     const folderId = ImportUrlUtils.folderId();
     if (folderId) {
-      void onImport(file, folderId);
+      void onImport(file, folderId, true);
       return;
     }
+
     setStage({ name: "folder", file });
   }
 
-  async function onImport(file: DocSpaceItem, folderId: string): Promise<void> {
-    setStage({ name: "finishing" });
+  async function onImport(file: DocSpaceItem, folderId: string, cover = false): Promise<void> {
+    if (cover)
+      setStage({ name: "finishing" });
     try {
       const requestToken = file.requestTokens?.[0]?.requestToken || undefined;
       const result = await usePluginStore.getState().importFile(session.locations.importUrl, {
@@ -56,12 +60,16 @@ export function PickerPage() {
         folderId,
       });
       if (result.ok) {
-        finish(`Imported as FineBI dataset "${result.datasetName ?? file.title}"`, "success", "imported");
+        finish(
+          translate("import.success", { name: result.datasetName ?? file.title }),
+          "success",
+          "imported",
+        );
       } else {
-        finish(result.error ?? "Import failed.", "error", "close");
+        finish(result.error ?? translate("import.failed"), "error", "close");
       }
     } catch (err) {
-      finish(`Import failed: ${FuncUtils.errorMessage(err)}`, "error", "close");
+      finish(`${translate("import.failed")} ${FuncUtils.errorMessage(err)}`, "error", "close");
     }
   }
 
@@ -70,7 +78,7 @@ export function PickerPage() {
       <FolderPicker
         file={stage.file}
         foldersUrl={session.locations.foldersUrl}
-        onConfirm={onImport}
+        onConfirm={(file, folderId) => onImport(file, folderId)}
         onCancel={close}
       />
     );

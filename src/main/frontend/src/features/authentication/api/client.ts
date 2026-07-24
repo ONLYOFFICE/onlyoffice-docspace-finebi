@@ -1,6 +1,7 @@
 import { usePluginStore } from "@store/plugin";
 import type { AuthenticationResult, LoginRequest } from "../types/authentication";
 import type { DocSpaceFrame, UserInfo } from "@features/docspace/types";
+import { translate } from "@i18n";
 
 export class AuthenticationClient {
   private async _authenticate(
@@ -12,18 +13,18 @@ export class AuthenticationClient {
     const hash = await frame.createHash(password, settings);
     const login = await frame.login(email, hash);
     if (!login || !login.url) {
-      throw new Error("DocSpace login failed. Check email and password.");
+      throw new Error(translate("client.login.failed"));
     }
 
     let me: UserInfo | null | undefined;
     try {
       me = await frame.getUserInfo();
     } catch {
-      throw new Error("DocSpace cookies blocked. Could not get user info.");
+      throw new Error(translate("client.cookies.blocked"));
     }
 
     if (!me || !me.id) {
-      throw new Error("DocSpace cookies blocked. Could not get user info.");
+      throw new Error(translate("client.cookies.blocked"));
     }
 
     return { hash, login, me };

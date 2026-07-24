@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 
 import manifest from "@manifest";
+import { useTranslation } from "@i18n";
 
 import "./overlay.css";
 
@@ -22,6 +23,8 @@ export function openShellOverlay(pickerUrl: string): void {
  * Closes when the iframe posts {@link manifest.events.frontend.filePicker}.
  */
 export function ShellOverlay() {
+  const translate = useTranslation();
+
   const [pickerUrl, setPickerUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -48,7 +51,7 @@ export function ShellOverlay() {
 
   return (
     <div class="onlyoffice-shell-overlay">
-      <iframe src={pickerUrl} title="Import from DocSpace" allowTransparency />
+      <iframe src={pickerUrl} title={translate("import.dialog")} allowTransparency />
     </div>
   );
 }

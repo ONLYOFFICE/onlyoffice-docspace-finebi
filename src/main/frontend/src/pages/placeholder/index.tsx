@@ -4,9 +4,11 @@ import { PlaceholderContainer } from "@components";
 import { ImportUrlUtils } from "@features/import/utils/url";
 import { usePluginStore } from "@store/plugin";
 import { EventUtils } from "@utils/event";
+import { useTranslation } from "@i18n";
 import manifest from "@manifest";
 
 export function PlaceholderPage() {
+  const translate = useTranslation();
   const config = usePluginStore((s) => s.config);
 
   const picker = ImportUrlUtils.isPicker();
@@ -20,14 +22,16 @@ export function PlaceholderPage() {
   if (!config) {
     return (
       <PlaceholderContainer
-        header="Couldn't load DocSpace"
-        message="Something went wrong. Please reload the page to try again."
+        header={translate("placeholder.load.failed.header")}
+        message={translate("placeholder.load.failed.message")}
       />
     );
   }
 
   const header =
-    config.mode === "unauthorized" ? "Access denied" : "Please wait";
+    config.mode === "unauthorized"
+      ? translate("placeholder.access.denied")
+      : translate("placeholder.please.wait");
   return (
     <PlaceholderContainer header={header} message={config.response.message} />
   );

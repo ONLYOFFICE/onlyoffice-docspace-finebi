@@ -1,6 +1,8 @@
 import { ExportUrlUtils } from "@features/export/utils/url";
 import type { ExportRequest, UploadResult } from "@features/export/types/report";
 
+import { translate } from "@i18n";
+
 export class ExportReportClient {
   async excel(request: ExportRequest): Promise<void> {
     const { reportId, reportName, operationId, entryType, sessionId, data } = request;
@@ -17,10 +19,8 @@ export class ExportReportClient {
       body: JSON.stringify({ ...data, reportId, reportName, base64: "" }),
     });
 
-    if (!response.ok) {
-      const detail = await response.text().catch(() => "");
-      throw new Error(detail || "Could not export the dashboard to Excel. Try again.");
-    }
+    if (!response.ok)
+      throw new Error(translate("client.export.failed"));
   }
 
   async upload(operationId: string, reportName: string): Promise<UploadResult> {
@@ -35,11 +35,9 @@ export class ExportReportClient {
     });
 
     const result = (await response.json()) as UploadResult;
-    if (!response.ok || !result.ok) {
-      throw new Error(
-        result.error ?? "Could not upload the export to DocSpace. Check DocSpace login and try again.",
-      );
-    }
+    if (!response.ok || !result.ok)
+      throw new Error(translate("client.upload.failed"));
+
     return result;
   }
 }

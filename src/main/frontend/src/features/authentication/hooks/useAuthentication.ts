@@ -5,6 +5,7 @@ import { useAuthenticationStore } from "@store/authentication";
 import { useDocSpaceStore } from "@store/docspace";
 import { FuncUtils } from "@utils/func";
 import { UrlUtils } from "@utils/url";
+import { translate } from "@i18n";
 
 interface AuthFields {
   url: string;
@@ -14,9 +15,8 @@ interface AuthFields {
 
 export function useAuthentication() {
   const config = usePluginStore((s) => s.config);
-  if (!config) {
-    throw new Error("Auth form requires a loaded session config");
-  }
+  if (!config)
+    throw new Error(translate("auth.config.required"));
 
   const session = config;
   const isSetup = session.mode === "setup";
@@ -56,8 +56,8 @@ export function useAuthentication() {
     const url = UrlUtils.normalize(isSetup ? fields.url : tenantUrl);
     if (url && fields.email.trim() && fields.password) return null;
     return isSetup
-      ? "DocSpace URL, email, and password are required."
-      : "Email and password are required.";
+      ? translate("auth.required.setup")
+      : translate("auth.required.login");
   }
 
   function submit(event: Event): void {

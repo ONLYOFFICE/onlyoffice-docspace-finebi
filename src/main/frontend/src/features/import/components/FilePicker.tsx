@@ -7,6 +7,7 @@ import type { PluginCoreServerConfiguration } from "@api/plugin";
 import { useDocSpaceStore } from "@store/docspace";
 
 import { FuncUtils } from "@utils/func";
+import { useTranslation } from "@i18n";
 
 import "@components/overlays/dialog.css";
 
@@ -23,6 +24,7 @@ export function FilePicker({
   onSelect,
   onClose,
 }: FilePickerProps) {
+  const translate = useTranslation();
   const [running, setRunning] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const frameId = useDocSpaceStore((s) => s.pickerFrameId());
@@ -77,7 +79,7 @@ export function FilePicker({
         className="onlyoffice-dialog"
         role="dialog"
         aria-busy={showOverlay || undefined}
-        aria-label="Import from DocSpace"
+        aria-label={translate("import.dialog")}
       >
         {showOverlay && (
           <div className="onlyoffice-dialog__loader">

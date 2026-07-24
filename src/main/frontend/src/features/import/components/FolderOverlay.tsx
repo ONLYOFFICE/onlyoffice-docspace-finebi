@@ -2,7 +2,7 @@ import type { ComponentChildren } from "preact";
 
 interface FolderOverlayProps {
   children: ComponentChildren;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export function FolderOverlay({ children, onClose }: FolderOverlayProps) {

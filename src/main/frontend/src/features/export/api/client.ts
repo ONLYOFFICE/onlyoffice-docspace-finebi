@@ -5,14 +5,15 @@ import type { ExportConfig } from "@features/export/types/config";
 import { ExportReportUtils } from "@features/export/utils/report";
 import { FuncUtils } from "@utils/func";
 
+import { translate } from "@i18n";
+
 export class ExportClient {
   private readonly report = new ExportReportClient();
 
   async run(config: ExportConfig | null): Promise<string> {
     const helper = useReportStore.getState().find();
-    if (!helper) {
-      throw new Error("Could not find dashboard. Make sure a dashboard is fully open.");
-    }
+    if (!helper)
+      throw new Error(translate("client.dashboard.missing"));
 
     const fields = ExportReportUtils.fields(helper);
     const operationId = ExportReportUtils.operationId();
@@ -21,8 +22,11 @@ export class ExportClient {
     await this.report.excel({ ...fields, operationId, data });
     const result = await this.report.upload(operationId, fields.reportName);
 
-    const roomTitle = config?.roomTitle ?? "My documents";
-    return `Uploaded ${result.filename ?? "export.xlsx"} to DocSpace (${roomTitle}).`;
+    const roomTitle = config?.roomTitle ?? translate("client.my.documents");
+    return translate("export.success", {
+      filename: result.filename ?? "export.xlsx",
+      room: roomTitle,
+    });
   }
 
   notify(message: string): void {
