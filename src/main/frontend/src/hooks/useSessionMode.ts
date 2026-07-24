@@ -34,7 +34,12 @@ export function useSessionMode(): PluginCorePageMode | null {
 
   useEventListener(
     DocSpaceStateEvents.reset,
-    useCallback(() => usePluginStore.getState().setMode("user"), []),
+    useCallback(() => {
+      new PluginCoreServer()
+        .load()
+        .then((config) => usePluginStore.getState().setMode(config.mode))
+        .catch(() => {});
+    }, []),
   );
 
   return usePluginStore((s) => s.mode);

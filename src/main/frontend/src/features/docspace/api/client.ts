@@ -242,8 +242,6 @@ export class DocSpaceClient {
       // best-effort — DOM wipe below still runs
     }
 
-    if (sdk && frame) delete sdk.frames[id];
-
     const el = document.getElementById(id);
     if (el) el.innerHTML = "";
   }

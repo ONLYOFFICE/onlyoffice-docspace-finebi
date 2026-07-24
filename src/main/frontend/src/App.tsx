@@ -31,7 +31,6 @@ export function PageApp() {
   useEventListener(
     DocSpaceStateEvents.reset,
     useCallback(() => {
-      useDocSpaceStore.getState().destroyManager();
       void usePluginStore.getState().load();
     }, []),
   );
