@@ -23,6 +23,7 @@ export class DatasetInjector {
         const list = popup.querySelector(finebi.selectors.spiderExcelTable)?.parentElement;
         if (!list) return false;
         list.appendChild(this.createItem());
+        return false;
       },
     });
   }
