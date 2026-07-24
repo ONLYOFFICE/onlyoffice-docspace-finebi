@@ -24,7 +24,7 @@ export function openShellOverlay(pickerUrl: string): void {
  */
 export function ShellOverlay() {
   const translate = useTranslation();
-
+  const [loaded, setLoaded] = useState(false);
   const [pickerUrl, setPickerUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,7 +40,10 @@ export function ShellOverlay() {
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       const type = (event.data as { type?: string } | null)?.type;
-      if (type === manifest.events.frontend.filePicker) setPickerUrl(null);
+      if (type === manifest.events.frontend.filePicker) {
+        setPickerUrl(null);
+        setLoaded(false);
+      }
     };
 
     window.addEventListener("message", onMessage);
@@ -51,7 +54,13 @@ export function ShellOverlay() {
 
   return (
     <div class="onlyoffice-shell-overlay">
-      <iframe src={pickerUrl} title={translate("import.dialog")} allowTransparency />
+      <iframe
+        src={pickerUrl}
+        title={translate("import.dialog")}
+        className={loaded ? "is-loaded" : undefined}
+        onLoad={() => setLoaded(true)}
+        allowTransparency
+      />
     </div>
   );
 }

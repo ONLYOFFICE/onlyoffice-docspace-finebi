@@ -12,4 +12,11 @@
   border: 0;
 
   background: transparent;
+
+  opacity: 0;
+  transition: opacity var(--onlyoffice-duration-fast) var(--onlyoffice-ease);
+}
+
+.onlyoffice-shell-overlay iframe.is-loaded {
+  opacity: 1;
 }
