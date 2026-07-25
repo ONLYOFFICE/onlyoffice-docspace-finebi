@@ -35,6 +35,7 @@ export interface ManagerOptions {
   height?: string;
   showHeader?: boolean;
   checkCSP?: boolean;
+  theme?: string;
   events?: {
     onAppReady?: () => void;
     onContentReady?: () => void;
@@ -49,6 +50,7 @@ export interface FileSelectorOptions {
   height?: string;
   checkCSP?: boolean;
   acceptButtonLabel?: string;
+  theme?: string;
   events?: {
     onAppReady?: () => void;
     onSelectCallback?: (item: DocSpaceItem | DocSpaceItem[]) => void;

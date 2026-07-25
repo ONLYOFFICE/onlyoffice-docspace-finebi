@@ -263,6 +263,7 @@ export class DocSpaceClient {
         height: "100%",
         showHeader: false,
         checkCSP: false,
+        theme: "Base",
         events: {
           onAppReady: () => resolve(),
           onAppError: (err) => reject(cspError(err)),
@@ -294,6 +295,7 @@ export class DocSpaceClient {
       width: "100%",
       height: "100%",
       checkCSP: false,
+      theme: "Base",
       acceptButtonLabel: translate("import.accept"),
       events,
     });
