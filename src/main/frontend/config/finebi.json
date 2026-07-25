@@ -1,15 +1,11 @@
 {
   "navMenuKey": "dec.constant.menu.items",
   "managementNavKey": "dec.constant.management.navigation",
-  "selectors": {
-    "popupView": ".bi-popup-view",
-    "downListPopup": ".bi-down-list-popup",
-    "exportComboOpen": ".bi-design-global-export.bi-combo-popup"
-  },
   "export": {
-    "itemAttr": "data-onlyoffice-export",
-    "hostMarker": "data-onlyoffice-export-host",
-    "styleId": "onlyoffice-export-css"
+    "widgetType": "bi.design.global.export",
+    "beforePopupEvent": "EVENT_BEFORE_POPUPVIEW",
+    "itemValue": "onlyoffice-export",
+    "itemCls": "onlyoffice-export-item"
   },
   "dataset": {
     "addTableKey": "bi.constant.public.add.table.combo.items",

@@ -142,6 +142,22 @@ export class RegisterableWidgetRegistry {
   }
 
   /**
+   * Register a FineUI per-widget-type plugin hook (BI.Plugin.registerObject).
+   */
+  registerObject(type: string, handler: (instance: unknown) => void): boolean {
+    if (!this.BI?.Plugin?.registerObject)
+      return false;
+
+    try {
+      this.BI.Plugin.registerObject(type, handler);
+    } catch (e) {
+      console.warn("[DocSpace] Object hook registration skipped:", e);
+    }
+
+    return true;
+  }
+
+  /**
    * Decorate any FineUI config point (BI.config) with a caller-supplied
    * transform.
    */

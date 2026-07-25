@@ -1,1 +1,1 @@
-export { ExportObserver } from "./ExportObserver";
+export { useRegisterExportControl } from "./useRegisterExportControl";

@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef } from "preact/hooks";
 
 import { DocSpaceStateEvents } from "@/types/events";
 
-import { ExportObserver } from "@features/export";
 import { useViewOpen } from "@features/header/useViewOpen";
 import { Frame } from "@features/docspace/components/Frame";
 import { ImportInitializer } from "@features/import/ImportInitializer";
@@ -73,7 +72,6 @@ export function NavigationApp() {
       {NAV_ENTRIES.map(({ configKey, entry }) => (
         <NavigationInjector key={configKey} configKey={configKey} entry={entry} />
       ))}
-      <ExportObserver />
       <ImportInitializer />
       <ShellOverlay />
     </>

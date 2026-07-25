@@ -4,6 +4,7 @@ import type { IHostGlobal } from "@/types/host";
 
 import { NavigationApp, PageApp } from "@/App";
 
+import { useRegisterExportControl } from "@features/export";
 import { useRegisterHeaderControl } from "@features/header";
 
 import { PlaceholderPage } from "@pages/placeholder";
@@ -40,6 +41,7 @@ function BindHostGlobal(): void {
 function BootNavigation(): void {
   BindHostGlobal();
   useRegisterHeaderControl();
+  useRegisterExportControl();
   const root = document.createElement("div");
   (document.body ?? document.documentElement).appendChild(root);
   render(<NavigationApp />, root);

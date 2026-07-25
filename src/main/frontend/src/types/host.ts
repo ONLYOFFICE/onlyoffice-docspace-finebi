@@ -16,6 +16,9 @@ export interface IRegisterableWidgetInstance {
 
 export interface IHostGlobal {
   config?(key: string, fn: (items: unknown[]) => unknown[]): void;
+  Plugin?: {
+    registerObject?(type: string, handler: (instance: unknown) => void): void;
+  };
   Msg?: { toast?(text: string, options?: { level?: string }): void };
   createWidget?(
     opts: Record<string, unknown>,

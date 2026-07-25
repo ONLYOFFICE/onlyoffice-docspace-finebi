@@ -20,7 +20,8 @@ body.onlyoffice-import-hidden .onlyoffice-import-item {
   background-image: none !important;
 }
 
-.onlyoffice-import-item .b-font::before {
+.onlyoffice-import-item .b-font::before,
+.onlyoffice-export-item .b-font::before {
   content: "";
 
   display: inline-block;
