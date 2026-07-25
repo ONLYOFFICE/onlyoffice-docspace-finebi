@@ -1,4 +1,6 @@
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
+
+import { useEventListener } from "@hooks/useEventListener";
 
 import { useTranslation } from "@i18n";
 
@@ -25,22 +27,13 @@ export function ImportPickerFrame() {
     return () => { showPicker = null; };
   }, []);
 
-  useEffect(() => {
-    if (!pickerUrl)
-      return;
-
-    const onMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      const type = (event.data as { type?: string } | null)?.type;
-      if (type === manifest.events.frontend.filePicker) {
-        setPickerUrl(null);
-        setLoaded(false);
-      }
-    };
-
-    window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
-  }, [pickerUrl]);
+  useEventListener(
+    manifest.events.frontend.filePicker,
+    useCallback(() => {
+      setPickerUrl(null);
+      setLoaded(false);
+    }, []),
+  );
 
   if (!pickerUrl)
     return null;

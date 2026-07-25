@@ -1,11 +1,9 @@
-import { useEffect } from "preact/hooks";
-
 import { PlaceholderContainer } from "@components";
 import { ImportUrlUtils } from "@features/import/utils/url";
 
-import { usePluginStore } from "@store/plugin";
+import { useEventPublisher } from "@hooks/useEventPublisher";
 
-import { EventUtils } from "@utils/event";
+import { usePluginStore } from "@store/plugin";
 
 import { useTranslation } from "@i18n";
 import manifest from "@manifest";
@@ -16,9 +14,11 @@ export function PlaceholderPage() {
 
   const picker = ImportUrlUtils.isPicker();
 
-  useEffect(() => {
-    if (picker) EventUtils.send(manifest.events.frontend.filePicker, "close");
-  }, [picker]);
+  useEventPublisher(
+    manifest.events.frontend.filePicker,
+    { action: "close" },
+    { enabled: picker },
+  );
 
   if (picker) return null;
 

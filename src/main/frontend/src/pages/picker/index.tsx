@@ -4,10 +4,11 @@ import { FilePicker, FolderPicker } from "@features/import";
 import type { DocSpaceItem } from "@features/docspace/types";
 import { ImportUrlUtils } from "@features/import/utils/url";
 
+import { useEventPublisher } from "@hooks/useEventPublisher";
+
 import { useNotificationStore } from "@store/notification";
 import { usePluginStore } from "@store/plugin";
 
-import { EventUtils } from "@utils/event";
 import { FileUtils } from "@utils/file";
 import { FuncUtils } from "@utils/func";
 
@@ -17,18 +18,19 @@ import manifest from "@manifest";
 
 import type { Stage } from "./stage";
 
-const close = () => EventUtils.send(manifest.events.frontend.filePicker, "close");
-
 export function PickerPage() {
   const config = usePluginStore((s) => s.config);
   const [stage, setStage] = useState<Stage>({ name: "picker" });
+  const { publish } = useEventPublisher();
 
   if (!config) return null;
   const session = config;
 
+  const close = () => publish(manifest.events.frontend.filePicker, { action: "close" });
+
   function finish(message: string, type: "success" | "error", action: "close" | "imported"): void {
     useNotificationStore.getState().notify(message, type);
-    EventUtils.send(manifest.events.frontend.filePicker, action);
+    publish(manifest.events.frontend.filePicker, { action });
   }
 
   function onFileSelect(items: DocSpaceItem[]): void {
