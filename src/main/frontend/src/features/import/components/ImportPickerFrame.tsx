@@ -6,24 +6,13 @@ import manifest from "@manifest";
 
 import "./overlay.css";
 
-/**
- * Imperative bridge into the mounted {@link ShellOverlay}.
- * Dataset-menu clicks call {@link openShellOverlay}; the host component
- * registers the real opener while it is mounted.
- */
 let showPicker: ((url: string) => void) | null = null;
 
-/** Open the FineBI-shell iframe that runs the ?picker=1 import flow. */
-export function openShellOverlay(pickerUrl: string): void {
+export function openImportPickerFrame(pickerUrl: string): void {
   showPicker?.(pickerUrl);
 }
 
-/**
- * Full-screen iframe host for import (DocSpace file → FineBI folder).
- * Mount once in navigation mode; stays idle until {@link openShellOverlay}.
- * Closes when the iframe posts {@link manifest.events.frontend.filePicker}.
- */
-export function ShellOverlay() {
+export function ImportPickerFrame() {
   const translate = useTranslation();
   const [loaded, setLoaded] = useState(false);
   const [pickerUrl, setPickerUrl] = useState<string | null>(null);
@@ -32,11 +21,13 @@ export function ShellOverlay() {
     showPicker = (url) => {
       setPickerUrl((current) => current ?? url);
     };
+
     return () => { showPicker = null; };
   }, []);
 
   useEffect(() => {
-    if (!pickerUrl) return;
+    if (!pickerUrl)
+      return;
 
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
@@ -51,10 +42,11 @@ export function ShellOverlay() {
     return () => window.removeEventListener("message", onMessage);
   }, [pickerUrl]);
 
-  if (!pickerUrl) return null;
+  if (!pickerUrl)
+    return null;
 
   return (
-    <div class="onlyoffice-shell-overlay">
+    <div class="onlyoffice-import-picker-frame">
       <iframe
         src={pickerUrl}
         title={translate("import.dialog")}

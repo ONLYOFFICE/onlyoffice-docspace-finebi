@@ -6,7 +6,7 @@ import { DocSpaceStateEvents } from "@/types/events";
 import { useViewOpen } from "@features/header/useViewOpen";
 import { Frame } from "@features/docspace/components/Frame";
 import { ImportInitializer } from "@features/import/ImportInitializer";
-import { ShellOverlay } from "@features/import/components/ShellOverlay";
+import { ImportPickerFrame } from "@features/import/components/ImportPickerFrame";
 import { NavigationInjector } from "@features/navigation/NavigationInjector";
 import { NAV_ENTRIES, startNavigationRuntime } from "@features/navigation/runtime";
 
@@ -73,7 +73,7 @@ export function NavigationApp() {
         <NavigationInjector key={configKey} configKey={configKey} entry={entry} />
       ))}
       <ImportInitializer />
-      <ShellOverlay />
+      <ImportPickerFrame />
     </>
   );
 }

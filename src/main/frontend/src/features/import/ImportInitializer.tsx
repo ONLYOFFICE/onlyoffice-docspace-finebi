@@ -1,6 +1,6 @@
 import { useEffect } from "preact/hooks";
 
-import { openShellOverlay } from "@features/import/components/ShellOverlay";
+import { openImportPickerFrame } from "@features/import/components/ImportPickerFrame";
 import { ImportUrlUtils } from "@features/import/utils/url";
 
 import { useLoggedIn } from "@hooks/useSessionMode";
@@ -38,12 +38,17 @@ export function ImportInitializer() {
 
     const onClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
-      if (!target?.closest?.(`.${finebi.dataset.itemCls}`)) return;
+      if (!target?.closest?.(`.${finebi.dataset.itemCls}`))
+        return;
+
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (!usePluginStore.getState().loggedIn) return;
+
+      if (!usePluginStore.getState().loggedIn)
+        return;
+
       document.body.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-      openShellOverlay(ImportUrlUtils.picker());
+      openImportPickerFrame(ImportUrlUtils.picker());
     };
 
     document.addEventListener("click", onClick, true);
