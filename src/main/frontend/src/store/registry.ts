@@ -11,6 +11,8 @@ interface RegistryState {
   create<O extends Record<string, unknown>>(type: string, options?: O): HTMLElement | null;
   createWidget<O extends Record<string, unknown>>(type: string, options?: O): IRegisterableWidgetInstance | null;
   inject(configKey: string, entry: IRegisterableWidgetConfigEntry): void;
+  configure(configKey: string, transform: (items: unknown[]) => unknown[]): void;
+  activate(type: string): void;
 }
 
 export const useRegistryStore = create<RegistryState>()((set, get) => {
@@ -22,14 +24,21 @@ export const useRegistryStore = create<RegistryState>()((set, get) => {
   );
 
   const pending: [string, IRegisterableWidgetConfigEntry][] = [];
+  const pendingConfig: [string, (items: unknown[]) => unknown[]][] = [];
+  const pendingActivations: string[] = [];
 
   return {
     bi: null,
     setBi: (bi) => {
       set({ bi });
-      for (const [key, entry] of pending.splice(0)) {
+      for (const type of pendingActivations.splice(0))
+        registry.activate(type);
+
+      for (const [key, entry] of pending.splice(0))
         registry.inject(key, entry);
-      }
+
+      for (const [key, transform] of pendingConfig.splice(0))
+        registry.configure(key, transform);
     },
     define: (def) => registry.define(def),
     create: (type, options) => registry.create(type, options),
@@ -38,6 +47,14 @@ export const useRegistryStore = create<RegistryState>()((set, get) => {
       if (!registry.inject(configKey, entry)) {
         pending.push([configKey, entry]);
       }
+    },
+    configure: (configKey, transform) => {
+      if (!registry.configure(configKey, transform))
+        pendingConfig.push([configKey, transform]);
+    },
+    activate: (type) => {
+      if (!registry.activate(type))
+        pendingActivations.push(type);
     },
   };
 });

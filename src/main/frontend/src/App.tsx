@@ -4,10 +4,9 @@ import { useCallback, useEffect, useRef } from "preact/hooks";
 import { DocSpaceStateEvents } from "@/types/events";
 
 import { ExportObserver } from "@features/export";
-import { HeaderLogoutObserver } from "@features/header";
 import { useViewOpen } from "@features/header/useViewOpen";
 import { Frame } from "@features/docspace/components/Frame";
-import { DatasetObserver } from "@features/import/DatasetObserver";
+import { ImportInitializer } from "@features/import/ImportInitializer";
 import { ShellOverlay } from "@features/import/components/ShellOverlay";
 import { NavigationInjector } from "@features/navigation/NavigationInjector";
 import { NAV_ENTRIES, startNavigationRuntime } from "@features/navigation/runtime";
@@ -74,9 +73,8 @@ export function NavigationApp() {
       {NAV_ENTRIES.map(({ configKey, entry }) => (
         <NavigationInjector key={configKey} configKey={configKey} entry={entry} />
       ))}
-      <HeaderLogoutObserver />
       <ExportObserver />
-      <DatasetObserver />
+      <ImportInitializer />
       <ShellOverlay />
     </>
   );

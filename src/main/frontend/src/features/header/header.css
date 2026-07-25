@@ -1,5 +1,8 @@
-[data-onlyoffice-header-logout] {
-  display: contents;
+.onlyoffice-header-logout-host {
+  display: inline-flex;
+  align-items: center;
+
+  margin: 0 !important;
 }
 
 .onlyoffice-header-logout {
@@ -83,7 +86,7 @@
   pointer-events: none;
 }
 
-[data-onlyoffice-header-logout] + .dec-frame-header-message,
-[data-onlyoffice-header-logout] + .dec-header-message {
+.onlyoffice-header-logout-host + .dec-frame-header-message,
+.onlyoffice-header-logout-host + .dec-header-message {
   margin-left: 16px;
 }

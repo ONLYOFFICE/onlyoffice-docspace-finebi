@@ -6,6 +6,8 @@ import { LogoutButton } from "@features/header/components/LogoutButton";
 
 import { useTranslation } from "@i18n";
 
+import "./header.css";
+
 const POPUP_WIDTH = 140;
 const POPUP_CLASS = "onlyoffice-header-logout__popup";
 

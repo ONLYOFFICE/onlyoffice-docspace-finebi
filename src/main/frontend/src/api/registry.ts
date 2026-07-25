@@ -63,24 +63,25 @@ export class RegisterableWidgetRegistry {
     const definition = this.definitions.get(type);
     if (!definition) return;
 
-    if (!this.BI?.inherit || !this.BI?.shortcut || !this.BI?.BasicButton) return;
+    const BasicButton = this.BI?.BasicButton;
+    if (!this.BI?.inherit || !this.BI?.shortcut || !BasicButton) return;
 
     const { defaultConfig, init } = definition;
+    const superInit = (BasicButton as unknown as { superclass?: { _init?(): void } })
+      .superclass?._init;
+
     const spec = {
-      _defaultConfig(this: { _super(): Record<string, unknown> }): Record<string, unknown> {
-        const base = this._super();
-        return defaultConfig ? { ...base, ...defaultConfig } : base;
-      },
+      props: defaultConfig ? { ...defaultConfig } : undefined,
       _init(this: IHostWidget): void {
-        this._super();
+        superInit?.call(this);
         const element = this.element[0];
         if (element)
           init(element, this.options, (event, handler) => this.on(event, handler));
       },
     };
-    
+
     try {
-      this.BI.shortcut!(type, this.BI.inherit!(this.BI.BasicButton!, spec as HostSpec));
+      this.BI.shortcut!(type, this.BI.inherit!(BasicButton, spec as unknown as HostSpec));
       this.registered.add(type);
     } catch(e) {
       console.warn("[DocSpace] Widget registration failed:", e);
@@ -129,6 +130,32 @@ export class RegisterableWidgetRegistry {
     const widget = this.createWidget<O>(type, options);
     const element = widget?.element?.[0];
     return element instanceof HTMLElement ? element : null;
+  }
+
+  /**
+   * Eagerly register a defined widget's FineUI shortcut (BI.shortcut).
+   */
+  activate(type: string): boolean {
+    if (!this.BI?.inherit || !this.BI?.shortcut || !this.BI?.BasicButton) return false;
+    this.register(type);
+    return true;
+  }
+
+  /**
+   * Decorate any FineUI config point (BI.config) with a caller-supplied
+   * transform.
+   */
+  configure(configKey: string, transform: (items: unknown[]) => unknown[]): boolean {
+    if (!this.BI?.config)
+      return false;
+
+    try {
+      this.BI.config(configKey, transform);
+    } catch (e) {
+      console.warn("[DocSpace] Config decorate skipped:", e);
+    }
+
+    return true;
   }
 
   /**

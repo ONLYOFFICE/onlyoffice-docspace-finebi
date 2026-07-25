@@ -4,7 +4,6 @@
   "selectors": {
     "popupView": ".bi-popup-view",
     "downListPopup": ".bi-down-list-popup",
-    "spiderExcelTable": ".spider-excel-table",
     "exportComboOpen": ".bi-design-global-export.bi-combo-popup"
   },
   "export": {
@@ -13,12 +12,14 @@
     "styleId": "onlyoffice-export-css"
   },
   "dataset": {
-    "hostMarker": "data-onlyoffice-import-host"
+    "addTableKey": "bi.constant.public.add.table.combo.items",
+    "tableType": "onlyoffice-docspace",
+    "itemCls": "onlyoffice-import-item",
+    "hiddenClass": "onlyoffice-import-hidden"
   },
   "header": {
-    "itemAttr": "data-onlyoffice-header-logout",
-    "hostMarker": "data-onlyoffice-header-logout-host",
-    "styleId": "onlyoffice-header-logout-css",
-    "messageCombo": ".dec-frame-header-message, .dec-header-message"
+    "itemsKey": "dec.constant.header.items",
+    "itemType": "onlyoffice.header.logout",
+    "hostCls": "onlyoffice-header-logout-host"
   }
 }

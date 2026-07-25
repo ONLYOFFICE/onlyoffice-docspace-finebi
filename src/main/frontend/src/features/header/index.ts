@@ -1,1 +1,1 @@
-export { HeaderLogoutObserver } from "./HeaderLogoutObserver";
+export { useRegisterHeaderControl } from "./useRegisterHeaderControl";
