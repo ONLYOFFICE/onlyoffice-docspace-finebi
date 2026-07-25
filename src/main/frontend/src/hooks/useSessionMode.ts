@@ -2,7 +2,6 @@ import { useCallback, useEffect } from "preact/hooks";
 
 import { useEventListener } from "@hooks/useEventListener";
 
-import { PluginCoreServer } from "@api/plugin";
 import type { PluginCorePageMode } from "@api/plugin";
 
 import { usePluginStore } from "@store/plugin";
@@ -11,16 +10,7 @@ import { DocSpaceStateEvents } from "@/types/events";
 
 export function useSessionMode(): PluginCorePageMode | null {
   useEffect(() => {
-    let active = true;
-    new PluginCoreServer()
-      .load()
-      .then((config) => {
-        if (active) usePluginStore.getState().init(config.mode);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
+    void usePluginStore.getState().load().catch(() => {});
   }, []);
 
   useEventListener(
@@ -35,10 +25,7 @@ export function useSessionMode(): PluginCorePageMode | null {
   useEventListener(
     DocSpaceStateEvents.reset,
     useCallback(() => {
-      new PluginCoreServer()
-        .load()
-        .then((config) => usePluginStore.getState().setMode(config.mode))
-        .catch(() => {});
+      void usePluginStore.getState().load().catch(() => {});
     }, []),
   );
 

@@ -3,12 +3,15 @@ import { create } from "zustand";
 import { PluginClient, PluginCoreServer } from "@api/plugin";
 import type { PluginCorePageMode, PluginCoreServerConfiguration } from "@api/plugin";
 
+function loggedInFor(mode: PluginCorePageMode): boolean {
+  return mode === "docspace" || mode === "settings";
+}
+
 interface PluginState {
   config: PluginCoreServerConfiguration | null;
   mode: PluginCorePageMode | null;
   loggedIn: boolean;
   load(): Promise<PluginCoreServerConfiguration>;
-  init(mode: PluginCorePageMode): void;
   setMode(mode: PluginCorePageMode): void;
   login: PluginClient["login"];
   clearTenant: PluginClient["clearTenant"];
@@ -18,7 +21,7 @@ interface PluginState {
   getFolders: PluginClient["getFolders"];
 }
 
-export const usePluginStore = create<PluginState>()((set, get) => {
+export const usePluginStore = create<PluginState>()((set) => {
   const server = new PluginCoreServer();
   const client = new PluginClient();
   return {
@@ -27,13 +30,10 @@ export const usePluginStore = create<PluginState>()((set, get) => {
     loggedIn: false,
     async load() {
       const config = await server.load();
-      set({ config });
+      set({ config, mode: config.mode, loggedIn: loggedInFor(config.mode) });
       return config;
     },
-    init: (mode) => {
-      if (get().mode === null) set({ mode, loggedIn: mode === "docspace" });
-    },
-    setMode: (mode) => set({ mode, loggedIn: mode === "docspace" }),
+    setMode: (mode) => set({ mode, loggedIn: loggedInFor(mode) }),
     login: (action, fields) => client.login(action, fields),
     clearTenant: (action) => client.clearTenant(action),
     logout: (action) => client.logout(action),
