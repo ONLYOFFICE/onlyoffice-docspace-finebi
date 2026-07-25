@@ -1,7 +1,8 @@
+import { render } from "preact";
+
 import { HeaderLogout } from "./HeaderLogout";
 
 import { useRegistryStore } from "@store/registry";
-import { useRendererStore } from "@store/renderer";
 
 import finebi from "@config/finebi.json";
 
@@ -21,9 +22,10 @@ export function useRegisterHeaderControl(): void {
     type: finebi.header.itemType,
     defaultConfig: { cls: finebi.header.hostCls },
     init: (element) => {
-      useRendererStore.getState().mount(<HeaderLogout />, element);
+      render(<HeaderLogout />, element);
     },
   });
+
   registry.activate(finebi.header.itemType);
 
   registry.configure(finebi.header.itemsKey, (items) => {
