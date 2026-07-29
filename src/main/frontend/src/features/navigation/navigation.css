@@ -13,7 +13,7 @@ body.onlyoffice-import-hidden .onlyoffice-import-item {
   font-size: 0;
 
   color: transparent;
-  background: url("../../../resources/images/onlyoffice-logo.svg") center / contain no-repeat;
+  background: url("../../../resources/images/onlyoffice-logo_mono.svg") center / contain no-repeat;
 }
 
 .bi-icon-label.onlyoffice-navigation {
