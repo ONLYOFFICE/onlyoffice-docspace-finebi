@@ -42,4 +42,23 @@ class DocSpaceSpreadsheetTest {
       assertThat(new DocSpaceSpreadsheet(input).getTableName()).isEqualTo(expected);
     }
   }
+
+  @Nested
+  class DatasetNameForSheet {
+    @ParameterizedTest
+    @CsvSource(
+        nullValues = "null",
+        value = {
+          "Sales, Report_Sales",
+          "'  Q1 Data  ', Report_Q1 Data",
+          "a/b\\c, Report_a_b_c",
+          "'Wide   gap', Report_Wide gap",
+          "null, Report",
+          "'', Report"
+        })
+    void givenSheetName_whenNaming_thenSanitizesAndAppendsPostfix(String sheet, String expected) {
+      assertThat(new DocSpaceSpreadsheet("Report.xlsx").datasetNameForSheet(sheet))
+          .isEqualTo(expected);
+    }
+  }
 }
