@@ -7,7 +7,7 @@ import { FuncUtils } from "@utils/func";
 
 import { translate } from "@i18n";
 
-const LOGIN_MS = 5_000;
+const LOGIN_MS = 10_000;
 
 function loginFailed(): Error {
   return new Error(translate("client.login.failed"));
