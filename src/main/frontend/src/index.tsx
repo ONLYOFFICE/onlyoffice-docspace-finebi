@@ -12,6 +12,8 @@ import { PlaceholderPage } from "@pages/placeholder";
 import { usePluginStore } from "@store/plugin";
 import { useRegistryStore } from "@store/registry";
 
+import { syncHostLocale } from "@i18n";
+
 import "./index.css";
 
 function getHostGlobal(): IHostGlobal | undefined {
@@ -30,7 +32,10 @@ async function BootPage(root: HTMLElement): Promise<void> {
 function BindHostGlobal(): void {
   const apply = () => {
     const BI = getHostGlobal();
-    if (BI) useRegistryStore.getState().setBi(BI);
+    if (BI) {
+      useRegistryStore.getState().setBi(BI);
+      syncHostLocale();
+    }
   };
   apply();
   if (!getHostGlobal() && document.readyState === "loading") {
@@ -46,6 +51,8 @@ function BootNavigation(): void {
   (document.body ?? document.documentElement).appendChild(root);
   render(<NavigationApp />, root);
 }
+
+syncHostLocale();
 
 const mount = document.getElementById("app");
 if (mount) void BootPage(mount);

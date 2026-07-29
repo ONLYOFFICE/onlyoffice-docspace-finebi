@@ -31,11 +31,15 @@ export function PlaceholderPage() {
     );
   }
 
-  const header =
-    config.mode === "unauthorized"
-      ? translate("placeholder.access.denied")
-      : translate("placeholder.please.wait");
-  return (
-    <PlaceholderContainer header={header} message={config.response.message} />
-  );
+  const unauthorized = config.mode === "unauthorized";
+  const header = unauthorized
+    ? translate("placeholder.access.denied")
+    : translate("placeholder.please.wait");
+  const message =
+    config.mode === "notconfigured"
+      ? translate("placeholder.not.configured")
+      : unauthorized
+        ? translate("placeholder.access.denied.message")
+        : config.response.message;
+  return <PlaceholderContainer header={header} message={message} />;
 }
