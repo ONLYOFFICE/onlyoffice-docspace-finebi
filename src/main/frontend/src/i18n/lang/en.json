@@ -25,6 +25,8 @@
   "placeholder.load.failed.header": "Couldn't load DocSpace",
   "placeholder.load.failed.message": "Something went wrong. Please reload the page to try again.",
   "placeholder.access.denied": "Access denied",
+  "placeholder.access.denied.message": "Only FineBI administrators can configure DocSpace.",
+  "placeholder.not.configured": "A FineBI administrator must configure the DocSpace tenant before you can sign in.",
   "placeholder.please.wait": "Please wait",
   "import.menu": "Import from DocSpace",
   "import.dialog": "Import from DocSpace",

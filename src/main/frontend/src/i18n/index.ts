@@ -12,6 +12,7 @@ export {
   setLocale,
   useLocale,
 } from "./instance";
+export { detectHostLocale, syncHostLocale } from "./detect";
 export type { AppLocale, MessageCatalog };
 
 function interpolate(
@@ -27,7 +28,9 @@ function interpolate(
 export function translate(key: string, vars?: Record<string, string | number>): string {
   const locale = useLocale.getState().locale;
   const catalog = catalogs[locale] ?? catalogs.en;
-  const template = (catalog as Record<string, string>)[key];
+  const template =
+    (catalog as Record<string, string>)[key] ??
+    (catalogs.en as Record<string, string>)[key];
   if (typeof template !== "string") return key;
   return interpolate(template, vars);
 }
