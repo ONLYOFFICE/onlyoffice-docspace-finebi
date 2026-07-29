@@ -53,6 +53,7 @@
   "client.folders.failed": "Не удалось получить папки",
   "client.sdk.missing": "SDK DocSpace не загружен",
   "client.csp.blocked": "CSP DocSpace заблокировал этот источник FineBI. Добавьте его в разделе Инструменты разработчика, JavaScript SDK.",
+  "client.frame.timeout": "Не удалось подключиться к DocSpace. Проверьте адрес сервера и что FineBI разрешён в CSP DocSpace (Инструменты разработчика → JavaScript SDK).",
   "client.session.expired": "Сеанс DocSpace истёк. Выйдите и войдите снова.",
   "client.sdk.not.ready": "SDK DocSpace не готов. Обновите страницу и повторите попытку.",
   "client.login.failed": "Не удалось войти в DocSpace. Проверьте электронную почту и пароль.",

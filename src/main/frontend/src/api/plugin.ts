@@ -44,9 +44,11 @@ export class PluginClient {
       body: JSON.stringify(fields),
     });
 
-    const data = (await response.json()) as PluginResult;
-    if (!response.ok || !data.ok)
-      throw new Error(`${translate("client.save.login")}`);
+    const data = (await response.json().catch(() => null)) as PluginResult | null;
+    if (!response.ok || !data?.ok) {
+      const detail = data?.error?.trim();
+      throw new Error(detail || translate("client.save.login"));
+    }
   }
 
   async clearTenant(action: string): Promise<void> {

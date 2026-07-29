@@ -14,6 +14,7 @@ import manifest from "@manifest";
 import docspace from "@config/docspace.json";
 
 const LOGOUT_MS = 4_000;
+const FRAME_READY_MS = 15_000;
 const LOGIN_BACKOFF_MS = [0, 100, 500] as const;
 
 function sdkMissing(): Error {
@@ -22,9 +23,11 @@ function sdkMissing(): Error {
 
 function cspError(err: unknown): Error {
   const text = String(err);
-  return new Error(
-    /\(CSP\)/.test(text) ? translate("client.csp.blocked") : text,
-  );
+  const blocked =
+    /\(CSP\)/i.test(text) ||
+    /content security policy/i.test(text) ||
+    /frame-ancestors/i.test(text);
+  return new Error(blocked ? translate("client.csp.blocked") : text);
 }
 
 export class DocSpaceClient {
@@ -112,7 +115,7 @@ export class DocSpaceClient {
       throw sdkMissing();
 
     const id = this.systemFrameId();
-    return new Promise((resolve, reject) => {
+    const ready = new Promise<DocSpaceFrame>((resolve, reject) => {
       sdk.initSystem({
         src: url,
         frameId: id,
@@ -132,6 +135,10 @@ export class DocSpaceClient {
         },
       });
     });
+
+    return FuncUtils.withTimeout(ready, FRAME_READY_MS, () =>
+      new Error(translate("client.frame.timeout")),
+    );
   }
 
   private async login(
@@ -171,6 +178,7 @@ export class DocSpaceClient {
       this.cached = { url: normalised, frame };
       frame.catch(() => {
         if (this.cached?.frame === frame) this.cached = null;
+        this.destroyById(this.systemFrameId());
       });
     }
 

@@ -53,6 +53,7 @@
   "client.folders.failed": "无法检索文件夹",
   "client.sdk.missing": "DocSpace SDK 未加载",
   "client.csp.blocked": "DocSpace CSP 阻止了此 FineBI 来源。请在开发者工具、JavaScript SDK 中添加它。",
+  "client.frame.timeout": "无法连接到 DocSpace。请检查服务器地址，并确认 FineBI 已在 DocSpace CSP（开发者工具 → JavaScript SDK）中获准。",
   "client.session.expired": "DocSpace 会话已过期。请退出登录后重新登录。",
   "client.sdk.not.ready": "DocSpace SDK 尚未就绪。请刷新页面后重试。",
   "client.login.failed": "DocSpace 登录失败。请检查邮箱和密码。",

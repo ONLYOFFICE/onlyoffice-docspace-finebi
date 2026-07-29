@@ -53,6 +53,7 @@
   "client.folders.failed": "無法擷取資料夾",
   "client.sdk.missing": "DocSpace SDK 未載入",
   "client.csp.blocked": "DocSpace CSP 封鎖了此 FineBI 來源。請在開發者工具、JavaScript SDK 中新增它。",
+  "client.frame.timeout": "無法連線至 DocSpace。請檢查伺服器位址，並確認 FineBI 已在 DocSpace CSP（開發人員工具 → JavaScript SDK）中獲准。",
   "client.session.expired": "DocSpace 工作階段已過期。請登出後重新登入。",
   "client.sdk.not.ready": "DocSpace SDK 尚未就緒。請重新整理頁面後再試一次。",
   "client.login.failed": "DocSpace 登入失敗。請檢查電子郵件和密碼。",

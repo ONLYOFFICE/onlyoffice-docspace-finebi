@@ -53,6 +53,7 @@
   "client.folders.failed": "Impossible de récupérer les dossiers",
   "client.sdk.missing": "Le SDK DocSpace n'est pas chargé",
   "client.csp.blocked": "La CSP de DocSpace a bloqué cette origine FineBI. Ajoutez-la dans Outils de développement, SDK JavaScript.",
+  "client.frame.timeout": "Impossible de se connecter à DocSpace. Vérifiez l'adresse du serveur et que FineBI est autorisé dans la CSP DocSpace (Outils de développement → JavaScript SDK).",
   "client.session.expired": "La session DocSpace a expiré. Déconnectez-vous et reconnectez-vous.",
   "client.sdk.not.ready": "Le SDK DocSpace n'est pas prêt. Rechargez la page et réessayez.",
   "client.login.failed": "Échec de la connexion à DocSpace. Vérifiez l'e-mail et le mot de passe.",

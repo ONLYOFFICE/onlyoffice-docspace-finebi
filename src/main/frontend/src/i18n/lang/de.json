@@ -53,6 +53,7 @@
   "client.folders.failed": "Ordner konnten nicht abgerufen werden",
   "client.sdk.missing": "DocSpace-SDK ist nicht geladen",
   "client.csp.blocked": "DocSpace-CSP hat diesen FineBI-Ursprung blockiert. Fügen Sie ihn unter Entwicklertools, JavaScript-SDK hinzu.",
+  "client.frame.timeout": "Verbindung zu DocSpace fehlgeschlagen. Prüfen Sie die Serveradresse und ob FineBI in der DocSpace-CSP erlaubt ist (Entwicklertools → JavaScript-SDK).",
   "client.session.expired": "DocSpace-Sitzung abgelaufen. Melden Sie sich ab und wieder an.",
   "client.sdk.not.ready": "DocSpace-SDK ist nicht bereit. Aktualisieren Sie die Seite und versuchen Sie es erneut.",
   "client.login.failed": "DocSpace-Anmeldung fehlgeschlagen. Überprüfen Sie E-Mail und Passwort.",

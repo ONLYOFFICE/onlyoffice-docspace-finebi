@@ -53,6 +53,7 @@
   "client.folders.failed": "フォルダーを取得できませんでした",
   "client.sdk.missing": "DocSpace SDK が読み込まれていません",
   "client.csp.blocked": "DocSpace の CSP がこの FineBI オリジンをブロックしました。開発者ツール、JavaScript SDK で追加してください。",
+  "client.frame.timeout": "DocSpace に接続できませんでした。サーバーアドレスと、FineBI が DocSpace の CSP（開発者ツール → JavaScript SDK）で許可されているかを確認してください。",
   "client.session.expired": "DocSpace のセッションが期限切れです。サインアウトして、もう一度サインインしてください。",
   "client.sdk.not.ready": "DocSpace SDK の準備ができていません。ページを再読み込みして、もう一度お試しください。",
   "client.login.failed": "DocSpace のログインに失敗しました。メールアドレスとパスワードを確認してください。",

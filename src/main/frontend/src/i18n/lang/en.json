@@ -53,6 +53,7 @@
   "client.folders.failed": "Could not retrieve folders",
   "client.sdk.missing": "DocSpace SDK is not loaded",
   "client.csp.blocked": "DocSpace CSP blocked this FineBI origin. Add it under Developer Tools, JavaScript SDK.",
+  "client.frame.timeout": "Could not connect to DocSpace. Check the server address and that FineBI is allowed in DocSpace CSP (Developer Tools → JavaScript SDK).",
   "client.session.expired": "DocSpace session expired. Sign out and sign in again.",
   "client.sdk.not.ready": "DocSpace SDK is not ready. Refresh and try again.",
   "client.login.failed": "DocSpace login failed. Check email and password.",

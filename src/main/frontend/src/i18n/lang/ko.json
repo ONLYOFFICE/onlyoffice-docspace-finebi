@@ -53,6 +53,7 @@
   "client.folders.failed": "폴더를 검색할 수 없습니다",
   "client.sdk.missing": "DocSpace SDK가 로드되지 않았습니다",
   "client.csp.blocked": "DocSpace CSP가 이 FineBI 원본을 차단했습니다. 개발자 도구, JavaScript SDK에서 추가하세요.",
+  "client.frame.timeout": "DocSpace에 연결할 수 없습니다. 서버 주소와 FineBI가 DocSpace CSP(개발자 도구 → JavaScript SDK)에서 허용되어 있는지 확인하세요.",
   "client.session.expired": "DocSpace 세션이 만료되었습니다. 로그아웃한 후 다시 로그인하세요.",
   "client.sdk.not.ready": "DocSpace SDK가 준비되지 않았습니다. 페이지를 새로 고치고 다시 시도하세요.",
   "client.login.failed": "DocSpace 로그인에 실패했습니다. 이메일과 비밀번호를 확인하세요.",
