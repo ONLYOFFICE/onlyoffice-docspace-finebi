@@ -6,7 +6,7 @@
 
     <groupId>com.fr.plugin</groupId>
     <artifactId>plugin-docspace</artifactId>
-    <version>0.7.0</version>
+    <version>0.7.1</version>
     <packaging>jar</packaging>
 
     <properties>

@@ -9,6 +9,7 @@
   },
   "dataset": {
     "addTableKey": "bi.constant.public.add.table.combo.items",
+    "packListType": "bi.conf.pack_list",
     "tableType": "onlyoffice-docspace",
     "itemCls": "onlyoffice-import-item",
     "hiddenClass": "onlyoffice-import-hidden"

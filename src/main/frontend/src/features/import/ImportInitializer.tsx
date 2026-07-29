@@ -17,6 +17,45 @@ interface AddTableItem {
   [key: string]: unknown;
 }
 
+interface PackListStore {
+  openAddTableLayer?(value: unknown): void;
+  folderItemOperator?(operation: unknown, folder: unknown, ref: unknown): void;
+  __onlyofficeImportPatched?: boolean;
+}
+
+interface PackListWidget {
+  store?: PackListStore;
+}
+
+function openDocSpaceImport(): void {
+  if (!usePluginStore.getState().loggedIn)
+    return;
+  openImportPickerFrame(ImportUrlUtils.picker());
+}
+
+function isDocSpaceType(value: unknown): boolean {
+  return value === finebi.dataset.tableType;
+}
+
+function patchPackListStore(store: PackListStore | undefined): void {
+  if (!store || store.__onlyofficeImportPatched) return;
+  store.__onlyofficeImportPatched = true;
+
+  const openOriginal = store.openAddTableLayer?.bind(store);
+  if (openOriginal)
+    store.openAddTableLayer = (value) => {
+      if (isDocSpaceType(value)) return openDocSpaceImport();
+      return openOriginal(value);
+    };
+
+  const folderOriginal = store.folderItemOperator?.bind(store);
+  if (folderOriginal)
+    store.folderItemOperator = (operation, folder, ref) => {
+      if (isDocSpaceType(operation)) return openDocSpaceImport();
+      return folderOriginal(operation, folder, ref);
+    };
+}
+
 export function ImportInitializer() {
   const loggedIn = useLoggedIn();
 
@@ -36,23 +75,9 @@ export function ImportInitializer() {
       return items;
     });
 
-    const onClick = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!target?.closest?.(`.${finebi.dataset.itemCls}`))
-        return;
-
-      event.preventDefault();
-      event.stopImmediatePropagation();
-
-      if (!usePluginStore.getState().loggedIn)
-        return;
-
-      document.body.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-      openImportPickerFrame(ImportUrlUtils.picker());
-    };
-
-    document.addEventListener("click", onClick, true);
-    return () => document.removeEventListener("click", onClick, true);
+    useRegistryStore.getState().registerObject(finebi.dataset.packListType, (instance) => {
+      patchPackListStore((instance as PackListWidget).store);
+    });
   }, []);
 
   useEffect(() => {
