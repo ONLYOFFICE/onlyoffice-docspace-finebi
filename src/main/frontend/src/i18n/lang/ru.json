@@ -38,7 +38,7 @@
   "import.folder.importing": "Импорт…",
   "import.folder.empty": "Папки не найдены в FineBI Public Data.",
   "import.folder.load.failed": "Не удалось загрузить папки.",
-  "import.only.excel.csv": "Можно импортировать только файлы Excel (.xlsx, .xls) и CSV.",
+  "import.only.excel.csv": "Можно импортировать только файлы Excel (.xlsx).",
   "import.failed": "Не удалось выполнить импорт.",
   "import.success": "Импортировано как набор данных FineBI «{name}»",
   "export.menu": "Экспорт в DocSpace",

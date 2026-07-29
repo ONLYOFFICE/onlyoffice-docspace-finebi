@@ -38,7 +38,7 @@
   "import.folder.importing": "正在匯入…",
   "import.folder.empty": "在 FineBI Public Data 中找不到資料夾。",
   "import.folder.load.failed": "無法載入資料夾。",
-  "import.only.excel.csv": "僅可匯入 Excel (.xlsx、.xls) 和 CSV 檔案。",
+  "import.only.excel.csv": "僅可匯入 Excel (.xlsx) 檔案。",
   "import.failed": "匯入失敗。",
   "import.success": "已匯入為 FineBI 資料集「{name}」",
   "export.menu": "匯出到 DocSpace",

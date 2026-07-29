@@ -1,4 +1,4 @@
-const IMPORTABLE_EXTS = [".xlsx", ".xls", ".csv"];
+const IMPORTABLE_EXTS = [".xlsx"];
 
 export const FileUtils = Object.freeze({
   isImportable(item: { isFolder?: boolean; fileExst?: string }): boolean {

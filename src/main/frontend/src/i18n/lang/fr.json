@@ -38,7 +38,7 @@
   "import.folder.importing": "Importation…",
   "import.folder.empty": "Aucun dossier trouvé dans FineBI Public Data.",
   "import.folder.load.failed": "Impossible de charger les dossiers.",
-  "import.only.excel.csv": "Seuls les fichiers Excel (.xlsx, .xls) et CSV peuvent être importés.",
+  "import.only.excel.csv": "Seuls les fichiers Excel (.xlsx) peuvent être importés.",
   "import.failed": "Échec de l'importation.",
   "import.success": "Importé en tant que jeu de données FineBI « {name} »",
   "export.menu": "Exporter vers DocSpace",

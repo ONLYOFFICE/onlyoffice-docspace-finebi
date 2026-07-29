@@ -38,7 +38,7 @@
   "import.folder.importing": "インポート中…",
   "import.folder.empty": "FineBI Public Data にフォルダーが見つかりません。",
   "import.folder.load.failed": "フォルダーを読み込めませんでした。",
-  "import.only.excel.csv": "Excel (.xlsx、.xls) と CSV ファイルのみインポートできます。",
+  "import.only.excel.csv": "Excel (.xlsx) ファイルのみインポートできます。",
   "import.failed": "インポートに失敗しました。",
   "import.success": "FineBI データセット「{name}」としてインポートしました",
   "export.menu": "DocSpace にエクスポート",
