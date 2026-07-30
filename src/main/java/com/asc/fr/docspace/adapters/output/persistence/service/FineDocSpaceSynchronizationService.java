@@ -32,11 +32,13 @@ public final class FineDocSpaceSynchronizationService
 
   private static FileSynchronizationRecord toRecord(DocSpaceSynchronizationEntryEntity entity) {
     Long stamp = entity.getLastReconciledAt();
+    Integer sheetId = entity.getSheetId();
+    String contentHash = entity.getContentHash();
     return new FileSynchronizationRecord(
         entity.getFileId(),
-        entity.getTableName(),
-        entity.getFolderId(),
         entity.getId(),
+        sheetId == null ? 0 : sheetId,
+        contentHash == null ? "" : contentHash,
         stamp == null ? 0L : stamp);
   }
 
@@ -78,8 +80,8 @@ public final class FineDocSpaceSynchronizationService
           }
 
           entity.setFileId(entry.getFileId());
-          entity.setTableName(entry.getTableName());
-          entity.setFolderId(entry.getFolderId());
+          entity.setSheetId(entry.getSheetId());
+          entity.setContentHash(entry.getContentHash());
           entity.setLastReconciledAt(System.currentTimeMillis());
           dao.addOrUpdate(entity);
           return null;

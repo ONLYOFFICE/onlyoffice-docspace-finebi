@@ -15,11 +15,11 @@ public class DocSpaceSynchronizationEntryEntity extends BaseEntity {
   @Column(name = "fileId", length = 512)
   private String fileId = "";
 
-  @Column(name = "folderId")
-  private String folderId = "";
+  @Column(name = "sheetId")
+  private Integer sheetId = 0;
 
-  @Column(name = "tableName", length = 512)
-  private String tableName = "";
+  @Column(name = "contentHash", length = 128)
+  private String contentHash = "";
 
   @Column(name = "lastReconciledAt")
   private Long lastReconciledAt = 0L;
