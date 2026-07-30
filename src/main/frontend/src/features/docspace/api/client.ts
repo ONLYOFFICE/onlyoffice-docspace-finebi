@@ -14,7 +14,7 @@ import manifest from "@manifest";
 import docspace from "@config/docspace.json";
 
 const LOGOUT_MS = 4_000;
-const FRAME_READY_MS = 15_000;
+const FRAME_READY_MS = 25_000;
 const LOGIN_BACKOFF_MS = [0, 100, 500] as const;
 
 function sdkMissing(): Error {
