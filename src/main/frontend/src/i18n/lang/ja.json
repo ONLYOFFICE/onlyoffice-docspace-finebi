@@ -30,6 +30,7 @@
   "placeholder.please.wait": "お待ちください",
   "import.menu": "DocSpace からインポート",
   "import.dialog": "DocSpace からインポート",
+  "import.close": "閉じる",
   "import.accept": "FineBI にインポート",
   "import.folder.title": "FineBI にインポート",
   "import.folder.label": "インポート先のフォルダーを選択してください:",

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { Spinner } from "@components";
+import { Cross, Spinner } from "@components";
 import type { DocSpaceItem } from "@features/docspace/types";
 
 import type { PluginCoreServerConfiguration } from "@api/plugin";
@@ -77,19 +77,35 @@ export function FilePicker({
 
   return (
     <div className="onlyoffice-dialog-overlay">
-      <div className="onlyoffice-dialog-backdrop" onClick={onClose} />
+      <div
+        className="onlyoffice-dialog-backdrop"
+        onClick={finishing ? undefined : onClose}
+      />
       <div
         className="onlyoffice-dialog"
         role="dialog"
         aria-busy={showOverlay || undefined}
         aria-label={translate("import.dialog")}
       >
-        {showOverlay && (
-          <div className="onlyoffice-dialog__loader">
-            {error ?? <Spinner className="onlyoffice-spinner--lg" />}
-          </div>
-        )}
-        <div id={frameId} />
+        <div className="onlyoffice-dialog__header">
+          <button
+            type="button"
+            className="onlyoffice-dialog__close"
+            aria-label={translate("import.close")}
+            disabled={finishing}
+            onClick={onClose}
+          >
+            <Cross />
+          </button>
+        </div>
+        <div className="onlyoffice-dialog__body">
+          {showOverlay && (
+            <div className="onlyoffice-dialog__loader">
+              {error ?? <Spinner className="onlyoffice-spinner--lg" />}
+            </div>
+          )}
+          <div id={frameId} />
+        </div>
       </div>
     </div>
   );

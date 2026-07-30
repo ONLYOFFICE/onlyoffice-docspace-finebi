@@ -4,10 +4,12 @@ export { DialogButton } from "./buttons/DialogButton";
 export { FormError } from "./errors/FormError";
 export { GenericField as Field } from "./fields/GenericField";
 export { PasswordField } from "./fields/PasswordField";
+export { Cross } from "./icons/Cross";
 export { Eye } from "./icons/Eye";
 export { EyeClosed } from "./icons/EyeClosed";
 export { OnlyOfficeLogo } from "./icons/Logo";
 export { RoomIllustration } from "./icons/Room";
+
 export { CenteredCard } from "./layout/CenteredCard";
 export { PageContainer } from "./layout/PageContainer";
 export { PlaceholderContainer } from "./layout/PlaceholderContainer";

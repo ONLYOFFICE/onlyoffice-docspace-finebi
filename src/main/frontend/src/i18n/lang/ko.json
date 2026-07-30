@@ -30,6 +30,7 @@
   "placeholder.please.wait": "잠시 기다려 주세요",
   "import.menu": "DocSpace에서 가져오기",
   "import.dialog": "DocSpace에서 가져오기",
+  "import.close": "닫기",
   "import.accept": "FineBI로 가져오기",
   "import.folder.title": "FineBI로 가져오기",
   "import.folder.label": "대상 폴더를 선택하세요:",

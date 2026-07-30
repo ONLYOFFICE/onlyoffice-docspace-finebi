@@ -30,6 +30,7 @@
   "placeholder.please.wait": "Veuillez patienter",
   "import.menu": "Importer depuis DocSpace",
   "import.dialog": "Importer depuis DocSpace",
+  "import.close": "Fermer",
   "import.accept": "Importer dans FineBI",
   "import.folder.title": "Importer dans FineBI",
   "import.folder.label": "Sélectionnez le dossier de destination :",

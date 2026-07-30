@@ -30,6 +30,7 @@
   "placeholder.please.wait": "請稍候",
   "import.menu": "從 DocSpace 匯入",
   "import.dialog": "從 DocSpace 匯入",
+  "import.close": "關閉",
   "import.accept": "匯入到 FineBI",
   "import.folder.title": "匯入到 FineBI",
   "import.folder.label": "選擇目標資料夾：",
