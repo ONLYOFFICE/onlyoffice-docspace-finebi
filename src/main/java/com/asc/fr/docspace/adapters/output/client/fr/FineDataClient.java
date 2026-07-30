@@ -39,7 +39,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import lombok.RequiredArgsConstructor;
 import okhttp3.MediaType;
@@ -123,17 +122,17 @@ public final class FineDataClient
   }
 
   private FineSheetPreviewDataResponse previewSheet(
-          FineSession session,
-          FineAttachment attachment,
-          String tableId,
-          String folderId,
-          int sheetIndex)
-          throws IOException {
+      FineSession session,
+      FineAttachment attachment,
+      String tableId,
+      String folderId,
+      int sheetIndex)
+      throws IOException {
     String probeName = "docspace-resync-" + tableId + "-" + sheetIndex;
     return sheetPreview(
-            session,
-            FineDatasetRequests.createPreview(probeName, folderId, attachment, sheetIndex),
-            null);
+        session,
+        FineDatasetRequests.createPreview(probeName, folderId, attachment, sheetIndex),
+        null);
   }
 
   @Override
@@ -215,15 +214,13 @@ public final class FineDataClient
       String uuid = datasetUUID.get(sheet.getTableName());
       if ((uuid == null || uuid.isEmpty()) && sheets.size() == 1)
         uuid = FineResponses.datasetUuid(envelope, sheet.getTableName());
-      if (uuid == null || uuid.isEmpty())
-        continue;
+      if (uuid == null || uuid.isEmpty()) continue;
       created.add(
           new FineCreatedDataset(
               sheet.getSheetName(), sheet.getSheetId(), sheet.getTableName(), uuid));
     }
 
-    if (created.isEmpty())
-      throw new IOException("FineBI created no datasets from the workbook");
+    if (created.isEmpty()) throw new IOException("FineBI created no datasets from the workbook");
 
     return created;
   }
@@ -233,16 +230,14 @@ public final class FineDataClient
       Collection<String> tableIds, FineSession session) throws IOException {
     Map<String, FineDatasetLocation> located = new HashMap<>();
 
-    if (tableIds == null || tableIds.isEmpty())
-      return located;
+    if (tableIds == null || tableIds.isEmpty()) return located;
 
     Set<String> remaining = new HashSet<>(tableIds);
     remaining.remove(null);
     remaining.remove("");
 
     for (FineFolder folder : listFolders(session)) {
-      if (remaining.isEmpty())
-        break;
+      if (remaining.isEmpty()) break;
       JsonNode tables;
 
       try {
@@ -275,8 +270,7 @@ public final class FineDataClient
   @Override
   public List<FineReplaceOutcome> replaceDatasets(
       List<FineReplaceDatasetCommand> commands, FineSession session, FineAttachment attachment) {
-    if (commands == null || commands.isEmpty())
-      return Collections.emptyList();
+    if (commands == null || commands.isEmpty()) return Collections.emptyList();
 
     List<FineReplaceOutcome> outcomes = new ArrayList<>(commands.size());
     for (FineReplaceDatasetCommand command : commands) {

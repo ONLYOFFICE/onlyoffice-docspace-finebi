@@ -7,26 +7,29 @@ import com.asc.fr.docspace.adapters.output.client.fr.transfer.response.FineAttac
 import com.asc.fr.docspace.adapters.output.client.fr.transfer.response.FineSheetPreviewDataResponse;
 import com.asc.fr.docspace.domain.fr.FineAttachment;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Builds FineBI request DTOs for the create / replace dataset flows.
  *
  * <p>Both flows let FineBI parse the uploaded spreadsheet: sheet/preview is asked to resolve {@code
  * baseAttach}/{@code fields} server-side, and those nodes are echoed verbatim into excel/add or
- * tables/update.
+ * tables/update. Every request targets a single {@code sheetIndex}; a multi-sheet workbook is
+ * imported by previewing each index in turn and batching the resolved sheets into one excel/add.
  */
 public final class FineDatasetRequests {
   private FineDatasetRequests() {}
 
   private static FineSheetPreviewRequest preview(
-      FineTableBeanRequest bean, FineAttachment attachment) {
+      FineTableBeanRequest bean, FineAttachment attachment, int sheetIndex) {
     bean.setBaseAttach(FineAttachmentResponse.emptyPlaceholder());
     bean.setExcelFields(Collections.emptyList());
 
     FineSheetPreviewRequest preview = new FineSheetPreviewRequest();
     preview.setAttachId(attachment.getAttachId());
-    preview.setSheetIndex(0);
+    preview.setSheetIndex(sheetIndex);
     preview.setTableBean(bean);
 
     return preview;
@@ -57,31 +60,35 @@ public final class FineDatasetRequests {
     return bean;
   }
 
-  /** Preview for a brand-new table (create flow, step 1). */
   public static FineSheetPreviewRequest createPreview(
-      String tableName, String folderId, FineAttachment attachment) {
-    return preview(tableBean(tableName, tableName, folderId, 1), attachment);
+      String tableName, String folderId, FineAttachment attachment, int sheetIndex) {
+    return preview(tableBean(tableName, tableName, folderId, 1), attachment, sheetIndex);
   }
 
-  /** Preview that RESETs the source of an existing table (replace flow, step 1). */
   public static FineSheetPreviewRequest resetPreview(
-      String tableUuid, String tableName, String folderId, FineAttachment attachment) {
-    return preview(tableBean(tableUuid, tableName, folderId, 2), attachment);
+      String tableUuid,
+      String tableName,
+      String folderId,
+      FineAttachment attachment,
+      int sheetIndex) {
+    return preview(tableBean(tableUuid, tableName, folderId, 2), attachment, sheetIndex);
   }
 
-  /** excel/add body from the FineBI-resolved preview (create flow, step 2). */
-  public static FineExcelAddRequest excelAdd(
-      String tableName, String folderId, FineSheetPreviewDataResponse preview) {
-    FineExcelAddRequest.Table tableEntry = new FineExcelAddRequest.Table();
-    tableEntry.setTableName(tableName);
-    tableEntry.setTableBean(fromPreview(tableName, tableName, folderId, preview));
+  public static FineExcelAddRequest excelAdd(String folderId, List<FineSheetPreview> sheets) {
+    List<FineExcelAddRequest.Table> tables = new ArrayList<>(sheets.size());
+    for (FineSheetPreview sheet : sheets) {
+      FineExcelAddRequest.Table tableEntry = new FineExcelAddRequest.Table();
+      tableEntry.setTableName(sheet.getTableName());
+      tableEntry.setTableBean(
+          fromPreview(sheet.getTableName(), sheet.getTableName(), folderId, sheet.getData()));
+      tables.add(tableEntry);
+    }
 
     FineExcelAddRequest request = new FineExcelAddRequest();
-    request.setExcelAddTables(Collections.singletonList(tableEntry));
+    request.setExcelAddTables(tables);
     return request;
   }
 
-  /** tables/update body from the RESET preview (replace flow, step 2). */
   public static FineTableBeanRequest updateAfterReset(
       String tableUuid, String tableName, String folderId, FineSheetPreviewDataResponse preview) {
     return fromPreview(tableUuid, tableName, folderId, preview);

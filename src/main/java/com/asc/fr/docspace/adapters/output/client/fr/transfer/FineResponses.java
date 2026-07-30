@@ -112,12 +112,10 @@ public final class FineResponses {
 
   public static Map<String, String> getDatasetUUID(FineEnvelope envelope) {
     JsonNode data = envelope.dataNode();
-    if (!data.isArray())
-      return Collections.emptyMap();
+    if (!data.isArray()) return Collections.emptyMap();
 
     List<FineTableAddItemResponse> items = Json.convert(data, TABLE_ADD_LIST);
-    if (items == null)
-      return Collections.emptyMap();
+    if (items == null) return Collections.emptyMap();
 
     Map<String, String> response = new LinkedHashMap<>();
     for (FineTableAddItemResponse item : items) {
