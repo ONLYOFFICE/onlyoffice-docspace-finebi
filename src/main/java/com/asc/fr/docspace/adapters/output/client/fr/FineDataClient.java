@@ -329,22 +329,4 @@ public final class FineDataClient
       // TODO: Handle exception somehow? UI event?
     }
   }
-
-  @Override
-  public CompletableFuture<Set<String>> tableIdsInFolderAsync(
-      String folderId, FineSession session) {
-    if (folderId == null || folderId.isEmpty()) {
-      CompletableFuture<Set<String>> failed = new CompletableFuture<>();
-      failed.completeExceptionally(
-          new IOException("FineBI dataset existence probe requires folder id"));
-      return failed;
-    }
-
-    return Calls.stringAsync(
-            rest.get(
-                session.getBaseUrl() + Paths.PACK_TABLES.path(folderId),
-                token(session),
-                session.getCookie()))
-        .thenApply(FineDataClient::parseTableIds);
-  }
 }
