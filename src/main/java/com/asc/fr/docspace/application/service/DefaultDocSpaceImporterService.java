@@ -1,5 +1,6 @@
 package com.asc.fr.docspace.application.service;
 
+import com.asc.fr.docspace.application.exception.ImportRejectedException;
 import com.asc.fr.docspace.application.port.input.DocSpaceImporterService;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
@@ -18,14 +19,21 @@ import com.asc.fr.docspace.application.port.output.fr.transfer.FineUploadAttachm
 import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
 import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.FileSynchronizationRecord;
+import com.asc.fr.docspace.domain.common.Sheet;
 import com.asc.fr.docspace.domain.common.URL;
+import com.asc.fr.docspace.domain.common.spreadsheet.Spreadsheet;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceRawFile;
 import com.asc.fr.docspace.domain.docspace.DocSpaceSpreadsheet;
 import com.asc.fr.docspace.domain.fr.FineAttachment;
+import com.asc.fr.docspace.domain.fr.FineDataset;
 import com.asc.fr.docspace.domain.fr.FineSession;
 import com.google.inject.Inject;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class DefaultDocSpaceImporterService implements DocSpaceImporterService {
   private static final String DOCSPACE_PACK = "DocSpace";
@@ -119,7 +127,7 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
   }
 
   @Override
-  public String importFile(ImportFileCommand command, FineSession session) throws IOException {
+  public int importFile(ImportFileCommand command, FineSession session) throws IOException {
     DocSpaceAccountCredentials credentials = userAccountService.credentials(command.getUserName());
     if (!credentials.isComplete())
       throw new IOException("No DocSpace login is stored for user " + command.getUserName());
@@ -133,14 +141,31 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
 
     byte[] rawFile = download.getRawContent();
     if (rawFile.length > MAX_FILE_BYTES)
-      throw new IOException("File exceeds the 50 MB import limit");
+      throw new ImportRejectedException(
+          "import.error.tooLarge",
+          "File exceeds the 50 MB import limit",
+          Collections.singletonMap("maxMb", MAX_FILE_BYTES / (1024 * 1024)));
 
     DocSpaceSpreadsheet spreadsheet = new DocSpaceSpreadsheet(download.getFileName());
     String tableName = spreadsheet.getTableName();
     String filename = spreadsheet.getFileName();
+    if (!filename.toLowerCase().endsWith(".xlsx"))
+      throw new ImportRejectedException(
+          "import.error.notXlsx", "Only .xlsx workbooks can be imported");
+
+    List<Sheet> sheets = new Spreadsheet(filename, rawFile).sheets();
+    if (sheets.size() > MAX_SHEETS) {
+      Map<String, Object> params = new HashMap<>();
+      params.put("count", sheets.size());
+      params.put("max", MAX_SHEETS);
+      throw new ImportRejectedException(
+          "import.error.tooManySheets",
+          "The workbook has " + sheets.size() + " sheets; the import limit is " + MAX_SHEETS,
+          params);
+    }
 
     String folderId;
-    String tableId;
+    List<FineDataset> datasets;
     try {
       FineAttachment attachment =
           attachmentService.uploadAttachment(
@@ -150,21 +175,34 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
       folderId = command.getFolderId() == null ? "" : command.getFolderId();
       if (folderId.isEmpty()) folderId = folderService.ensureFolder(DOCSPACE_PACK, session);
 
-      tableId =
-          datasetService.createDataset(
+      datasets =
+          datasetService.createDatasets(
               FineCreateDatasetCommand.builder()
                   .tableName(tableName)
                   .folderId(folderId)
                   .attachment(attachment)
+                  .sheets(sheets)
                   .build(),
               session);
+    } catch (ImportRejectedException e) {
+      throw e;
     } catch (IOException e) {
       throw new IOException("FineBI dataset creation failed: " + e.getMessage(), e);
     }
 
     try {
-      synchronizationLinkRegistry.put(
-          new FileSynchronizationRecord(command.getFileId(), tableName, folderId, tableId));
+      synchronizationLinkRegistry.removeByFile(command.getFileId());
+      Map<Integer, String> sheetHash = new HashMap<>();
+      for (Sheet sheet : sheets)
+        if (sheet.getSheetId() > 0)
+          sheetHash.putIfAbsent(sheet.getSheetId(), sheet.getContentHash());
+      for (FineDataset dataset : datasets) {
+        String hash = sheetHash.getOrDefault(dataset.getSheetId(), "");
+        synchronizationLinkRegistry.put(
+            new FileSynchronizationRecord(
+                command.getFileId(), dataset.getTableId(), dataset.getSheetId(), hash, 0L));
+      }
+
       synchronizationSettings.storeDecisionBase(session.getBaseUrl().getValue());
       ensureWebhookRegistered(command.getCallbackUrl());
     } catch (Exception bookkeeping) {
@@ -173,6 +211,6 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
       // syncs until the next import of this file redoes the bookkeeping.
     }
 
-    return tableName;
+    return datasets.size();
   }
 }

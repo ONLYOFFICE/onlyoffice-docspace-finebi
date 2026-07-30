@@ -182,8 +182,8 @@ public final class FineDataClient
   }
 
   @Override
-  public List<FineDataset> createDatasets(
-      FineCreateDatasetCommand command, FineSession session) throws IOException {
+  public List<FineDataset> createDatasets(FineCreateDatasetCommand command, FineSession session)
+      throws IOException {
     String base = command.getTableName();
     String folderId = command.getFolderId();
     FineAttachment attachment = command.getAttachment();
@@ -216,8 +216,7 @@ public final class FineDataClient
         uuid = FineResponses.datasetUuid(envelope, sheet.getTableName());
       if (uuid == null || uuid.isEmpty()) continue;
       created.add(
-          new FineDataset(
-              sheet.getSheetName(), sheet.getSheetId(), sheet.getTableName(), uuid));
+          new FineDataset(sheet.getSheetName(), sheet.getSheetId(), sheet.getTableName(), uuid));
     }
 
     if (created.isEmpty()) throw new IOException("FineBI created no datasets from the workbook");

@@ -1,6 +1,5 @@
 package com.asc.fr.docspace.application.service;
 
-import com.asc.fr.docspace.application.exception.DatasetAbsentException;
 import com.asc.fr.docspace.application.port.input.DocSpaceImporterService;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.SynchronizationService;
@@ -12,12 +11,11 @@ import com.asc.fr.docspace.application.port.output.docspace.transfer.DocSpaceDow
 import com.asc.fr.docspace.application.port.output.fr.FineAttachmentService;
 import com.asc.fr.docspace.application.port.output.fr.FineDatasetService;
 import com.asc.fr.docspace.application.port.output.fr.FineSessionFactory;
-import com.asc.fr.docspace.application.port.output.fr.transfer.FineRefreshDatasetCommand;
-import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceDatasetCommand;
-import com.asc.fr.docspace.application.port.output.fr.transfer.FineUploadAttachmentCommand;
+import com.asc.fr.docspace.application.port.output.fr.transfer.*;
 import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
 import com.asc.fr.docspace.domain.common.FileSynchronizationRecord;
 import com.asc.fr.docspace.domain.common.URL;
+import com.asc.fr.docspace.domain.common.spreadsheet.Spreadsheet;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceRawFile;
 import com.asc.fr.docspace.domain.docspace.DocSpaceSpreadsheet;
@@ -25,7 +23,7 @@ import com.asc.fr.docspace.domain.fr.FineAttachment;
 import com.asc.fr.docspace.domain.fr.FineSession;
 import com.google.inject.Inject;
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import lombok.RequiredArgsConstructor;
@@ -47,67 +45,11 @@ public final class DefaultSynchronizationService implements SynchronizationServi
   private final SynchronizationEventPublisher eventPublisher;
   private final SynchronizationLinkRegistry synchronizationService;
 
-  /**
-   * Replaces the tracked dataset's source in-place, keeping its UUID (and all dashboards
-   * referencing it) intact.
-   *
-   * <p><b>CLEANUP SEMANTICS (FineBI side)</b> — the DocSpace side lives in WebhookHttpHandler. A
-   * re-sync only ever updates the dataset by its stored UUID; there is deliberately <b>no
-   * create-dataset fallback</b> anymore. The old fallback resurrected datasets a user had deleted
-   * in FineBI and produced duplicates when only the UUID was stale. Instead:
-   *
-   * <ul>
-   *   <li>Replace succeeded → normal sync.
-   *   <li>Replace threw {@link DatasetAbsentException} — FineBI's own "FineTableAbsentException"
-   *       answer, the authoritative signal that the user deleted the dataset in FineBI → we honor
-   *       that by removing the registry entry. Re-importing the file is the explicit way to resume
-   *       syncing.
-   *   <li>Replace failed with any other error (transient FineBI or network problem) → keep the
-   *       entry and rethrow; the next webhook event retries.
-   * </ul>
-   *
-   * @return true when the dataset was actually updated; false when the entry was unregistered
-   *     instead.
-   */
-  private boolean reimport(
-      FineSession session, FileSynchronizationRecord entry, String fileName, byte[] content)
-      throws IOException {
-    String filename = new DocSpaceSpreadsheet(fileName).getFileName();
-    if (content.length > DocSpaceImporterService.MAX_FILE_BYTES)
-      throw new IOException("File exceeds the 50 MB import limit");
-
-    String uuid = entry.getTableId();
-    if (uuid.isEmpty()) return false;
-
-    FineAttachment attachment =
-        attachmentService.uploadAttachment(
-            FineUploadAttachmentCommand.builder().fileName(filename).content(content).build(),
-            session);
-
-    try {
-      datasetService.replaceDataset(
-          FineReplaceDatasetCommand.builder()
-              .tableId(uuid)
-              .tableName(entry.getTableName())
-              .folderId(entry.getFolderId())
-              .fileName(filename)
-              .build(),
-          session,
-          attachment);
-    } catch (DatasetAbsentException e) {
-      synchronizationService.remove(uuid);
-      return false;
-    }
-
-    // Any other IOException propagates: transient failure — entry kept,
-    // the next webhook event retries.
-    // Tell Spider to re-extract data from the new source immediately so
-    // charts reflect the change on next open rather than on next lazy load.
-    datasetService.refreshDataset(
-        FineRefreshDatasetCommand.builder().folderId(entry.getFolderId()).tableId(uuid).build(),
-        session);
-
-    return true;
+  private static Set<String> trackedTableIds(List<FileSynchronizationRecord> entries) {
+    Set<String> ids = new HashSet<>();
+    for (FileSynchronizationRecord entry : entries)
+      if (!entry.getTableId().isEmpty() && entry.getSheetId() > 0) ids.add(entry.getTableId());
+    return ids;
   }
 
   private void resync(String decisionBase, String fileId, DocSpaceAccountCredentials credentials) {
@@ -123,9 +65,95 @@ public final class DefaultSynchronizationService implements SynchronizationServi
                   .fileId(fileId)
                   .build(),
               credentials);
+
+      byte[] content = download.getRawContent();
+      if (content.length > DocSpaceImporterService.MAX_FILE_BYTES)
+        throw new IOException("File exceeds the 50 MB import limit");
+
+      String filename = new DocSpaceSpreadsheet(download.getFileName()).getFileName();
+      Spreadsheet workbook = new Spreadsheet(filename, content);
+      Map<String, FineDatasetLocation> locations =
+          datasetService.locateDatasets(trackedTableIds(entries), session);
+
+      List<FineReplaceDatasetCommand> commands = new ArrayList<>();
+      Map<String, FileSynchronizationRecord> tableEntries = new HashMap<>();
+
       for (FileSynchronizationRecord entry : entries) {
-        boolean synced = reimport(session, entry, download.getFileName(), download.getRawContent());
-        if (synced) eventPublisher.datasetUpdated(entry.getTableName());
+        if (entry.getTableId().isEmpty()) continue;
+
+        // Datasets are linked to their sheet only by the stable OOXML sheetId. A row without one
+        // predates sheetId tracking (or came from a source no longer importable) and can only be
+        // re-synced by re-importing — leave it untouched.
+        if (entry.getSheetId() <= 0) continue;
+
+        int sheetIndex = workbook.indexOfSheetId(entry.getSheetId());
+        if (sheetIndex < 0) {
+          // The sheet backing this dataset is gone from the workbook — drop the mapping and leave
+          // the FineBI dataset orphaned.
+          synchronizationService.remove(entry.getTableId());
+          continue;
+        }
+
+        FineDatasetLocation location = locations.get(entry.getTableId());
+
+        // Not found in any listable folder — the dataset was deleted or moved somewhere the packs
+        // listing does not expose. Leave the mapping and retry on the next webhook rather than risk
+        // dropping a dataset we merely could not see.
+        if (location == null) continue;
+
+        // Unchanged sheet data — no upload/preview/update.
+        String currentHash = workbook.contentHash(entry.getSheetId());
+        if (!entry.getContentHash().isEmpty() && entry.getContentHash().equals(currentHash))
+          continue;
+
+        tableEntries.put(entry.getTableId(), entry);
+        commands.add(
+            FineReplaceDatasetCommand.builder()
+                .tableId(entry.getTableId())
+                .folderId(location.getFolderId())
+                .name(location.getName())
+                .fileName(filename)
+                .sheetIndex(sheetIndex)
+                .build());
+      }
+
+      List<FineReplaceOutcome> outcomes = new ArrayList<>(commands.size());
+      for (FineReplaceDatasetCommand command : commands) {
+        FineAttachment attachment =
+            attachmentService.uploadAttachment(
+                FineUploadAttachmentCommand.builder().fileName(filename).content(content).build(),
+                session);
+        outcomes.addAll(
+            datasetService.replaceDatasets(
+                Collections.singletonList(command), session, attachment));
+      }
+
+      for (FineReplaceOutcome outcome : outcomes) {
+        String tableId = outcome.getTableId();
+        FileSynchronizationRecord entry = tableEntries.get(tableId);
+        FineDatasetLocation location = locations.get(tableId);
+        String contentHash = entry == null ? "" : workbook.contentHash(entry.getSheetId());
+
+        if (outcome.getStatus() == FineReplaceOutcome.Status.ABSENT) {
+          synchronizationService.remove(tableId);
+          continue;
+        }
+
+        if (outcome.getStatus() == FineReplaceOutcome.Status.FAILED) continue;
+
+        datasetService.refreshDataset(
+            FineRefreshDatasetCommand.builder()
+                .folderId(location == null ? "" : location.getFolderId())
+                .tableId(tableId)
+                .build(),
+            session);
+
+        // Remember the sheet's content hash so the next webhook can skip it when data is unchanged.
+        if (!contentHash.isEmpty() && !contentHash.equals(entry.getContentHash()))
+          synchronizationService.put(entry.withContentHash(contentHash));
+
+        // Notify with FineBI's own current name for the dataset (not our stored import name).
+        eventPublisher.datasetUpdated(outcome.getName());
       }
     } catch (Exception ignored) {
       // TODO: Handle it somehow

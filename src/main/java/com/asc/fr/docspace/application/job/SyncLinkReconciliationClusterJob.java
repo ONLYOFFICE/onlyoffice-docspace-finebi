@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -106,20 +105,14 @@ public final class SyncLinkReconciliationClusterJob implements ScheduledClusterJ
   private CompletableFuture<Runnable> decide(
       FileSynchronizationRecord record,
       Map<String, CompletableFuture<Boolean>> fileProbes,
-      Map<String, CompletableFuture<Set<String>>> folderProbes,
-      FineSession session) {
+      Set<String> datasets) {
     return fileProbes
         .get(record.getFileId())
-        .thenCompose(
+        .thenApply(
             docSpaceHasFile -> {
-              if (!docSpaceHasFile) return CompletableFuture.completedFuture(remove(record));
-              return folderProbes
-                  .computeIfAbsent(
-                      record.getFolderId(),
-                      folderId -> datasetService.tableIdsInFolderAsync(folderId, session))
-                  .thenApply(
-                      tableIds ->
-                          tableIds.contains(record.getTableId()) ? keep(record) : remove(record));
+              if (datasets != null && !datasets.contains(record.getTableId()))
+                return remove(record);
+              return keep(record);
             });
   }
 
@@ -129,8 +122,11 @@ public final class SyncLinkReconciliationClusterJob implements ScheduledClusterJ
       FineSession session,
       List<FileSynchronizationRecord> targets) {
     Set<String> fileIds = new HashSet<>();
-
-    for (FileSynchronizationRecord record : targets) fileIds.add(record.getFileId());
+    Set<String> tableIds = new HashSet<>();
+    for (FileSynchronizationRecord record : targets) {
+      fileIds.add(record.getFileId());
+      tableIds.add(record.getTableId());
+    }
 
     Map<String, CompletableFuture<Boolean>> fileProbes;
     try {
@@ -139,11 +135,16 @@ public final class SyncLinkReconciliationClusterJob implements ScheduledClusterJ
       return; // could not authenticate, keep every link till next tick
     }
 
-    Map<String, CompletableFuture<Set<String>>> folderProbes = new ConcurrentHashMap<>();
-    List<CompletableFuture<Runnable>> decisions = new ArrayList<>(targets.size());
+    Set<String> datasets;
+    try {
+      datasets = datasetService.locateDatasets(tableIds, session).keySet();
+    } catch (Exception ignored) {
+      datasets = null;
+    }
 
+    List<CompletableFuture<Runnable>> decisions = new ArrayList<>(targets.size());
     for (FileSynchronizationRecord record : targets)
-      decisions.add(decide(record, fileProbes, folderProbes, session));
+      decisions.add(decide(record, fileProbes, datasets));
 
     for (CompletableFuture<Runnable> decision : decisions) {
       try {

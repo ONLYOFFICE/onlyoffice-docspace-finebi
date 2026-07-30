@@ -7,18 +7,16 @@ import com.asc.fr.docspace.application.port.output.fr.transfer.FineRefreshDatase
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceDatasetCommand;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceOutcome;
 import com.asc.fr.docspace.domain.fr.FineAttachment;
-import com.asc.fr.docspace.domain.fr.FineCreatedDataset;
+import com.asc.fr.docspace.domain.fr.FineDataset;
 import com.asc.fr.docspace.domain.fr.FineSession;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 public interface FineDatasetService {
-  List<FineCreatedDataset> createDatasets(FineCreateDatasetCommand command, FineSession session)
+  List<FineDataset> createDatasets(FineCreateDatasetCommand command, FineSession session)
       throws IOException;
 
   default void replaceDataset(

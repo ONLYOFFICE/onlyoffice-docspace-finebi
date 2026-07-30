@@ -134,4 +134,18 @@ public final class Spreadsheet {
   public boolean isEmpty() {
     return sheets.isEmpty();
   }
+
+  public int indexOfSheetId(int sheetId) {
+    if (sheetId <= 0) return -1;
+
+    for (int index = 0; index < sheets.size(); index++)
+      if (sheets.get(index).getSheetId() == sheetId) return index;
+
+    return -1;
+  }
+
+  public String contentHash(int sheetId) {
+    int index = indexOfSheetId(sheetId);
+    return index < 0 ? "" : sheets.get(index).getContentHash();
+  }
 }

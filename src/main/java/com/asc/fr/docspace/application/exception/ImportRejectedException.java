@@ -1,10 +1,9 @@
 package com.asc.fr.docspace.application.exception;
 
-import lombok.Getter;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import lombok.Getter;
 
 /**
  * An import the user could act on (wrong file type, too many sheets, too big, nothing importable).

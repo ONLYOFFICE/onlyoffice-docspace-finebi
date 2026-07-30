@@ -5,10 +5,11 @@ import lombok.Getter;
 
 @Getter
 public final class ImportResponse extends OkResponse {
-  private final String datasetName;
+  /** Number of FineBI datasets created (one per imported sheet). */
+  private final int count;
 
-  public ImportResponse(String datasetName) {
+  public ImportResponse(int count) {
     super(true);
-    this.datasetName = datasetName;
+    this.count = count;
   }
 }
