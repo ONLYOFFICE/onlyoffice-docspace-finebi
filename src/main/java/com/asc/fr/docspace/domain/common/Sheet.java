@@ -4,7 +4,7 @@ import lombok.Value;
 
 @Value
 public class Sheet {
-    String name;
-    int sheetId;
-    String contentHash;
+  String name;
+  int sheetId;
+  String contentHash;
 }

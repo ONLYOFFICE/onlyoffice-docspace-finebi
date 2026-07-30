@@ -1,9 +1,6 @@
 package com.asc.fr.docspace.domain.common.spreadsheet;
 
 import com.asc.fr.docspace.domain.common.Sheet;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -11,6 +8,8 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
 
 public final class Spreadsheet {
   private static final XMLInputFactory XML = secureInputFactory();
@@ -29,9 +28,7 @@ public final class Spreadsheet {
     }
   }
 
-  /**
-   * StAX factory hardened against XXE: no DTDs, no external entities.
-   */
+  /** StAX factory hardened against XXE: no DTDs, no external entities. */
   private static XMLInputFactory secureInputFactory() {
     XMLInputFactory factory = XMLInputFactory.newInstance();
     setProperty(factory, XMLInputFactory.SUPPORT_DTD, false);
@@ -45,14 +42,12 @@ public final class Spreadsheet {
     byte[] buffer = new byte[8192];
     int read;
 
-    while ((read = in.read(buffer)) != -1)
-      out.write(buffer, 0, read);
+    while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
 
     return out.toByteArray();
   }
 
-  private static List<Sheet> read(byte[] content)
-          throws IOException, XMLStreamException {
+  private static List<Sheet> read(byte[] content) throws IOException, XMLStreamException {
     byte[] manifestXML = null;
     byte[] relationshipsXML = null;
     byte[] sharedStringsXML = null;
@@ -73,8 +68,7 @@ public final class Spreadsheet {
       }
     }
 
-    if (manifestXML == null || relationshipsXML == null)
-      return Collections.emptyList();
+    if (manifestXML == null || relationshipsXML == null) return Collections.emptyList();
 
     SharedStrings sharedStrings = new SharedStrings(XML, sharedStringsXML);
     List<String> sharedStringItems = sharedStrings.toItems();
@@ -88,33 +82,31 @@ public final class Spreadsheet {
     List<Sheet> result = new ArrayList<>();
     for (WorkbookSheets.SheetRef ref : sheetRefs) {
       String part = parts.get(ref.getRid());
-      if (part == null)
-        continue; // broken relationship — skip this sheet entry
+      if (part == null) continue; // broken relationship — skip this sheet entry
 
       byte[] worksheet = worksheetBytes.get(part);
-      if (worksheet == null)
-        continue; // catalog points at a missing zip part
+      if (worksheet == null) continue; // catalog points at a missing zip part
 
       Worksheet wrksheet = new Worksheet(XML, worksheet);
       Worksheet.WorksheetScan scan = wrksheet.toWorksheetScan();
-      if (!scan.getHasCell())
-        continue; // blank sheet
+      if (!scan.getHasCell()) continue; // blank sheet
 
       result.add(
-              new Sheet(
-                      ref.getName(), ref.getSheetId(), SpreadsheetManipulator.fingerprint(worksheet, scan.getSharedRefs(), sharedStringItems)));
+          new Sheet(
+              ref.getName(),
+              ref.getSheetId(),
+              SpreadsheetManipulator.fingerprint(
+                  worksheet, scan.getSharedRefs(), sharedStringItems)));
     }
 
     return result;
   }
 
   private static List<Sheet> parse(String fileName, byte[] content) {
-    if (content == null || content.length == 0)
-      return Collections.emptyList();
+    if (content == null || content.length == 0) return Collections.emptyList();
 
     String lower = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
-    if (!lower.endsWith(".xlsx"))
-      return Collections.emptyList();
+    if (!lower.endsWith(".xlsx")) return Collections.emptyList();
 
     try {
       return read(content);
@@ -134,8 +126,7 @@ public final class Spreadsheet {
 
   public List<String> names() {
     List<String> names = new ArrayList<>(sheets.size());
-    for (Sheet sheet : sheets)
-      names.add(sheet.getName());
+    for (Sheet sheet : sheets) names.add(sheet.getName());
 
     return names;
   }
