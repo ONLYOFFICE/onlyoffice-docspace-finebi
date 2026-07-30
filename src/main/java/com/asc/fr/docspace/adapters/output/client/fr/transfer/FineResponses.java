@@ -152,6 +152,23 @@ public final class FineResponses {
     return ids;
   }
 
+  public static List<String> getOrderedDatasetUUID(FineEnvelope envelope) {
+    JsonNode data = envelope.dataNode();
+    if (!data.isArray()) return Collections.emptyList();
+
+    List<FineTableAddItemResponse> items = Json.convert(data, TABLE_ADD_LIST);
+    if (items == null) return Collections.emptyList();
+
+    List<String> uuids = new ArrayList<>(items.size());
+    for (FineTableAddItemResponse item : items) {
+      boolean created = item.getSuccess() == null || item.getSuccess();
+      String uuid = item.getName();
+      uuids.add(created && uuid != null ? uuid : "");
+    }
+
+    return uuids;
+  }
+
   public static void requireValidAuthentication(String body, FineEnvelope envelope)
       throws IOException {
     if (envelope.authFailed(body))

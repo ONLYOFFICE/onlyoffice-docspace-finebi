@@ -207,11 +207,16 @@ public final class FineDataClient
         post(session, Paths.TABLE_ADD.path(), FineDatasetRequests.excelAdd(folderId, sheets));
 
     FineEnvelope envelope = FineEnvelope.parse(response).requireSuccess("FineBI table add failed");
-    Map<String, String> datasetUUID = FineResponses.getDatasetUUID(envelope);
+
+    Map<String, String> byName = FineResponses.getDatasetUUID(envelope);
+    List<String> byOrder = FineResponses.getOrderedDatasetUUID(envelope);
+    boolean aligned = byOrder.size() == sheets.size();
     List<FineDataset> created = new ArrayList<>(sheets.size());
 
-    for (FineSheetPreview sheet : sheets) {
-      String uuid = datasetUUID.get(sheet.getTableName());
+    for (int index = 0; index < sheets.size(); index++) {
+      FineSheetPreview sheet = sheets.get(index);
+      String uuid = byName.get(sheet.getTableName());
+      if ((uuid == null || uuid.isEmpty()) && aligned) uuid = byOrder.get(index);
       if ((uuid == null || uuid.isEmpty()) && sheets.size() == 1)
         uuid = FineResponses.datasetUuid(envelope, sheet.getTableName());
       if (uuid == null || uuid.isEmpty()) continue;

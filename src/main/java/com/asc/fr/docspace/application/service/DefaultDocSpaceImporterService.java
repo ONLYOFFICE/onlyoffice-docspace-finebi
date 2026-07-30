@@ -191,7 +191,11 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
     }
 
     try {
-      synchronizationLinkRegistry.removeByFile(command.getFileId());
+      // Import is additive: each import creates its own datasets (a re-import of the same
+      // file yields fresh, auto-renamed duplicates), so we link the new datasets without wiping the
+      // links from earlier imports of this file — every copy stays tracked and syncs on its own.
+      // Links are keyed by the FineBI tableId, so distinct datasets never collide. A file deletion
+      // still drops every link for the file via the webhook handler.
       Map<Integer, String> sheetHash = new HashMap<>();
       for (Sheet sheet : sheets)
         if (sheet.getSheetId() > 0)

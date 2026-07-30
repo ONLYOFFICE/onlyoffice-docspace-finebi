@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -184,7 +185,7 @@ class DefaultDocSpaceImporterServiceTest {
       assertThat(created.getValue().getTableName()).isEqualTo("Report");
       assertThat(created.getValue().getFolderId()).isEqualTo("folder-1");
 
-      verify(synchronizationLinkRegistry).removeByFile("1");
+      verify(synchronizationLinkRegistry, never()).removeByFile(any());
       ArgumentCaptor<FileSynchronizationRecord> stored =
           ArgumentCaptor.forClass(FileSynchronizationRecord.class);
       verify(synchronizationLinkRegistry).put(stored.capture());
