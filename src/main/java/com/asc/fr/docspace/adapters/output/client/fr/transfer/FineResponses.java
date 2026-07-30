@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public final class FineResponses {
@@ -106,6 +108,27 @@ public final class FineResponses {
     }
 
     return uuid;
+  }
+
+  public static Map<String, String> getDatasetUUID(FineEnvelope envelope) {
+    JsonNode data = envelope.dataNode();
+    if (!data.isArray())
+      return Collections.emptyMap();
+
+    List<FineTableAddItemResponse> items = Json.convert(data, TABLE_ADD_LIST);
+    if (items == null)
+      return Collections.emptyMap();
+
+    Map<String, String> response = new LinkedHashMap<>();
+    for (FineTableAddItemResponse item : items) {
+      String transferName = item.getTransferName();
+      String uuid = item.getName();
+      boolean created = item.getSuccess() == null || item.getSuccess();
+      if (created && transferName != null && uuid != null && !uuid.isEmpty())
+        response.put(transferName, uuid);
+    }
+
+    return response;
   }
 
   public static FineTableSummaryResponse findTable(

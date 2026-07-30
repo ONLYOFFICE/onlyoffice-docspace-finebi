@@ -2,6 +2,7 @@ package com.asc.fr.docspace.adapters.input.web;
 
 import com.asc.fr.docspace.application.exception.BadRequestStatusException;
 import com.asc.fr.docspace.application.exception.ForbiddenStatusException;
+import com.asc.fr.docspace.application.exception.ImportRejectedException;
 import com.asc.fr.docspace.application.exception.PluginStatusException;
 import com.fr.third.springframework.web.bind.annotation.RequestMethod;
 import java.io.IOException;
@@ -70,6 +71,11 @@ public abstract class JsonHttpHandler extends PluginHttpHandler {
       HttpJson.write(response, HttpServletResponse.SC_OK, handleJson(request));
     } catch (PluginStatusException e) {
       HttpJson.write(response, e.status(), new ErrorResponse(e.getMessage()));
+    } catch (ImportRejectedException e) {
+      HttpJson.write(
+          response,
+          HttpServletResponse.SC_BAD_REQUEST,
+          new ErrorResponse(e.getMessage(), e.getCode(), e.getParams()));
     } catch (IOException e) {
       HttpJson.write(
           response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResponse(e.getMessage()));
