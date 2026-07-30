@@ -106,6 +106,14 @@
             word-break: break-all;
         }
 
+        .onlyoffice-debug__hash {
+            max-width: 12rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            word-break: normal;
+        }
+
         .onlyoffice-debug__link {
             color: var(--onlyoffice-blue);
             text-decoration: none;
@@ -183,28 +191,19 @@
             <thead>
             <tr>
                 <th class="onlyoffice-debug-table__heading">Dataset (tableId)</th>
-                <th class="onlyoffice-debug-table__heading">Table name</th>
+                <th class="onlyoffice-debug-table__heading">Sheet ID</th>
+                <th class="onlyoffice-debug-table__heading">Content hash</th>
                 <th class="onlyoffice-debug-table__heading">DocSpace file</th>
-                <th class="onlyoffice-debug-table__heading">Folder</th>
                 <th class="onlyoffice-debug-table__heading">Last reconciled</th>
             </tr>
             </thead>
             <tbody>
             <tr class="onlyoffice-debug-table__row" th:each="link : ${links}">
                 <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono" th:text="${link.tableId}">uuid</td>
-                <td class="onlyoffice-debug-table__cell" th:text="${link.tableName}">name.xlsx</td>
-                <td class="onlyoffice-debug-table__cell">
-                    <a class="onlyoffice-debug__link" th:if="${link.fileUrl != null}"
-                       th:href="${link.fileUrl}" target="_blank" rel="noopener noreferrer"
-                       th:text="${link.fileId}">fileId</a>
-                    <span class="onlyoffice-debug__mono" th:if="${link.fileUrl == null}" th:text="${link.fileId}">fileId</span>
-                </td>
-                <td class="onlyoffice-debug-table__cell">
-                    <a class="onlyoffice-debug__link" th:if="${link.folderUrl != null}"
-                       th:href="${link.folderUrl}" target="_blank" rel="noopener noreferrer"
-                       th:text="${link.folderId}">folderId</a>
-                    <span class="onlyoffice-debug__mono" th:if="${link.folderUrl == null}" th:text="${link.folderId}">folderId</span>
-                </td>
+                <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono" th:text="${link.sheetId}">7</td>
+                <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono onlyoffice-debug__hash"
+                    th:text="${link.contentHash}" th:title="${link.contentHash}">hash</td>
+                <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono" th:text="${link.fileId}">fileId</td>
                 <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono" th:text="${link.lastReconciledAt}">timestamp</td>
             </tr>
             </tbody>

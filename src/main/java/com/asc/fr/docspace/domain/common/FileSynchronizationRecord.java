@@ -6,22 +6,30 @@ import lombok.With;
 @Value
 public class FileSynchronizationRecord {
   String fileId;
-  String tableName;
-  String folderId;
   @With String tableId;
+  @With int sheetId;
+  @With String contentHash;
   long lastReconciledAt;
 
-  public FileSynchronizationRecord(
-      String fileId, String tableName, String folderId, String tableId) {
-    this(fileId, tableName, folderId, tableId, 0L);
+  public FileSynchronizationRecord(String fileId, String tableId) {
+    this(fileId, tableId, 0, "", 0L);
+  }
+
+  public FileSynchronizationRecord(String fileId, String tableId, int sheetId) {
+    this(fileId, tableId, sheetId, "", 0L);
   }
 
   public FileSynchronizationRecord(
-      String fileId, String tableName, String folderId, String tableId, long lastReconciledAt) {
+      String fileId, String tableId, int sheetId, long lastReconciledAt) {
+    this(fileId, tableId, sheetId, "", lastReconciledAt);
+  }
+
+  public FileSynchronizationRecord(
+      String fileId, String tableId, int sheetId, String contentHash, long lastReconciledAt) {
     this.fileId = fileId == null ? "" : fileId;
-    this.tableName = tableName == null ? "" : tableName;
-    this.folderId = folderId == null ? "" : folderId;
     this.tableId = tableId == null ? "" : tableId;
+    this.sheetId = sheetId;
+    this.contentHash = contentHash == null ? "" : contentHash;
     this.lastReconciledAt = lastReconciledAt;
   }
 }

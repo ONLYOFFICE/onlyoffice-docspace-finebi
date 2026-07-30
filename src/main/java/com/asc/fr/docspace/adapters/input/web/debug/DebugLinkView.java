@@ -5,10 +5,8 @@ import lombok.Value;
 @Value
 public class DebugLinkView {
   String tableId;
-  String tableName;
+  String sheetId;
+  String contentHash;
   String fileId;
-  String folderId;
   String lastReconciledAt;
-  String fileUrl;
-  String folderUrl;
 }
