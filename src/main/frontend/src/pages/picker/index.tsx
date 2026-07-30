@@ -18,6 +18,20 @@ import manifest from "@manifest";
 
 import type { Stage } from "./stage";
 
+function importErrorMessage(result: {
+  error?: string;
+  errorCode?: string;
+  errorParams?: Record<string, string | number>;
+}): string {
+  if (result.errorCode) {
+    const localized = translate(result.errorCode, result.errorParams);
+    if (localized !== result.errorCode)
+      return localized;
+  }
+
+  return result.error ?? translate("import.failed");
+}
+
 export function PickerPage() {
   const config = usePluginStore((s) => s.config);
   const [stage, setStage] = useState<Stage>({ name: "picker" });
@@ -62,13 +76,14 @@ export function PickerPage() {
         folderId,
       });
       if (result.ok) {
-        finish(
-          translate("import.success", { name: result.datasetName ?? file.title }),
-          "success",
-          "imported",
-        );
+        const count = result.count ?? 1;
+        const message =
+          count === 1
+            ? translate("import.success.one")
+            : translate("import.success.many", { count });
+        finish(message, "success", "imported");
       } else {
-        finish(result.error ?? translate("import.failed"), "error", "close");
+        finish(importErrorMessage(result), "error", "close");
       }
     } catch (err) {
       finish(`${translate("import.failed")} ${FuncUtils.errorMessage(err)}`, "error", "close");

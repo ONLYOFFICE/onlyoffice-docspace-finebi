@@ -10,8 +10,10 @@ interface PluginResult {
 
 interface ImportResult {
   ok: boolean;
-  datasetName?: string;
+  count?: number;
   error?: string;
+  errorCode?: string;
+  errorParams?: Record<string, string | number>;
 }
 
 export interface FolderEntry {

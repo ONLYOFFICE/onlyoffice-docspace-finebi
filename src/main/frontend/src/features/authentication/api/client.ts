@@ -9,8 +9,14 @@ import { translate } from "@i18n";
 
 const LOGIN_MS = 10_000;
 
+class LoginTimeoutError extends Error {}
+
 function loginFailed(): Error {
   return new Error(translate("client.login.failed"));
+}
+
+function loginTimedOut(): Error {
+  return new LoginTimeoutError(translate("client.login.timeout"));
 }
 
 export class AuthenticationClient {
@@ -26,19 +32,20 @@ export class AuthenticationClient {
       const settings = await FuncUtils.withTimeout(
         frame.getHashSettings(),
         LOGIN_MS,
-        loginFailed,
+        loginTimedOut,
       );
       hash = await FuncUtils.withTimeout(
         frame.createHash(password, settings),
         LOGIN_MS,
-        loginFailed,
+        loginTimedOut,
       );
       login = await FuncUtils.withTimeout(
         frame.login(email, hash),
         LOGIN_MS,
-        loginFailed,
+        loginTimedOut,
       );
-    } catch {
+    } catch (err) {
+      if (err instanceof LoginTimeoutError) throw err;
       throw loginFailed();
     }
 
