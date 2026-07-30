@@ -217,9 +217,9 @@
         <span class="onlyoffice-debug__pagination-info" th:text="'Page ' + ${page}">Page 1</span>
         <div class="onlyoffice-debug__pagination-controls">
             <a class="onlyoffice-debug__button" th:classappend="${hasPrev} ? '' : 'onlyoffice-debug__button--disabled'"
-               th:href="${hasPrev} ? @{${baseUrl}(page=${prevPage})} : '#'">Previous</a>
+               th:href="${hasPrev ? baseUrl + '?page=' + prevPage : '#'}">Previous</a>
             <a class="onlyoffice-debug__button" th:classappend="${hasNext} ? '' : 'onlyoffice-debug__button--disabled'"
-               th:href="${hasNext} ? @{${baseUrl}(page=${nextPage})} : '#'">Next</a>
+               th:href="${hasNext ? baseUrl + '?page=' + nextPage : '#'}">Next</a>
         </div>
     </div>
 </div>
