@@ -13,7 +13,7 @@ export function useDocSpace(config: PluginCoreServerConfiguration) {
 
   useEffect(() => {
     let cancelled = false;
-    const { setFrameVisible, connect, launchManager, destroyManager } =
+    const { setFrameVisible, connect, launchManager, reset } =
       useDocSpaceStore.getState();
     setFrameVisible(true);
     void usePluginStore.getState().registerWebhook(config.locations.webhookRegistrationUrl);
@@ -25,7 +25,7 @@ export function useDocSpace(config: PluginCoreServerConfiguration) {
       })
       .then(() => {
         if (cancelled) {
-          destroyManager();
+          reset();
           return;
         }
         setStatus("ready");
@@ -39,7 +39,8 @@ export function useDocSpace(config: PluginCoreServerConfiguration) {
 
     return () => {
       cancelled = true;
-      destroyManager();
+      reset();
+      setFrameVisible(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

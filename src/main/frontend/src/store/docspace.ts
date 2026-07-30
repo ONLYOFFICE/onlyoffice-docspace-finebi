@@ -19,10 +19,8 @@ interface DocSpaceState {
   logout(docSpaceUrl: string): Promise<void>;
   /** Drop the cached system frame (e.g. after tenant reset). */
   reset(): void;
-  /** Destroy the manager iframe; keeps the system auth frame. */
-  destroyManager(): void;
-  /** Destroy the file-selector iframe. */
-  destroyPicker(): void;
+  /** Destroy the hidden system iframe and drop its cache. */
+  destroySystem(): void;
   /** Open the DocSpace manager UI in the frame. */
   launchManager(docSpaceUrl: string): Promise<void>;
   /** Open the DocSpace file selector (import picker). */
@@ -51,11 +49,7 @@ export const useDocSpaceStore = create<DocSpaceState>()((set) => {
       client.reset();
       set({ frameVisible: false });
     },
-    destroyManager: () => {
-      client.destroyManager();
-      set({ frameVisible: false });
-    },
-    destroyPicker: () => client.destroyPicker(),
+    destroySystem: () => client.destroySystem(),
     launchManager: (url) => client.launchManager(url),
     launchFileSelector: (url, events, isCancelled) =>
       client.launchFileSelector(url, events, isCancelled),

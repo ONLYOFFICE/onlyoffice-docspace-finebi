@@ -70,10 +70,10 @@ export function FilePicker({
 
     return () => {
       cancelled = true;
-      useDocSpaceStore.getState().destroyPicker();
+      useDocSpaceStore.getState().reset();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, docSpaceUrl]);
+  }, []);
 
   return (
     <div className="onlyoffice-dialog-overlay">

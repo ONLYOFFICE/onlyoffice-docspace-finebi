@@ -90,7 +90,7 @@ export class DocSpaceClient {
       });
     }
 
-    if (!docSpaceUrl) 
+    if (!docSpaceUrl)
       return Promise.reject(sdkMissing());
     return this.injectSdk(docSpaceUrl);
   }
@@ -111,10 +111,12 @@ export class DocSpaceClient {
 
   private async openSystem(url: string): Promise<DocSpaceFrame> {
     const sdk = await this.ensureSdk(url);
-    if (typeof sdk.initSystem !== "function") 
+    if (typeof sdk.initSystem !== "function")
       throw sdkMissing();
 
     const id = this.systemFrameId();
+    this.destroyById(id);
+
     const ready = new Promise<DocSpaceFrame>((resolve, reject) => {
       sdk.initSystem({
         src: url,
@@ -126,10 +128,7 @@ export class DocSpaceClient {
           onAppReady: () => {
             const frame = sdk.frames[id];
             if (frame) resolve(frame);
-            else
-              reject(
-                new Error(translate("client.sdk.not.ready")),
-              );
+            else reject(new Error(translate("client.sdk.not.ready")));
           },
           onAppError: (err) => reject(cspError(err)),
         },
@@ -173,14 +172,25 @@ export class DocSpaceClient {
 
   ensureFrame(url: string): Promise<DocSpaceFrame> {
     const normalised = UrlUtils.normalize(url);
-    if (!this.cached || this.cached.url !== normalised) {
-      const frame = this.openSystem(normalised);
-      this.cached = { url: normalised, frame };
-      frame.catch(() => {
-        if (this.cached?.frame === frame) this.cached = null;
-        this.destroyById(this.systemFrameId());
-      });
+    const id = this.systemFrameId();
+    const live = window.DocSpace?.SDK?.frames[id];
+
+    if (this.cached?.url === normalised) {
+      if (live) return this.cached.frame;
+      this.cached = null;
+      this.destroyById(id);
+    } else if (this.cached) {
+      this.cached = null;
+      this.destroyById(id);
     }
+
+    const frame = this.openSystem(normalised);
+    this.cached = { url: normalised, frame };
+    frame.catch(() => {
+      if (this.cached?.frame !== frame) return;
+      this.cached = null;
+      this.destroyById(this.systemFrameId());
+    });
 
     return this.cached.frame;
   }
@@ -224,7 +234,8 @@ export class DocSpaceClient {
    * Enforce the single-active-frame invariant.
    */
   private closeAllFrames(): void {
-    for (const id of this.allFrameIds()) this.destroyById(id);
+    for (const id of this.allFrameIds())
+      this.destroyById(id);
     this.cached = null;
   }
 
@@ -233,14 +244,10 @@ export class DocSpaceClient {
     this.closeAllFrames();
   }
 
-  /** Tear down the visible manager iframe and clear its mount node. */
-  destroyManager(): void {
-    this.destroyById(this.frameId());
-  }
-
-  /** Tear down the file-selector iframe and clear its mount node. */
-  destroyPicker(): void {
-    this.destroyById(this.pickerFrameId());
+  /** Tear down the hidden system iframe and drop the session cache. */
+  destroySystem(): void {
+    this.cached = null;
+    this.destroyById(this.systemFrameId());
   }
 
   private destroyById(id: string): void {
@@ -251,6 +258,9 @@ export class DocSpaceClient {
     } catch {
       // best-effort — DOM wipe below still runs
     }
+
+    if (sdk?.frames && id in sdk.frames)
+      delete sdk.frames[id];
 
     const el = document.getElementById(id);
     if (el) el.innerHTML = "";
@@ -286,16 +296,17 @@ export class DocSpaceClient {
     isCancelled?: () => boolean,
   ): Promise<void> {
     const sdk = await this.ensureSdk(url);
-    if (isCancelled?.())
-      return;
+    if (isCancelled?.()) return;
 
     if (!sdk.initFileSelector)
       throw sdkMissing();
 
     this.closeAllFrames();
 
-    if (isCancelled?.())
-      return;
+    if (isCancelled?.()) return;
+
+    let delivered = false;
+    const isStale = () => !!isCancelled?.();
 
     sdk.initFileSelector({
       frameId: this.pickerFrameId(),
@@ -305,7 +316,26 @@ export class DocSpaceClient {
       checkCSP: false,
       theme: "Base",
       acceptButtonLabel: translate("import.accept"),
-      events,
+      events: {
+        ...events,
+        onAppReady: () => {
+          if (isStale()) return;
+          events.onAppReady?.();
+        },
+        onSelectCallback: (item) => {
+          if (isStale() || delivered) return;
+          delivered = true;
+          events.onSelectCallback?.(item);
+        },
+        onCloseCallback: () => {
+          if (isStale() || delivered) return;
+          events.onCloseCallback?.();
+        },
+        onAppError: (err) => {
+          if (isStale()) return;
+          events.onAppError?.(err);
+        },
+      },
     });
   }
 }

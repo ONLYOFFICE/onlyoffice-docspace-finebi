@@ -12,6 +12,9 @@ import { translate } from "@i18n";
 
 import finebi from "@config/finebi.json";
 
+const OPEN_DEBOUNCE_MS = 500;
+let lastOpenAt = 0;
+
 interface AddTableItem {
   value?: string;
   [key: string]: unknown;
@@ -30,6 +33,10 @@ interface PackListWidget {
 function openDocSpaceImport(): void {
   if (!usePluginStore.getState().loggedIn)
     return;
+  const now = Date.now();
+  if (now - lastOpenAt < OPEN_DEBOUNCE_MS)
+    return;
+  lastOpenAt = now;
   openImportPickerFrame(ImportUrlUtils.picker());
 }
 

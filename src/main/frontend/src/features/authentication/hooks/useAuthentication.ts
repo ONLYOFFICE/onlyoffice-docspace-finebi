@@ -34,8 +34,15 @@ export function useAuthentication() {
 
   useEffect(() => {
     if (isSetup || !tenantUrl) return;
+    let cancelled = false;
     useDocSpaceStore.getState().ensureFrame(tenantUrl)
-      .catch((err) => setError(FuncUtils.errorMessage(err)));
+      .catch((err) => {
+        if (!cancelled) setError(FuncUtils.errorMessage(err));
+      });
+    return () => {
+      cancelled = true;
+      useDocSpaceStore.getState().destroySystem();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
