@@ -25,7 +25,7 @@ import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceDatase
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceOutcome;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineUploadAttachmentCommand;
 import com.asc.fr.docspace.domain.fr.FineAttachment;
-import com.asc.fr.docspace.domain.fr.FineCreatedDataset;
+import com.asc.fr.docspace.domain.fr.FineDataset;
 import com.asc.fr.docspace.domain.fr.FineFolder;
 import com.asc.fr.docspace.domain.fr.FineSession;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -182,7 +182,7 @@ public final class FineDataClient
   }
 
   @Override
-  public List<FineCreatedDataset> createDatasets(
+  public List<FineDataset> createDatasets(
       FineCreateDatasetCommand command, FineSession session) throws IOException {
     String base = command.getTableName();
     String folderId = command.getFolderId();
@@ -208,7 +208,7 @@ public final class FineDataClient
 
     FineEnvelope envelope = FineEnvelope.parse(response).requireSuccess("FineBI table add failed");
     Map<String, String> datasetUUID = FineResponses.getDatasetUUID(envelope);
-    List<FineCreatedDataset> created = new ArrayList<>(sheets.size());
+    List<FineDataset> created = new ArrayList<>(sheets.size());
 
     for (FineSheetPreview sheet : sheets) {
       String uuid = datasetUUID.get(sheet.getTableName());
@@ -216,7 +216,7 @@ public final class FineDataClient
         uuid = FineResponses.datasetUuid(envelope, sheet.getTableName());
       if (uuid == null || uuid.isEmpty()) continue;
       created.add(
-          new FineCreatedDataset(
+          new FineDataset(
               sheet.getSheetName(), sheet.getSheetId(), sheet.getTableName(), uuid));
     }
 

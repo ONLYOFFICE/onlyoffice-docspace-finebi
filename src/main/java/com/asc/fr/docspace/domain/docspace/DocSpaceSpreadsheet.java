@@ -30,4 +30,12 @@ public final class DocSpaceSpreadsheet {
     this.fileName = sanitize(name);
     this.tableName = tableNameFrom(this.fileName);
   }
+
+  public static String toDatasetName(String base, String sheetName) {
+    String sheet =
+        sheetName == null
+            ? ""
+            : sheetName.replace('\\', '_').replace('/', '_').trim().replaceAll("\\s+", " ");
+    return sheet.isEmpty() ? base : base + "_" + sheet;
+  }
 }
