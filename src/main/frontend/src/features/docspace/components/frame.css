@@ -70,6 +70,16 @@
   animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
 }
 
+.onlyoffice-status--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--onlyoffice-color-surface);
+
+  animation: onlyoffice-fade-in var(--onlyoffice-duration-base) var(--onlyoffice-ease) both;
+}
+
 .onlyoffice-status--error {
   display: flex;
   flex-direction: column;

@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
 
-import { LoaderButton, RoomIllustration } from "@components";
+import { LoaderButton, RoomIllustration, Spinner } from "@components";
 import { useDocSpace } from "@features/docspace/hooks/useDocSpace";
 
 import { useDocSpaceStore } from "@store/docspace";
@@ -23,6 +23,14 @@ export function Room() {
       await usePluginStore.getState().logout(config.actions.logout);
     } catch {}
     await usePluginStore.getState().load();
+  }
+
+  if (room.status === "loading") {
+    return (
+      <div class="onlyoffice-status onlyoffice-status--loading">
+        <Spinner className="onlyoffice-spinner--lg" />
+      </div>
+    );
   }
 
   if (room.status !== "error") return null;
