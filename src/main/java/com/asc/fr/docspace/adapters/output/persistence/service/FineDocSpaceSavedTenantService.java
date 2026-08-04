@@ -60,7 +60,8 @@ public final class FineDocSpaceSavedTenantService implements DocSpaceSavedTenant
           if (entity == null) {
             if (dao.find(QueryFactory.create()).size() >= MAX_SAVED_TENANTS)
               throw new TenantLimitExceededException(
-                  "Remove a saved DocSpace connection before registering a different tenant. Maximum number of saved tenants reached.");
+                  "Remove a saved DocSpace connection before registering a different tenant. Maximum number of saved tenants reached.",
+                  "client.error.tenant.limit.save");
 
             entity = new DocSpaceSavedTenantEntity();
             entity.setId(key);

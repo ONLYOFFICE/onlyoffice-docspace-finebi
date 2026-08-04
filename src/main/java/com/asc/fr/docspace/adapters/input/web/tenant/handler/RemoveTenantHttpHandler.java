@@ -48,11 +48,15 @@ public class RemoveTenantHttpHandler extends JsonHttpHandler {
   @ExecuteFunctionRecord
   protected Object handleJson(HttpServletRequest request) throws Exception {
     RequestUser admin =
-        requireAdmin(request, "Only FineBI administrators can manage DocSpace tenants.");
+        requireAdmin(
+            request,
+            "Only FineBI administrators can manage DocSpace tenants.",
+            "client.error.admin.tenants");
 
     TenantUrlRequest body = Requests.json(request, TenantUrlRequest.class);
     if (!URL.isValid(body.getDocspaceUrl()))
-      throw new BadRequestStatusException("Enter a valid DocSpace URL (http:// or https://).");
+      throw new BadRequestStatusException(
+          "Enter a valid DocSpace URL (http:// or https://).", "client.error.url.invalid");
 
     URL docSpaceUrl = new URL(body.getDocspaceUrl());
     String target = docSpaceUrl.getValue();
@@ -65,7 +69,9 @@ public class RemoveTenantHttpHandler extends JsonHttpHandler {
       if (removingActive || removingSignedIn) eventPublisher.tenantReset();
     } catch (IOException e) {
       throw new PluginStatusException(
-          500, "Could not remove DocSpace connection: " + HttpJson.rootCause(e));
+          500,
+          "Could not remove DocSpace connection: " + HttpJson.rootCause(e),
+          "client.error.tenant.removeFailed");
     }
 
     return OkResponse.ok();

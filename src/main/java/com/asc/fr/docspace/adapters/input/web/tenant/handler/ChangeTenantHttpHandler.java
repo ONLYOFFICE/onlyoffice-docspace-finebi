@@ -40,7 +40,10 @@ public class ChangeTenantHttpHandler extends JsonHttpHandler {
   @Override
   @ExecuteFunctionRecord
   protected Object handleJson(HttpServletRequest request) throws Exception {
-    requireAdmin(request, "Only FineBI administrators can change DocSpace tenant.");
+    requireAdmin(
+        request,
+        "Only FineBI administrators can change DocSpace tenant.",
+        "client.error.admin.change");
     try {
       // Validate saved-connection capacity before mutating anything, so
       // running it first means a rejected request (or any other failure) never wipes everyone's
@@ -51,10 +54,12 @@ public class ChangeTenantHttpHandler extends JsonHttpHandler {
       // DocSpace session and re-render immediately (see useTenantResetListener).
       eventPublisher.tenantReset();
     } catch (TenantLimitExceededException e) {
-      throw new BadRequestStatusException(e.getMessage());
+      throw new BadRequestStatusException(e.getMessage(), e.code());
     } catch (IOException e) {
       throw new PluginStatusException(
-          500, "Could not change tenant configuration: " + HttpJson.rootCause(e));
+          500,
+          "Could not change tenant configuration: " + HttpJson.rootCause(e),
+          "client.error.tenant.changeFailed");
     }
 
     return OkResponse.ok();

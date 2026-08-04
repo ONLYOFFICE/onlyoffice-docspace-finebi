@@ -4,8 +4,10 @@ import com.asc.fr.docspace.application.exception.BadRequestStatusException;
 import com.asc.fr.docspace.application.exception.ForbiddenStatusException;
 import com.asc.fr.docspace.application.exception.ImportRejectedException;
 import com.asc.fr.docspace.application.exception.PluginStatusException;
+import com.asc.fr.docspace.application.exception.TenantLimitExceededException;
 import com.fr.third.springframework.web.bind.annotation.RequestMethod;
 import java.io.IOException;
+import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -18,9 +20,12 @@ import javax.servlet.http.HttpServletResponse;
  * a stack trace:
  *
  * <ul>
- *   <li>{@link PluginStatusException} → its status, message as {@code error}
- *   <li>{@link IOException} → 400, message as {@code error}
- *   <li>anything else → 500, generic message
+ *   <li>{@link PluginStatusException} - its status, message as {@code error} (plus its {@code
+ *       code}/{@code params} when set, for a translated frontend message)
+ *   <li>{@link ImportRejectedException} / {@link TenantLimitExceededException} - 400, likewise
+ *       carrying a {@code code} when set
+ *   <li>{@link IOException} - 400, message as {@code error}
+ *   <li>anything else - 500, generic message
  * </ul>
  */
 public abstract class JsonHttpHandler extends PluginHttpHandler {
@@ -42,8 +47,17 @@ public abstract class JsonHttpHandler extends PluginHttpHandler {
    * @return the resolved user; throws 403 when not a FineBI administrator.
    */
   protected static RequestUser requireAdmin(HttpServletRequest request, String message) {
+    return requireAdmin(request, message, null);
+  }
+
+  /**
+   * @return the resolved user; throws 403 (carrying {@code code}, an i18n key) when not a FineBI
+   *     administrator.
+   */
+  protected static RequestUser requireAdmin(
+      HttpServletRequest request, String message, String code) {
     RequestUser user = RequestUser.from(request);
-    if (!user.isAdmin()) throw new ForbiddenStatusException(message);
+    if (!user.isAdmin()) throw new ForbiddenStatusException(message, code);
 
     return user;
   }
@@ -53,7 +67,11 @@ public abstract class JsonHttpHandler extends PluginHttpHandler {
    */
   protected static String require(String value, String name) {
     String trimmed = orEmpty(value);
-    if (trimmed.isEmpty()) throw new BadRequestStatusException(name + " is required");
+    if (trimmed.isEmpty())
+      throw new BadRequestStatusException(
+          name + " is required",
+          "client.error.field.required",
+          Collections.singletonMap("field", name));
 
     return trimmed;
   }
@@ -70,12 +88,17 @@ public abstract class JsonHttpHandler extends PluginHttpHandler {
     try {
       HttpJson.write(response, HttpServletResponse.SC_OK, handleJson(request));
     } catch (PluginStatusException e) {
-      HttpJson.write(response, e.status(), new ErrorResponse(e.getMessage()));
+      HttpJson.write(response, e.status(), new ErrorResponse(e.getMessage(), e.code(), e.params()));
     } catch (ImportRejectedException e) {
       HttpJson.write(
           response,
           HttpServletResponse.SC_BAD_REQUEST,
           new ErrorResponse(e.getMessage(), e.getCode(), e.getParams()));
+    } catch (TenantLimitExceededException e) {
+      HttpJson.write(
+          response,
+          HttpServletResponse.SC_BAD_REQUEST,
+          new ErrorResponse(e.getMessage(), e.code(), null));
     } catch (IOException e) {
       HttpJson.write(
           response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResponse(e.getMessage()));

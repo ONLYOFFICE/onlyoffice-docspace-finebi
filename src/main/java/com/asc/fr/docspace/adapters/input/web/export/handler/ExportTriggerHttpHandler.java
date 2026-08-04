@@ -44,7 +44,9 @@ public class ExportTriggerHttpHandler extends JsonHttpHandler {
             .reportName(reportName.isEmpty() ? operationId : reportName)
             .build();
 
-    if (!command.valid()) throw new BadRequestStatusException("Operation id is required");
+    if (!command.valid())
+      throw new BadRequestStatusException(
+          "Operation id is required", "client.error.export.operationIdRequired");
 
     FineSession session =
         new FineSession(Requests.decisionBase(request), Requests.cookieHeader(request));

@@ -38,13 +38,17 @@ public class WebhookRegisterHttpHandler extends JsonHttpHandler {
 
   @Override
   protected Object handleJson(HttpServletRequest request) throws Exception {
-    requireAdmin(request, "Admin only.");
+    requireAdmin(request, "Admin only.", "client.error.admin.webhook");
     if (!tenant.isConfigured())
-      throw new PluginStatusException(400, "DocSpace is not configured yet.");
+      throw new PluginStatusException(
+          400, "DocSpace is not configured yet.", "client.error.webhook.notConfigured");
 
     DocSpaceAccountCredentials credentials = tenant.adminCredentials();
     if (!credentials.isComplete())
-      throw new PluginStatusException(400, "Admin credentials are missing. Re-run setup.");
+      throw new PluginStatusException(
+          400,
+          "Admin credentials are missing. Re-run setup.",
+          "client.error.webhook.credentialsMissing");
 
     String callbackUrl = ImportRoutes.webhookCallbackUrl(request);
     synchronizationSettings.storeCallbackUrl(callbackUrl);
@@ -58,7 +62,8 @@ public class WebhookRegisterHttpHandler extends JsonHttpHandler {
     } catch (IOException e) {
       throw new BadRequestStatusException(
           "The DocSpace webhook could not be registered automatically. Check DocSpace -"
-              + "Settings - Webhooks for a conflicting entry, then try again.");
+              + "Settings - Webhooks for a conflicting entry, then try again.",
+          "client.error.webhook.registerFailed");
     }
 
     return new WebhookRegisteredResponse(callbackUrl);

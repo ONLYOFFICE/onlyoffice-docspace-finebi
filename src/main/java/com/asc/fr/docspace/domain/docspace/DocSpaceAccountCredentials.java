@@ -22,8 +22,15 @@ public final class DocSpaceAccountCredentials {
   private static String requireEmail(String value) {
     String email =
         DomainValidator.requirePresent(
-            value, () -> new InvalidCredentialsException("Email must not be blank"));
-    if (!isEmail(email)) throw new InvalidCredentialsException("Email must be a valid address");
+            value,
+            () ->
+                new InvalidCredentialsException(
+                    "Email must not be blank", "client.error.credentials.emailBlank"));
+
+    if (!isEmail(email))
+      throw new InvalidCredentialsException(
+          "Email must be a valid address", "client.error.credentials.emailInvalid");
+
     return email;
   }
 
@@ -37,10 +44,16 @@ public final class DocSpaceAccountCredentials {
     this.email = requireEmail(email);
     this.userId =
         DomainValidator.requirePresent(
-            userId, () -> new InvalidCredentialsException("User id must not be blank"));
+            userId,
+            () ->
+                new InvalidCredentialsException(
+                    "User id must not be blank", "client.error.credentials.userIdBlank"));
     this.hash =
         DomainValidator.requirePresent(
-            hash, () -> new InvalidCredentialsException("Hash must not be blank"));
+            hash,
+            () ->
+                new InvalidCredentialsException(
+                    "Hash must not be blank", "client.error.credentials.hashBlank"));
   }
 
   public static DocSpaceAccountCredentials empty() {

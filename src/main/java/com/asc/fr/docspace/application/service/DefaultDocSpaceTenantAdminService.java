@@ -32,7 +32,8 @@ public final class DefaultDocSpaceTenantAdminService implements DocSpaceTenantAd
     // Refuse to configure a tenant beyond the cap outright.
     if (!sameAsActive && !savedTenantService.hasCapacityFor(newUrl))
       throw new TenantLimitExceededException(
-          "Remove a saved DocSpace connection before registering a different tenant. Maximum number of saved tenants reached.");
+          "Remove a saved DocSpace connection before registering a different tenant. Maximum number of saved tenants reached.",
+          "client.error.tenant.limit.save");
 
     // Setup can also be used to point at a different DocSpace directly (not just via the
     // dedicated "Change Tenant" action) — preserve the outgoing tenant exactly like
@@ -51,7 +52,8 @@ public final class DefaultDocSpaceTenantAdminService implements DocSpaceTenantAd
 
     if (!currentUrl.isEmpty() && !savedTenantService.hasCapacityFor(currentUrl))
       throw new TenantLimitExceededException(
-          "Remove a saved DocSpace connection before changing tenant. Maximum number of saved tenants reached.");
+          "Remove a saved DocSpace connection before changing tenant. Maximum number of saved tenants reached.",
+          "client.error.tenant.limit.change");
 
     savedTenantService.upsert(outgoing, synchronizationSettings.loadSecret());
     tenantService.clear();

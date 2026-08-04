@@ -26,6 +26,7 @@ import com.fr.plugin.transform.ExecuteFunctionRecord;
 import com.fr.third.springframework.web.bind.annotation.RequestMethod;
 import com.google.inject.Inject;
 import java.io.IOException;
+import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -75,43 +76,55 @@ public class SetupHttpHandler extends JsonHttpHandler {
       return new DocSpaceAccountCredentials(body.getEmail(), body.getUserId(), body.getHash());
     } catch (InvalidCredentialsException e) {
       throw new BadRequestStatusException(
-          "Sign in to DocSpace with your admin email and password before saving.");
+          "Sign in to DocSpace with your admin email and password before saving.",
+          "client.error.setup.credentials");
     }
   }
 
   @Override
   @ExecuteFunctionRecord
   protected Object handleJson(HttpServletRequest request) throws Exception {
-    RequestUser user = requireAdmin(request, "Only FineBI administrators can configure DocSpace.");
+    RequestUser user =
+        requireAdmin(
+            request,
+            "Only FineBI administrators can configure DocSpace.",
+            "client.error.admin.configure");
 
     CredentialsRequest body = Requests.json(request, CredentialsRequest.class);
     if (!URL.isValid(body.getDocspaceUrl()))
-      throw new BadRequestStatusException("Enter a valid DocSpace URL (http:// or https://).");
+      throw new BadRequestStatusException(
+          "Enter a valid DocSpace URL (http:// or https://).", "client.error.url.invalid");
 
     URL docSpaceUrl = new URL(body.getDocspaceUrl());
     DocSpaceAccountCredentials credentials = credentials(body);
 
     String fineBiOrigin = RequestOrigin.of(request);
     if (originService.checkOrigin(docSpaceUrl, fineBiOrigin) == OriginCheck.BLOCKED)
-      throw new BadRequestStatusException(cspError(fineBiOrigin));
+      throw new BadRequestStatusException(
+          cspError(fineBiOrigin),
+          "client.error.setup.csp",
+          Collections.singletonMap("origin", fineBiOrigin));
 
     try {
       if (!profileService.isAdmin(docSpaceUrl, credentials))
         throw new BadRequestStatusException(
             "Sign in with a DocSpace account that has Administrator (or Owner) privileges — it is "
-                + "used for background sync and webhooks.");
+                + "used for background sync and webhooks.",
+            "client.error.setup.notAdmin");
     } catch (IOException e) {
       throw new BadRequestStatusException(
-          "Could not verify the DocSpace account's role: " + e.getMessage());
+          "Could not verify the DocSpace account's role: " + e.getMessage(),
+          "client.error.setup.roleCheckFailed");
     }
 
     try {
       tenantAdminService.save(docSpaceUrl, credentials);
       userAccountService.saveLogin(user.name(), credentials, docSpaceUrl.getValue());
     } catch (TenantLimitExceededException e) {
-      throw new BadRequestStatusException(e.getMessage());
+      throw new BadRequestStatusException(e.getMessage(), e.code());
     } catch (IOException e) {
-      throw new BadRequestStatusException("Could not save settings: " + e.getMessage());
+      throw new BadRequestStatusException(
+          "Could not save settings: " + e.getMessage(), "client.error.setup.saveFailed");
     }
 
     // Register the DocSpace webhook synchronously: automatic dataset syncing
@@ -131,7 +144,8 @@ public class SetupHttpHandler extends JsonHttpHandler {
       throw new BadRequestStatusException(
           "Settings were saved, but the DocSpace webhook could not be registered automatically. "
               + "Automatic dataset syncing will not work until this is resolved — try Setup "
-              + "again, or check DocSpace - Settings - Webhooks for a conflicting entry.");
+              + "again, or check DocSpace - Settings - Webhooks for a conflicting entry.",
+          "client.error.setup.webhookFailed");
     }
 
     eventPublisher.tenantReset();

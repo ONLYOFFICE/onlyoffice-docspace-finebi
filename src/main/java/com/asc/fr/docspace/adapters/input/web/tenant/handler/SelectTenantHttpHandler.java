@@ -21,8 +21,9 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * Activates a previously saved DocSpace connection as the current tenant (admin only). Every stored
- * login is cleared — they were issued by the old tenant — except the acting admin's, which is moved
- * onto the new tenant by reusing that connection's stored admin credentials.
+ * login is cleared — a tenant switch invalidates them all, the acting admin's own personal login
+ * included: like any other FineBI user, they sign back in with real credentials against the newly
+ * active tenant rather than being silently re-authenticated from its stored service credentials.
  */
 public class SelectTenantHttpHandler extends JsonHttpHandler {
   private final DocSpaceTenantAdminService tenantAdminService;
@@ -43,21 +44,27 @@ public class SelectTenantHttpHandler extends JsonHttpHandler {
   @Override
   @ExecuteFunctionRecord
   protected Object handleJson(HttpServletRequest request) throws Exception {
-    requireAdmin(request, "Only FineBI administrators can manage DocSpace tenants.");
+    requireAdmin(
+        request,
+        "Only FineBI administrators can manage DocSpace tenants.",
+        "client.error.admin.tenants");
 
     TenantUrlRequest body = Requests.json(request, TenantUrlRequest.class);
     if (!URL.isValid(body.getDocspaceUrl()))
-      throw new BadRequestStatusException("Enter a valid DocSpace URL (http:// or https://).");
+      throw new BadRequestStatusException(
+          "Enter a valid DocSpace URL (http:// or https://).", "client.error.url.invalid");
 
     try {
       tenantAdminService.selectTenant(new URL(body.getDocspaceUrl()));
       userAccountService.clearAll();
       eventPublisher.tenantReset();
     } catch (TenantLimitExceededException e) {
-      throw new BadRequestStatusException(e.getMessage());
+      throw new BadRequestStatusException(e.getMessage(), e.code());
     } catch (IOException e) {
       throw new PluginStatusException(
-          500, "Could not select DocSpace connection: " + HttpJson.rootCause(e));
+          500,
+          "Could not select DocSpace connection: " + HttpJson.rootCause(e),
+          "client.error.tenant.selectFailed");
     }
 
     return OkResponse.ok();

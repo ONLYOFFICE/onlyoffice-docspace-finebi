@@ -52,7 +52,9 @@ public class ExportUploadHttpHandler extends JsonHttpHandler {
             .content(content)
             .build();
 
-    if (!command.valid()) throw new BadRequestStatusException("Export file body is empty");
+    if (!command.valid())
+      throw new BadRequestStatusException(
+          "Export file body is empty", "client.error.export.fileBodyEmpty");
 
     return UploadedFileResponse.of(export.upload(command));
   }

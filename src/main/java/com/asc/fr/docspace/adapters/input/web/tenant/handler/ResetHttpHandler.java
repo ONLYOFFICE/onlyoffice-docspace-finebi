@@ -34,7 +34,10 @@ public class ResetHttpHandler extends JsonHttpHandler {
   @Override
   @ExecuteFunctionRecord
   protected Object handleJson(HttpServletRequest request) throws Exception {
-    requireAdmin(request, "Only FineBI administrators can change DocSpace tenant.");
+    requireAdmin(
+        request,
+        "Only FineBI administrators can change DocSpace tenant.",
+        "client.error.admin.change");
     try {
       // A tenant change invalidates every stored authorization, not just the
       // acting admin's: all credentials were issued by the old tenant.
@@ -49,7 +52,9 @@ public class ResetHttpHandler extends JsonHttpHandler {
       eventPublisher.tenantReset();
     } catch (IOException e) {
       throw new PluginStatusException(
-          500, "Could not reset tenant configuration: " + HttpJson.rootCause(e));
+          500,
+          "Could not reset tenant configuration: " + HttpJson.rootCause(e),
+          "client.error.tenant.resetFailed");
     }
 
     return OkResponse.ok();

@@ -29,7 +29,10 @@ public class LogoutHttpHandler extends JsonHttpHandler {
     try {
       userAccountService.clear(RequestUser.from(request).name());
     } catch (IOException e) {
-      throw new PluginStatusException(500, "Could not clear credentials: " + HttpJson.rootCause(e));
+      throw new PluginStatusException(
+          500,
+          "Could not clear credentials: " + HttpJson.rootCause(e),
+          "client.error.logout.failed");
     }
 
     return OkResponse.ok();

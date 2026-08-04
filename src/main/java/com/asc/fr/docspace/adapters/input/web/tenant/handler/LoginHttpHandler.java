@@ -35,7 +35,10 @@ public class LoginHttpHandler extends JsonHttpHandler {
   @ExecuteFunctionRecord
   protected Object handleJson(HttpServletRequest request) throws Exception {
     if (!tenantService.isConfigured())
-      throw new PluginStatusException(400, "DocSpace is not configured. Ask your administrator.");
+      throw new PluginStatusException(
+          400,
+          "DocSpace is not configured. Ask your administrator.",
+          "client.error.login.notConfigured");
 
     CredentialsRequest body = Requests.json(request, CredentialsRequest.class);
     DocSpaceAccountCredentials credentials;
@@ -43,14 +46,15 @@ public class LoginHttpHandler extends JsonHttpHandler {
       credentials =
           new DocSpaceAccountCredentials(body.getEmail(), body.getUserId(), body.getHash());
     } catch (InvalidCredentialsException e) {
-      throw new BadRequestStatusException(e.getMessage());
+      throw new BadRequestStatusException(e.getMessage(), e.code());
     }
 
     RequestUser user = RequestUser.from(request);
     try {
       userAccountService.saveLogin(user.name(), credentials, tenantService.docSpaceUrl());
     } catch (IOException e) {
-      throw new PluginStatusException(500, "Could not save login: " + e.getMessage());
+      throw new PluginStatusException(
+          500, "Could not save login: " + e.getMessage(), "client.error.login.saveFailed");
     }
 
     return OkResponse.ok();
