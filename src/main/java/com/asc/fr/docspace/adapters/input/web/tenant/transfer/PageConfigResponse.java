@@ -43,6 +43,7 @@ public class PageConfigResponse {
   public static class Status {
     boolean loginStored;
     boolean isAdmin;
+    boolean hasSavedTenants;
   }
 
   @Value
@@ -56,6 +57,7 @@ public class PageConfigResponse {
   @Builder
   public static class Actions {
     String submit;
+    String changeTenant;
     String reset;
     String logout;
   }

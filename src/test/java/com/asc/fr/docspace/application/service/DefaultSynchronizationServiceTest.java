@@ -12,6 +12,7 @@ import com.asc.fr.docspace.application.port.output.SynchronizationEventPublisher
 import com.asc.fr.docspace.application.port.output.TaskSchedulerService;
 import com.asc.fr.docspace.application.port.output.TaskSchedulerService.Cancellable;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileDownloadService;
+import com.asc.fr.docspace.application.port.output.docspace.transfer.DocSpaceDownloadFileCommand;
 import com.asc.fr.docspace.application.port.output.fr.FineAttachmentService;
 import com.asc.fr.docspace.application.port.output.fr.FineDatasetService;
 import com.asc.fr.docspace.application.port.output.fr.FineSessionFactory;
@@ -20,12 +21,15 @@ import com.asc.fr.docspace.application.port.output.fr.transfer.FineDatasetLocati
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineRefreshDatasetCommand;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceDatasetCommand;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceOutcome;
+import com.asc.fr.docspace.domain.DocSpaceSavedTenantService;
 import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
 import com.asc.fr.docspace.domain.common.FileSynchronizationRecord;
 import com.asc.fr.docspace.domain.common.Sheet;
+import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.common.spreadsheet.Spreadsheet;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceRawFile;
+import com.asc.fr.docspace.domain.docspace.DocSpaceTenantConfiguration;
 import com.asc.fr.docspace.domain.fr.FineAttachment;
 import com.asc.fr.docspace.domain.fr.FineDataset;
 import com.asc.fr.docspace.domain.fr.FineSession;
@@ -51,6 +55,7 @@ class DefaultSynchronizationServiceTest {
       new FileSynchronizationRecord("1", "uuid-1", 1);
 
   @Mock private DocSpaceTenantService tenantService;
+  @Mock private DocSpaceSavedTenantService savedTenantService;
   @Mock private DocSpaceFileDownloadService fileDownloadService;
   @Mock private FineAttachmentService attachmentService;
   @Mock private FineDatasetService datasetService;
@@ -151,6 +156,7 @@ class DefaultSynchronizationServiceTest {
     service =
         new DefaultSynchronizationService(
             tenantService,
+            savedTenantService,
             fileDownloadService,
             attachmentService,
             datasetService,
@@ -184,13 +190,19 @@ class DefaultSynchronizationServiceTest {
     }
 
     @Test
-    void givenTenantNotConfigured_whenScheduling_thenDoesNothing() {
+    void givenTenantNotConfigured_whenScheduling_thenResyncNoOps() {
       tracking(TRACKED);
-      when(tenantService.isConfigured()).thenReturn(false);
+      when(tenantService.docSpaceUrl()).thenReturn("");
+      when(scheduler.schedule(anyLong(), any()))
+          .thenAnswer(
+              invocation -> {
+                invocation.getArgument(1, Runnable.class).run();
+                return (Cancellable) () -> {};
+              });
 
       service.schedule(commandForTracked());
 
-      verifyNoInteractions(scheduler, datasetService, eventPublisher);
+      verifyNoInteractions(datasetService, eventPublisher);
     }
   }
 
@@ -615,6 +627,72 @@ class DefaultSynchronizationServiceTest {
       assertThat(create.getValue().getSheets())
           .extracting(Sheet::getSheetId)
           .containsExactly(tracked + 1);
+    }
+  }
+
+  @Nested
+  class WhenMultipleTenantsShareAFile {
+    private final String SAVED_URL = "https://other.example.com";
+    private final DocSpaceAccountCredentials SAVED_ADMIN =
+        new DocSpaceAccountCredentials("saved-admin@example.com", "2", "hash2");
+
+    private final FileSynchronizationRecord currentTenantEntry =
+        new FileSynchronizationRecord("1", "uuid-current", 1, "", 0L, "");
+    private final FileSynchronizationRecord savedTenantEntry =
+        new FileSynchronizationRecord("1", "uuid-saved", 1, "", 0L, SAVED_URL);
+
+    @BeforeEach
+    void runScheduledTaskImmediately() {
+      when(scheduler.schedule(anyLong(), any()))
+          .thenAnswer(
+              invocation -> {
+                invocation.getArgument(1, Runnable.class).run();
+                return (Cancellable) () -> {};
+              });
+      when(registry.findByFile("1"))
+          .thenReturn(Arrays.asList(currentTenantEntry, savedTenantEntry));
+      lenient()
+          .when(savedTenantService.find(SAVED_URL))
+          .thenReturn(Optional.of(new DocSpaceTenantConfiguration(SAVED_URL, SAVED_ADMIN)));
+    }
+
+    @Test
+    void givenTenantHintMatchesOneTenant_whenScheduling_thenResyncsOnlyThatTenantsEntries()
+        throws Exception {
+      service.schedule(
+          SynchronizationCommand.builder()
+              .decisionBase(DECISION_BASE)
+              .fileId("1")
+              .tenantUrl(SAVED_URL)
+              .build());
+
+      ArgumentCaptor<DocSpaceDownloadFileCommand> download =
+          ArgumentCaptor.forClass(DocSpaceDownloadFileCommand.class);
+
+      verify(fileDownloadService).download(download.capture(), eq(SAVED_ADMIN));
+      assertThat(download.getValue().getDocSpaceUrl()).isEqualTo(new URL(SAVED_URL));
+
+      ArgumentCaptor<List<FineReplaceDatasetCommand>> replace = ArgumentCaptor.forClass(List.class);
+
+      verify(datasetService).replaceDatasets(replace.capture(), any(), any());
+      assertThat(replace.getValue())
+          .extracting(FineReplaceDatasetCommand::getTableId)
+          .containsExactly("uuid-saved");
+    }
+
+    @Test
+    void givenNoTenantHintMatch_whenScheduling_thenResyncsEveryTenantWithEntries()
+        throws Exception {
+      service.schedule(commandFor("1"));
+
+      verify(fileDownloadService, times(2)).download(any(), any());
+
+      ArgumentCaptor<List<FineReplaceDatasetCommand>> replace = ArgumentCaptor.forClass(List.class);
+
+      verify(datasetService, times(2)).replaceDatasets(replace.capture(), any(), any());
+      assertThat(replace.getAllValues())
+          .extracting(list -> list.get(0).getTableId())
+          .containsExactlyInAnyOrder("uuid-current", "uuid-saved");
     }
   }
 }

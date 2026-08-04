@@ -8,5 +8,6 @@ public class DebugLinkView {
   String sheetId;
   String contentHash;
   String fileId;
+  String tenantUrl;
   String lastReconciledAt;
 }

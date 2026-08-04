@@ -12,14 +12,15 @@ import com.asc.fr.docspace.application.port.output.fr.FineAttachmentService;
 import com.asc.fr.docspace.application.port.output.fr.FineDatasetService;
 import com.asc.fr.docspace.application.port.output.fr.FineSessionFactory;
 import com.asc.fr.docspace.application.port.output.fr.transfer.*;
+import com.asc.fr.docspace.domain.DocSpaceSavedTenantService;
 import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
 import com.asc.fr.docspace.domain.common.FileSynchronizationRecord;
 import com.asc.fr.docspace.domain.common.Sheet;
 import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.common.spreadsheet.Spreadsheet;
-import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceRawFile;
 import com.asc.fr.docspace.domain.docspace.DocSpaceSpreadsheet;
+import com.asc.fr.docspace.domain.docspace.DocSpaceTenantConfiguration;
 import com.asc.fr.docspace.domain.fr.FineAttachment;
 import com.asc.fr.docspace.domain.fr.FineDataset;
 import com.asc.fr.docspace.domain.fr.FineSession;
@@ -37,6 +38,7 @@ public final class DefaultSynchronizationService implements SynchronizationServi
       new ConcurrentHashMap<>();
 
   private final DocSpaceTenantService tenantService;
+  private final DocSpaceSavedTenantService savedTenantService;
   private final DocSpaceFileDownloadService fileDownloadService;
 
   private final FineAttachmentService attachmentService;
@@ -78,6 +80,23 @@ public final class DefaultSynchronizationService implements SynchronizationServi
     return best;
   }
 
+  // A file's links can belong to any tenant an admin has ever connected to (they're no longer
+  // wiped on a tenant switch), so a resync must resolve each link's own tenant rather than
+  // assuming whichever one is currently active — otherwise a file from tenant 2 could be
+  // downloaded (and its dataset overwritten) using tenant 1's credentials.
+  private Optional<DocSpaceTenantConfiguration> resolveTenant(String tenantUrl) {
+    String currentUrl = tenantService.docSpaceUrl();
+
+    if (tenantUrl.isEmpty() || tenantUrl.equals(currentUrl)) {
+      if (currentUrl.isEmpty()) return Optional.empty();
+      if (!tenantService.adminCredentials().isComplete()) return Optional.empty();
+      return Optional.of(
+          new DocSpaceTenantConfiguration(currentUrl, tenantService.adminCredentials()));
+    }
+
+    return savedTenantService.find(tenantUrl).filter(config -> config.getAdmin().isComplete());
+  }
+
   // EXPERIMENTAL: sheets added to the workbook after import have no tracked link yet — auto-import
   // them here so they start syncing without a manual re-import via "Add Dataset".
   private void importNewSheets(
@@ -87,7 +106,8 @@ public final class DefaultSynchronizationService implements SynchronizationServi
       String filename,
       byte[] content,
       FineSession session,
-      String fileId) {
+      String fileId,
+      String tenantUrl) {
     Set<Integer> trackedSheetIds = trackedSheetIds(entries);
     List<Sheet> newSheets = new ArrayList<>();
     for (Sheet sheet : workbook.sheets())
@@ -135,25 +155,27 @@ public final class DefaultSynchronizationService implements SynchronizationServi
                 dataset.getTableId(),
                 dataset.getSheetId(),
                 hashBySheetId.getOrDefault(dataset.getSheetId(), ""),
-                0L));
+                0L,
+                tenantUrl));
     } catch (Exception ignored) {
       // Best-effort: a failed auto-import here is retried on the next webhook for this file.
     }
   }
 
-  private void resync(String decisionBase, String fileId, DocSpaceAccountCredentials credentials) {
-    List<FileSynchronizationRecord> entries = synchronizationService.findByFile(fileId);
-    if (entries.isEmpty()) return;
-
+  private void resyncForTenant(
+      String decisionBase,
+      String fileId,
+      DocSpaceTenantConfiguration tenant,
+      List<FileSynchronizationRecord> entries) {
     FineSession session = sessionFactory.generateSession(decisionBase);
     try {
       DocSpaceRawFile download =
           fileDownloadService.download(
               DocSpaceDownloadFileCommand.builder()
-                  .docSpaceUrl(new URL(tenantService.docSpaceUrl()))
+                  .docSpaceUrl(new URL(tenant.getUrl().getValue()))
                   .fileId(fileId)
                   .build(),
-              credentials);
+              tenant.getAdmin());
 
       byte[] content = download.getRawContent();
       if (content.length > DocSpaceImporterService.MAX_FILE_BYTES)
@@ -206,7 +228,15 @@ public final class DefaultSynchronizationService implements SynchronizationServi
                 .build());
       }
 
-      importNewSheets(entries, workbook, locations, filename, content, session, fileId);
+      importNewSheets(
+          entries,
+          workbook,
+          locations,
+          filename,
+          content,
+          session,
+          fileId,
+          tenant.getUrl().getValue());
 
       List<FineReplaceOutcome> outcomes = new ArrayList<>(commands.size());
       for (FineReplaceDatasetCommand command : commands) {
@@ -251,25 +281,55 @@ public final class DefaultSynchronizationService implements SynchronizationServi
     }
   }
 
+  private void resync(String decisionBase, String fileId, String tenantHint) {
+    List<FileSynchronizationRecord> entries = synchronizationService.findByFile(fileId);
+    if (entries.isEmpty()) return;
+
+    // A single fileId can carry links from more than one tenant (a numeric DocSpace file id isn't
+    // globally unique across instances), so each tenant's entries are resynced separately, against
+    // that tenant's own file and credentials.
+    Map<String, List<FileSynchronizationRecord>> byTenant = new LinkedHashMap<>();
+    for (FileSynchronizationRecord entry : entries)
+      byTenant.computeIfAbsent(entry.getTenantUrl(), key -> new ArrayList<>()).add(entry);
+
+    // The webhook's signature identified exactly which tenant sent this event (see
+    // WebhookHttpHandler) — when that tenant has entries for this file, resync only those; a
+    // same-fileId entry under a different tenant is an unrelated file on a different DocSpace
+    // instance. Otherwise (tenant not identified, or it has no entries here) fall back to
+    // resyncing every tenant that does.
+    Map<String, List<FileSynchronizationRecord>> targets =
+        !tenantHint.isEmpty() && byTenant.containsKey(tenantHint)
+            ? Collections.singletonMap(tenantHint, byTenant.get(tenantHint))
+            : byTenant;
+
+    for (Map.Entry<String, List<FileSynchronizationRecord>> group : targets.entrySet()) {
+      Optional<DocSpaceTenantConfiguration> tenant = resolveTenant(group.getKey());
+      // No usable credentials for this tenant right now (e.g. its saved history was reset) —
+      // best-effort, retried on the next webhook for this file.
+      tenant.ifPresent(config -> resyncForTenant(decisionBase, fileId, config, group.getValue()));
+    }
+  }
+
   @Override
   public void schedule(SynchronizationCommand command) {
     String fileId = command.getFileId();
     String decisionBase = command.getDecisionBase();
+    String tenantHint = command.getTenantUrl();
     if (synchronizationService.findByFile(fileId).isEmpty()) return;
 
-    if (!tenantService.isConfigured()) return;
-
-    DocSpaceAccountCredentials credentials = tenantService.adminCredentials();
-    if (!credentials.isComplete()) return;
+    // Keyed by tenant too where known, so a debounced event for one tenant's file can't be
+    // cancelled by an unrelated event for a different tenant's file that happens to share the
+    // same numeric DocSpace id.
+    String pendingKey = tenantHint.isEmpty() ? fileId : tenantHint + '|' + fileId;
 
     TaskSchedulerService.Cancellable replaced =
         pending.put(
-            fileId,
+            pendingKey,
             taskSchedulerService.schedule(
                 DOCSPACE_WRITE_DELAY_MS,
                 () -> {
-                  pending.remove(fileId);
-                  resync(decisionBase, fileId, credentials);
+                  pending.remove(pendingKey);
+                  resync(decisionBase, fileId, tenantHint);
                 }));
 
     if (replaced != null) replaced.cancel();

@@ -11,6 +11,7 @@ import com.asc.fr.docspace.adapters.input.web.imports.handler.SynchronizationEve
 import com.asc.fr.docspace.adapters.input.web.imports.handler.WebhookHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.imports.handler.WebhookRegisterHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.tenant.handler.AdminSettingsHttpHandler;
+import com.asc.fr.docspace.adapters.input.web.tenant.handler.ChangeTenantHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.tenant.handler.DocSpacePageHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.tenant.handler.LoginHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.tenant.handler.LogoutHttpHandler;
@@ -29,6 +30,7 @@ import com.asc.fr.docspace.adapters.output.client.http.HttpClients;
 import com.asc.fr.docspace.adapters.output.client.http.RedirectingDownloader;
 import com.asc.fr.docspace.adapters.output.client.http.RetrofitFactory;
 import com.asc.fr.docspace.adapters.output.persistence.FineUnitOfWork;
+import com.asc.fr.docspace.adapters.output.persistence.service.FineDocSpaceSavedTenantService;
 import com.asc.fr.docspace.adapters.output.persistence.service.FineDocSpaceSynchronizationService;
 import com.asc.fr.docspace.adapters.output.persistence.service.FineDocSpaceTenantService;
 import com.asc.fr.docspace.adapters.output.persistence.service.FineDocSpaceUserAccountService;
@@ -194,6 +196,9 @@ final class PluginModule extends AbstractModule {
     bind(com.asc.fr.docspace.domain.DocSpaceUserAccountService.class)
         .to(FineDocSpaceUserAccountService.class)
         .in(Singleton.class);
+    bind(com.asc.fr.docspace.domain.DocSpaceSavedTenantService.class)
+        .to(FineDocSpaceSavedTenantService.class)
+        .in(Singleton.class);
     bind(FineDocSpaceSynchronizationService.class).in(Singleton.class);
     bind(SynchronizationLinkRegistry.class).to(FineDocSpaceSynchronizationService.class);
     bind(SynchronizationSettings.class).to(FineDocSpaceSynchronizationService.class);
@@ -265,6 +270,7 @@ final class PluginModule extends AbstractModule {
     web.addBinding().to(SetupHttpHandler.class);
     web.addBinding().to(LoginHttpHandler.class);
     web.addBinding().to(LogoutHttpHandler.class);
+    web.addBinding().to(ChangeTenantHttpHandler.class);
     web.addBinding().to(ResetHttpHandler.class);
 
     // Import and webhook-driven sync

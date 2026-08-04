@@ -194,6 +194,7 @@
                 <th class="onlyoffice-debug-table__heading">Sheet ID</th>
                 <th class="onlyoffice-debug-table__heading">Content hash</th>
                 <th class="onlyoffice-debug-table__heading">DocSpace file</th>
+                <th class="onlyoffice-debug-table__heading">Tenant</th>
                 <th class="onlyoffice-debug-table__heading">Last reconciled</th>
             </tr>
             </thead>
@@ -204,6 +205,8 @@
                 <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono onlyoffice-debug__hash"
                     th:text="${link.contentHash}" th:title="${link.contentHash}">hash</td>
                 <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono" th:text="${link.fileId}">fileId</td>
+                <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono onlyoffice-debug__hash"
+                    th:text="${link.tenantUrl}" th:title="${link.tenantUrl}">tenant</td>
                 <td class="onlyoffice-debug-table__cell onlyoffice-debug__mono" th:text="${link.lastReconciledAt}">timestamp</td>
             </tr>
             </tbody>

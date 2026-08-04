@@ -48,6 +48,10 @@ public final class PluginRoutes {
     return action(request, PluginManifest.get().endpoints.logout);
   }
 
+  public static String changeTenantAction(HttpServletRequest request) {
+    return action(request, PluginManifest.get().endpoints.changeTenant);
+  }
+
   public static String resetAction(HttpServletRequest request) {
     return action(request, PluginManifest.get().endpoints.reset);
   }

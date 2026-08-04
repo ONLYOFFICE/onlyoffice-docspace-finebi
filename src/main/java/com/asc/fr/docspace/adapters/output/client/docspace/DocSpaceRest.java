@@ -3,6 +3,7 @@ package com.asc.fr.docspace.adapters.output.client.docspace;
 import com.asc.fr.docspace.adapters.output.client.docspace.transfer.DocSpaceEnvelope;
 import com.asc.fr.docspace.adapters.output.client.docspace.transfer.request.DocSpaceAuthenticationRequest;
 import com.asc.fr.docspace.adapters.output.client.docspace.transfer.request.DocSpaceWebhookCreateRequest;
+import com.asc.fr.docspace.adapters.output.client.docspace.transfer.request.DocSpaceWebhookUpdateRequest;
 import com.asc.fr.docspace.adapters.output.client.docspace.transfer.response.DocSpaceAuthenticationTokenResponse;
 import com.asc.fr.docspace.adapters.output.client.docspace.transfer.response.DocSpaceCspResponse;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,6 +16,7 @@ import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Url;
 
@@ -43,6 +45,13 @@ public interface DocSpaceRest {
       @Url String url,
       @Header("Authorization") String bearer,
       @Body DocSpaceWebhookCreateRequest body);
+
+  @PUT
+  @Headers("Accept: application/json")
+  Call<ResponseBody> updateWebhook(
+      @Url String url,
+      @Header("Authorization") String bearer,
+      @Body DocSpaceWebhookUpdateRequest body);
 
   @GET
   @Headers("Accept: application/json")

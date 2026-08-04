@@ -20,6 +20,7 @@
   "settings.lead": "FineBI est connecté à votre ONLYOFFICE DocSpace",
   "settings.signed.in.as": "Connecté en tant que",
   "settings.logout": "Se déconnecter",
+  "settings.reset": "Réinitialiser",
   "password.show": "Afficher le mot de passe",
   "password.hide": "Masquer le mot de passe",
   "placeholder.load.failed.header": "Impossible de charger DocSpace",

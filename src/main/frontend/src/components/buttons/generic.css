@@ -82,3 +82,40 @@
 
     cursor: not-allowed;
 }
+
+.onlyoffice-button--danger {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 12px;
+
+    border: 1px solid var(--onlyoffice-color-danger);
+    border-radius: var(--onlyoffice-radius-sm);
+
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: var(--onlyoffice-font-sans);
+
+    background: var(--onlyoffice-color-surface);
+    color: var(--onlyoffice-color-danger);
+
+    cursor: pointer;
+    transition: background var(--onlyoffice-duration-fast) var(--onlyoffice-ease),
+        color var(--onlyoffice-duration-fast) var(--onlyoffice-ease);
+}
+
+.onlyoffice-button--danger:hover:not(:disabled) {
+    background: var(--onlyoffice-color-danger);
+    color: var(--onlyoffice-color-on-primary);
+}
+
+.onlyoffice-button--danger:disabled {
+    color: var(--onlyoffice-color-disabled-text);
+    background: var(--onlyoffice-color-disabled-bg);
+    border-color: var(--onlyoffice-color-border);
+
+    cursor: not-allowed;
+}

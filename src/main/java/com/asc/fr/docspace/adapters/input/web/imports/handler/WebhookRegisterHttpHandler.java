@@ -3,6 +3,7 @@ package com.asc.fr.docspace.adapters.input.web.imports.handler;
 import com.asc.fr.docspace.PluginManifest;
 import com.asc.fr.docspace.adapters.input.web.JsonHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.imports.transfer.WebhookRegisteredResponse;
+import com.asc.fr.docspace.application.exception.BadRequestStatusException;
 import com.asc.fr.docspace.application.exception.PluginStatusException;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
@@ -11,6 +12,7 @@ import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.fr.third.springframework.web.bind.annotation.RequestMethod;
 import com.google.inject.Inject;
+import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -47,11 +49,17 @@ public class WebhookRegisterHttpHandler extends JsonHttpHandler {
     String callbackUrl = ImportRoutes.webhookCallbackUrl(request);
     synchronizationSettings.storeCallbackUrl(callbackUrl);
 
-    webhooks.register(
-        new URL(tenant.docSpaceUrl()),
-        new URL(callbackUrl),
-        synchronizationSettings.ensureSecret(),
-        credentials);
+    try {
+      webhooks.register(
+          new URL(tenant.docSpaceUrl()),
+          new URL(callbackUrl),
+          synchronizationSettings.ensureSecret(),
+          credentials);
+    } catch (IOException e) {
+      throw new BadRequestStatusException(
+          "The DocSpace webhook could not be registered automatically. Check DocSpace -"
+              + "Settings - Webhooks for a conflicting entry, then try again.");
+    }
 
     return new WebhookRegisteredResponse(callbackUrl);
   }

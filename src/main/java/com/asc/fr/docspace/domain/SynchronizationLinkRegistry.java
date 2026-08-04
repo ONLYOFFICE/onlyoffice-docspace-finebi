@@ -19,8 +19,11 @@ public interface SynchronizationLinkRegistry {
   /** Removes a single dataset link by its FineBI dataset UUID. */
   void remove(String tableId) throws IOException;
 
-  /** Removes every dataset link sourced from the given DocSpace file. */
-  void removeByFile(String fileId) throws IOException;
+  /**
+   * Removes every dataset link sourced from the given DocSpace file that belongs to the given
+   * tenant.
+   */
+  void removeByFile(String fileId, String tenantUrl) throws IOException;
 
   /** Removes every link. Used when the tenant is reset. */
   void removeAll() throws IOException;

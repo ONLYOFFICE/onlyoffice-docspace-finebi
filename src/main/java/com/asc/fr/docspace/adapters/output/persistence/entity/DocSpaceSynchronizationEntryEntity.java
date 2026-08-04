@@ -23,4 +23,7 @@ public class DocSpaceSynchronizationEntryEntity extends BaseEntity {
 
   @Column(name = "lastReconciledAt")
   private Long lastReconciledAt = 0L;
+
+  @Column(name = "tenantUrl", length = 1024)
+  private String tenantUrl = "";
 }

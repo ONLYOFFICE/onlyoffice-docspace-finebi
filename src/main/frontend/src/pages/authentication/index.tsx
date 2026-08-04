@@ -80,6 +80,15 @@ export function AuthenticationPage() {
         <LoaderButton type="submit" loading={authentication.loading}>
           {mode.submit}
         </LoaderButton>
+        {authentication.isSetup && config.status.hasSavedTenants && config.actions.reset && (
+          <GenericButton
+            className="onlyoffice-button--danger"
+            disabled={authentication.loading}
+            onClick={authentication.resetTenant}
+          >
+            {translate("settings.reset")}
+          </GenericButton>
+        )}
         {config.mode === "admin" && config.actions.reset && (
           <GenericButton
             className="onlyoffice-button--secondary"

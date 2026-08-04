@@ -9,6 +9,11 @@ import lombok.Getter;
 public class SynchronizationCommand implements Command {
   private final String decisionBase;
   private final String fileId;
+  @Builder.Default private final String tenantUrl = "";
+
+  public String getTenantUrl() {
+    return tenantUrl == null ? "" : tenantUrl;
+  }
 
   @Override
   public boolean valid() {

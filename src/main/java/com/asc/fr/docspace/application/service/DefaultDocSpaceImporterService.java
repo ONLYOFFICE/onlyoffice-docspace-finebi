@@ -120,7 +120,7 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
     String secret = synchronizationSettings.ensureSecret();
     taskSchedulerService.run(
         () ->
-            webhookRegistrar.ensureRegistered(
+            webhookRegistrar.ensureSynced(
                 docSpaceUrl, callback, secret, tenantService.adminCredentials()));
 
     cache.put(callbackUrl, Boolean.TRUE);
@@ -200,11 +200,17 @@ public final class DefaultDocSpaceImporterService implements DocSpaceImporterSer
       for (Sheet sheet : sheets)
         if (sheet.getSheetId() > 0)
           sheetHash.putIfAbsent(sheet.getSheetId(), sheet.getContentHash());
+      String tenantUrl = tenantService.docSpaceUrl();
       for (FineDataset dataset : datasets) {
         String hash = sheetHash.getOrDefault(dataset.getSheetId(), "");
         synchronizationLinkRegistry.put(
             new FileSynchronizationRecord(
-                command.getFileId(), dataset.getTableId(), dataset.getSheetId(), hash, 0L));
+                command.getFileId(),
+                dataset.getTableId(),
+                dataset.getSheetId(),
+                hash,
+                0L,
+                tenantUrl));
       }
 
       synchronizationSettings.storeDecisionBase(session.getBaseUrl().getValue());

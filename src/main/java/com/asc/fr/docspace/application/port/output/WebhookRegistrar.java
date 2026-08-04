@@ -9,6 +9,9 @@ public interface WebhookRegistrar {
       URL docSpaceUrl, URL callbackUrl, String secret, DocSpaceAccountCredentials credentials)
       throws IOException;
 
+  void ensureSynced(
+      URL docSpaceUrl, URL callbackUrl, String secret, DocSpaceAccountCredentials credentials);
+
   void ensureRegistered(
       URL docSpaceUrl, URL callbackUrl, String secret, DocSpaceAccountCredentials credentials);
 }

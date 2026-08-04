@@ -20,6 +20,7 @@
   "settings.lead": "FineBI가 ONLYOFFICE DocSpace에 연결되어 있습니다",
   "settings.signed.in.as": "로그인 계정",
   "settings.logout": "로그아웃",
+  "settings.reset": "초기화",
   "password.show": "비밀번호 표시",
   "password.hide": "비밀번호 숨기기",
   "placeholder.load.failed.header": "DocSpace를 로드할 수 없습니다",

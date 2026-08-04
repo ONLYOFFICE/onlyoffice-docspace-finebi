@@ -97,6 +97,16 @@ export function useAuthentication() {
       const url = UrlUtils.normalize(session.tenant.docSpaceUrl);
       if (url) await useDocSpaceStore.getState().logout(url);
       else useDocSpaceStore.getState().reset();
+      await usePluginStore.getState().clearTenant(session.actions.changeTenant);
+      await usePluginStore.getState().load();
+    });
+  }
+
+  function resetTenant(): void {
+    void run(async () => {
+      const url = UrlUtils.normalize(session.tenant.docSpaceUrl);
+      if (url) await useDocSpaceStore.getState().logout(url);
+      else useDocSpaceStore.getState().reset();
       await usePluginStore.getState().clearTenant(session.actions.reset);
       await usePluginStore.getState().load();
     });
@@ -110,5 +120,6 @@ export function useAuthentication() {
     error,
     submit,
     changeTenant,
+    resetTenant,
   };
 }

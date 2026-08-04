@@ -57,6 +57,7 @@ public final class DebugDashboardRenderer {
         sheetId,
         orDash(record.getContentHash()),
         record.getFileId(),
+        orDash(record.getTenantUrl()),
         formatTimestamp(record.getLastReconciledAt()));
   }
 

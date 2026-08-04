@@ -52,6 +52,15 @@ export function SettingsPage() {
   function changeTenant(): void {
     void run(async () => {
       await useDocSpaceStore.getState().logout(tenantUrl);
+      await usePluginStore.getState().clearTenant(session.actions.changeTenant);
+      await usePluginStore.getState().load();
+      publish(DocSpaceStateEvents.reset, { teardown: true });
+    });
+  }
+
+  function resetTenant(): void {
+    void run(async () => {
+      await useDocSpaceStore.getState().logout(tenantUrl);
       await usePluginStore.getState().clearTenant(session.actions.reset);
       await usePluginStore.getState().load();
       publish(DocSpaceStateEvents.reset, { teardown: true });
@@ -88,6 +97,13 @@ export function SettingsPage() {
           onClick={changeTenant}
         >
           {translate("auth.change.tenant")}
+        </GenericButton>
+        <GenericButton
+          className="onlyoffice-button--danger"
+          disabled={loading}
+          onClick={resetTenant}
+        >
+          {translate("settings.reset")}
         </GenericButton>
       </div>
     </AuthenticationContainer>

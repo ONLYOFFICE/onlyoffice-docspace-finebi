@@ -185,7 +185,7 @@ class DefaultDocSpaceImporterServiceTest {
       assertThat(created.getValue().getTableName()).isEqualTo("Report");
       assertThat(created.getValue().getFolderId()).isEqualTo("folder-1");
 
-      verify(synchronizationLinkRegistry, never()).removeByFile(any());
+      verify(synchronizationLinkRegistry, never()).removeByFile(any(), any());
       ArgumentCaptor<FileSynchronizationRecord> stored =
           ArgumentCaptor.forClass(FileSynchronizationRecord.class);
       verify(synchronizationLinkRegistry).put(stored.capture());
@@ -194,7 +194,7 @@ class DefaultDocSpaceImporterServiceTest {
 
       verify(synchronizationSettings).storeCallbackUrl(CALLBACK);
       ArgumentCaptor<URL> callback = ArgumentCaptor.forClass(URL.class);
-      verify(webhookRegistrar).ensureRegistered(any(), callback.capture(), any(), any());
+      verify(webhookRegistrar).ensureSynced(any(), callback.capture(), any(), any());
       assertThat(callback.getValue().getValue()).isEqualTo(CALLBACK);
     }
 
@@ -241,7 +241,7 @@ class DefaultDocSpaceImporterServiceTest {
       importerService.importFile(command().fileId("2").build(), SESSION);
 
       verify(datasetService, times(2)).createDatasets(any(), any());
-      verify(webhookRegistrar, times(1)).ensureRegistered(any(), any(), any(), any());
+      verify(webhookRegistrar, times(1)).ensureSynced(any(), any(), any(), any());
     }
 
     @Test

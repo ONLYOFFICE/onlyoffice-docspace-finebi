@@ -3,8 +3,10 @@ package com.asc.fr.docspace.application.job;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.ScheduledClusterJob;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
+import com.asc.fr.docspace.domain.DocSpaceSavedTenantService;
 import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.URL;
+import com.asc.fr.docspace.domain.docspace.DocSpaceSavedTenantConnection;
 import com.google.inject.Inject;
 import lombok.RequiredArgsConstructor;
 
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 public final class WebhookReconciliationClusterJob implements ScheduledClusterJob {
   private final SynchronizationSettings synchronizationService;
   private final DocSpaceTenantService tenantService;
+  private final DocSpaceSavedTenantService savedTenantService;
   private final WebhookRegistrar webhookRegistrar;
   private final JobSchedule schedule;
 
@@ -32,18 +35,31 @@ public final class WebhookReconciliationClusterJob implements ScheduledClusterJo
 
   @Override
   public void run() {
-    if (!tenantService.isConfigured()) return;
-
     String callbackUrl = synchronizationService.loadCallbackUrl();
     if (callbackUrl.isEmpty()) return;
+    URL callback = new URL(callbackUrl);
 
-    String secret = synchronizationService.loadSecret();
-    if (secret.isEmpty()) return;
+    String activeUrl = "";
+    // Active tenant only: blind-overwrite FineBI's secret onto DocSpace (DocSpace never returns
+    // the stored key, so there is no drift check — PUT every pass keeps signatures verifiable).
+    if (tenantService.isConfigured()) {
+      activeUrl = tenantService.docSpaceUrl();
+      String secret = synchronizationService.loadSecret();
+      if (!secret.isEmpty())
+        webhookRegistrar.ensureSynced(
+            new URL(activeUrl), callback, secret, tenantService.adminCredentials());
+    }
 
-    webhookRegistrar.ensureRegistered(
-        new URL(tenantService.docSpaceUrl()),
-        new URL(callbackUrl),
-        secret,
-        tenantService.adminCredentials());
+    // Saved/background tenants: create-if-missing only — never force-overwrite their secrets.
+    for (DocSpaceSavedTenantConnection saved : savedTenantService.listConnections()) {
+      if (saved.getWebhookSecret().isEmpty()) continue;
+      String savedUrl = saved.getConfiguration().getUrl().getValue();
+      if (!activeUrl.isEmpty() && activeUrl.equals(savedUrl)) continue;
+      webhookRegistrar.ensureRegistered(
+          saved.getConfiguration().getUrl(),
+          callback,
+          saved.getWebhookSecret(),
+          saved.getConfiguration().getAdmin());
+    }
   }
 }

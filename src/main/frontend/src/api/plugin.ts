@@ -136,6 +136,7 @@ type PluginCoreUserCredentials = {
 type PluginCoreUserStatus = {
   loginStored: boolean;
   isAdmin: boolean;
+  hasSavedTenants: boolean;
 }
 
 type PluginCoreLocations = {
@@ -156,6 +157,7 @@ type PluginCoreTenantConfiguration = {
 
 type PluginCoreServerActions = {
   submit: string;
+  changeTenant: string;
   reset: string;
   logout: string;
 }
@@ -228,6 +230,7 @@ export class PluginCoreServer {
       status: {
         loginStored: this.toBoolean(status.loginStored),
         isAdmin: this.toBoolean(status.isAdmin),
+        hasSavedTenants: this.toBoolean(status.hasSavedTenants),
       },
       tenant: {
         docSpaceUrl: this.toString(tenant.docSpaceUrl),
@@ -235,6 +238,7 @@ export class PluginCoreServer {
       },
       actions: {
         submit: this.toString(actions.submit),
+        changeTenant: this.toString(actions.changeTenant),
         reset: this.toString(actions.reset),
         logout: this.toString(actions.logout),
       },

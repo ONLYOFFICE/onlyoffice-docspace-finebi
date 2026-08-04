@@ -1,10 +1,12 @@
 package com.asc.fr.docspace.adapters.output.persistence;
 
 import com.asc.fr.docspace.adapters.output.persistence.access.DocSpaceAccountDAO;
+import com.asc.fr.docspace.adapters.output.persistence.access.DocSpaceSavedTenantDAO;
 import com.asc.fr.docspace.adapters.output.persistence.access.DocSpaceSynchronizationEntryDAO;
 import com.asc.fr.docspace.adapters.output.persistence.access.DocSpaceSynchronizationSettingsDAO;
 import com.asc.fr.docspace.adapters.output.persistence.access.DocSpaceTenantDAO;
 import com.asc.fr.docspace.adapters.output.persistence.entity.DocSpaceAccountEntity;
+import com.asc.fr.docspace.adapters.output.persistence.entity.DocSpaceSavedTenantEntity;
 import com.asc.fr.docspace.adapters.output.persistence.entity.DocSpaceSynchronizationEntryEntity;
 import com.asc.fr.docspace.adapters.output.persistence.entity.DocSpaceSynchronizationSettingsEntity;
 import com.asc.fr.docspace.adapters.output.persistence.entity.DocSpaceTenantEntity;
@@ -43,6 +45,7 @@ public class DocSpaceDatabaseAccessProvider extends AbstractDBAccessProvider {
     return new DAOProvider[] {
       dao(DocSpaceAccountEntity.class, DocSpaceAccountDAO.class),
       dao(DocSpaceTenantEntity.class, DocSpaceTenantDAO.class),
+      dao(DocSpaceSavedTenantEntity.class, DocSpaceSavedTenantDAO.class),
       dao(DocSpaceSynchronizationEntryEntity.class, DocSpaceSynchronizationEntryDAO.class),
       dao(DocSpaceSynchronizationSettingsEntity.class, DocSpaceSynchronizationSettingsDAO.class)
     };

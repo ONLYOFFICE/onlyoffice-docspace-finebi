@@ -1,7 +1,6 @@
 package com.asc.fr.docspace.adapters.input.web.tenant.handler;
 
 import com.asc.fr.docspace.PluginManifest;
-import com.asc.fr.docspace.adapters.input.web.HttpJson;
 import com.asc.fr.docspace.adapters.input.web.JsonHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.OkResponse;
 import com.asc.fr.docspace.adapters.input.web.RequestOrigin;
@@ -10,6 +9,7 @@ import com.asc.fr.docspace.adapters.input.web.Requests;
 import com.asc.fr.docspace.adapters.input.web.imports.handler.ImportRoutes;
 import com.asc.fr.docspace.adapters.input.web.tenant.transfer.CredentialsRequest;
 import com.asc.fr.docspace.application.exception.BadRequestStatusException;
+import com.asc.fr.docspace.application.exception.TenantLimitExceededException;
 import com.asc.fr.docspace.application.port.input.DocSpaceOriginService;
 import com.asc.fr.docspace.application.port.input.DocSpaceOriginService.OriginCheck;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantAdminService;
@@ -90,6 +90,8 @@ public class SetupHttpHandler extends JsonHttpHandler {
     try {
       tenantAdminService.save(docSpaceUrl, credentials);
       userAccountService.saveLogin(user.name(), credentials);
+    } catch (TenantLimitExceededException e) {
+      throw new BadRequestStatusException(e.getMessage());
     } catch (IOException e) {
       throw new BadRequestStatusException("Could not save settings: " + e.getMessage());
     }
@@ -109,9 +111,9 @@ public class SetupHttpHandler extends JsonHttpHandler {
           tenantService.adminCredentials());
     } catch (Exception e) {
       throw new BadRequestStatusException(
-          "Settings were saved, but registering the DocSpace webhook failed: "
-              + HttpJson.rootCause(e)
-              + " Automatic dataset syncing will not work until this is resolved.");
+          "Settings were saved, but the DocSpace webhook could not be registered automatically. "
+              + "Automatic dataset syncing will not work until this is resolved — try Setup "
+              + "again, or check DocSpace - Settings - Webhooks for a conflicting entry.");
     }
 
     return OkResponse.ok();

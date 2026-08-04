@@ -34,12 +34,14 @@ public final class FineDocSpaceSynchronizationService
     Long stamp = entity.getLastReconciledAt();
     Integer sheetId = entity.getSheetId();
     String contentHash = entity.getContentHash();
+    String tenantUrl = entity.getTenantUrl();
     return new FileSynchronizationRecord(
         entity.getFileId(),
         entity.getId(),
         sheetId == null ? 0 : sheetId,
         contentHash == null ? "" : contentHash,
-        stamp == null ? 0L : stamp);
+        stamp == null ? 0L : stamp,
+        tenantUrl == null ? "" : tenantUrl);
   }
 
   private static QueryCondition byFileId(String fileId) {
@@ -83,6 +85,7 @@ public final class FineDocSpaceSynchronizationService
           entity.setSheetId(entry.getSheetId());
           entity.setContentHash(entry.getContentHash());
           entity.setLastReconciledAt(System.currentTimeMillis());
+          entity.setTenantUrl(entry.getTenantUrl());
           dao.addOrUpdate(entity);
           return null;
         });
@@ -113,14 +116,22 @@ public final class FineDocSpaceSynchronizationService
   }
 
   @Override
-  public void removeByFile(String fileId) throws IOException {
+  public void removeByFile(String fileId, String tenantUrl) throws IOException {
     if (fileId == null || fileId.isEmpty()) return;
+    String tenant = tenantUrl == null ? "" : tenantUrl;
 
     uow.write(
         ctx -> {
           DocSpaceSynchronizationEntryDAO dao = ctx.getDAO(DocSpaceSynchronizationEntryDAO.class);
-          for (DocSpaceSynchronizationEntryEntity entity : dao.find(byFileId(fileId)))
-            dao.remove(entity.getId());
+          for (DocSpaceSynchronizationEntryEntity entity : dao.find(byFileId(fileId))) {
+            String entityTenant = entity.getTenantUrl();
+            boolean matches =
+                tenant.isEmpty()
+                    || entityTenant == null
+                    || entityTenant.isEmpty()
+                    || entityTenant.equals(tenant);
+            if (matches) dao.remove(entity.getId());
+          }
         });
   }
 
@@ -261,6 +272,21 @@ public final class FineDocSpaceSynchronizationService
           }
 
           return secret;
+        });
+  }
+
+  @Override
+  public void clearSecret() throws IOException {
+    uow.write(
+        ctx -> {
+          DocSpaceSynchronizationSettingsDAO dao =
+              ctx.getDAO(DocSpaceSynchronizationSettingsDAO.class);
+          DocSpaceSynchronizationSettingsEntity entity =
+              dao.getById(DocSpaceSynchronizationSettingsEntity.SINGLETON_ID);
+          if (entity != null) {
+            entity.setWebhookSecret("");
+            dao.addOrUpdate(entity);
+          }
         });
   }
 }

@@ -8,6 +8,7 @@ import com.asc.fr.docspace.adapters.input.web.tenant.transfer.PageConfigResponse
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
 import com.asc.fr.docspace.application.port.input.transfer.Page;
+import com.asc.fr.docspace.domain.DocSpaceSavedTenantService;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -25,13 +26,17 @@ import javax.servlet.http.HttpServletRequest;
 public final class SessionConfigFactory {
   private final DocSpaceUserAccountService userAccountService;
   private final DocSpaceTenantService tenantService;
+  private final DocSpaceSavedTenantService savedTenantService;
   private final ObjectMapper objectMapper;
 
   @Inject
   SessionConfigFactory(
-      DocSpaceTenantService tenantService, DocSpaceUserAccountService userAccountService) {
+      DocSpaceTenantService tenantService,
+      DocSpaceUserAccountService userAccountService,
+      DocSpaceSavedTenantService savedTenantService) {
     this.tenantService = tenantService;
     this.userAccountService = userAccountService;
+    this.savedTenantService = savedTenantService;
     this.objectMapper =
         new ObjectMapper()
             .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
@@ -80,6 +85,7 @@ public final class SessionConfigFactory {
             ? userAccountService.credentials(user.name())
             : DocSpaceAccountCredentials.empty();
     boolean adminConsole = page == Page.ADMIN_LOGIN || page == Page.ADMIN_SETTINGS;
+    boolean tenantActionsVisible = adminConsole || page == Page.SETUP;
     return PageConfigResponse.builder()
         .mode(pageMode(page))
         .locations(
@@ -102,6 +108,7 @@ public final class SessionConfigFactory {
             PageConfigResponse.Status.builder()
                 .loginStored(adminConsole && userAccountService.hasLogin(user.name()))
                 .isAdmin(user.isAdmin())
+                .hasSavedTenants(tenantActionsVisible && savedTenantService.hasAny())
                 .build())
         .tenant(
             PageConfigResponse.Tenant.builder()
@@ -114,7 +121,8 @@ public final class SessionConfigFactory {
                     page == Page.SETUP
                         ? PluginRoutes.setupAction(request)
                         : PluginRoutes.loginAction(request))
-                .reset(adminConsole ? PluginRoutes.resetAction(request) : "")
+                .changeTenant(tenantActionsVisible ? PluginRoutes.changeTenantAction(request) : "")
+                .reset(tenantActionsVisible ? PluginRoutes.resetAction(request) : "")
                 .logout(PluginRoutes.logoutAction(request))
                 .build())
         .response(

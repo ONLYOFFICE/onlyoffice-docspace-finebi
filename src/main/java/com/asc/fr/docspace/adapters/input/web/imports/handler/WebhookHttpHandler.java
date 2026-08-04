@@ -9,13 +9,19 @@ import com.asc.fr.docspace.adapters.input.web.imports.transfer.WebhookEvent;
 import com.asc.fr.docspace.application.exception.PluginStatusException;
 import com.asc.fr.docspace.application.port.input.SynchronizationService;
 import com.asc.fr.docspace.application.port.input.transfer.SynchronizationCommand;
+import com.asc.fr.docspace.domain.DocSpaceSavedTenantService;
+import com.asc.fr.docspace.domain.DocSpaceTenantService;
 import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
 import com.asc.fr.docspace.domain.SynchronizationSettings;
+import com.asc.fr.docspace.domain.docspace.DocSpaceSavedTenantConnection;
+import com.asc.fr.docspace.domain.docspace.DocSpaceTenantConfiguration;
 import com.fr.third.springframework.web.bind.annotation.RequestMethod;
 import com.google.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,6 +30,11 @@ import javax.servlet.http.HttpServletResponse;
  * Receives DocSpace webhook events; on {@code file.updated} for a file we imported, hands off to
  * {@link SynchronizationService} to refresh the FineBI dataset. Handled deliveries answer 200 so
  * DocSpace does not mark them failed; a bad signature answers 401 and is not processed.
+ *
+ * <p>Every tenant an admin has ever connected to (see DocSpaceSavedTenantService) keeps its own
+ * webhook secret, so an inbound request could come from any of them, not just the currently active
+ * one. Its signature is tried against every known secret (current + saved) — the one that matches
+ * both authenticates the request and identifies which tenant sent it.
  */
 public class WebhookHttpHandler extends PluginHttpHandler {
   private static final String FILE_UPDATED_TRIGGER = "file.updated";
@@ -56,6 +67,8 @@ public class WebhookHttpHandler extends PluginHttpHandler {
 
   private final SynchronizationLinkRegistry synchronizationLinkRegistry;
   private final SynchronizationSettings synchronizationSettings;
+  private final DocSpaceTenantService tenantService;
+  private final DocSpaceSavedTenantService savedTenantService;
   private final WebhookSignatureVerifierService signatures;
   private final SynchronizationService resync;
 
@@ -63,13 +76,35 @@ public class WebhookHttpHandler extends PluginHttpHandler {
   public WebhookHttpHandler(
       SynchronizationLinkRegistry synchronizationLinkRegistry,
       SynchronizationSettings synchronizationSettings,
+      DocSpaceTenantService tenantService,
+      DocSpaceSavedTenantService savedTenantService,
       WebhookSignatureVerifierService signatures,
       SynchronizationService resync) {
     super(RequestMethod.POST, PluginManifest.get().endpoints.webhookCallback, true);
     this.synchronizationLinkRegistry = synchronizationLinkRegistry;
     this.synchronizationSettings = synchronizationSettings;
+    this.tenantService = tenantService;
+    this.savedTenantService = savedTenantService;
     this.signatures = signatures;
     this.resync = resync;
+  }
+
+  private Map<String, String> knownSecrets() {
+    Map<String, String> secrets = new LinkedHashMap<>();
+
+    DocSpaceTenantConfiguration current = tenantService.load();
+    String currentUrl = current.getUrl().getValue();
+    if (!currentUrl.isEmpty()) {
+      String currentSecret = synchronizationSettings.loadSecret();
+      if (!currentSecret.isEmpty())
+        secrets.put(currentUrl, currentSecret);
+    }
+
+    for (DocSpaceSavedTenantConnection saved : savedTenantService.listConnections())
+      if (!saved.getWebhookSecret().isEmpty())
+        secrets.putIfAbsent(saved.getConfiguration().getUrl().getValue(), saved.getWebhookSecret());
+
+    return secrets;
   }
 
   @Override
@@ -83,9 +118,21 @@ public class WebhookHttpHandler extends PluginHttpHandler {
       return;
     }
 
-    String secret = synchronizationSettings.loadSecret();
-    if (!secret.isEmpty()
-        && !signatures.verify(body, secret, request.getHeader(SIGNATURE_HEADER))) {
+    Map<String, String> secrets = knownSecrets();
+    String signatureHeader = request.getHeader(SIGNATURE_HEADER);
+    String matchedTenantUrl = "";
+    boolean verified = secrets.isEmpty();
+    if (!verified) {
+      for (Map.Entry<String, String> candidate : secrets.entrySet()) {
+        if (signatures.verify(body, candidate.getValue(), signatureHeader)) {
+          matchedTenantUrl = candidate.getKey();
+          verified = true;
+          break;
+        }
+      }
+    }
+
+    if (!verified) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
@@ -95,7 +142,7 @@ public class WebhookHttpHandler extends PluginHttpHandler {
     if (event.fileId().isEmpty()) return;
 
     if (DELETION_TRIGGERS.contains(event.trigger())) {
-      synchronizationLinkRegistry.removeByFile(event.fileId());
+      synchronizationLinkRegistry.removeByFile(event.fileId(), matchedTenantUrl);
       return;
     }
 
@@ -106,6 +153,7 @@ public class WebhookHttpHandler extends PluginHttpHandler {
         SynchronizationCommand.builder()
             .decisionBase(Requests.decisionBase(request))
             .fileId(event.fileId())
+            .tenantUrl(matchedTenantUrl)
             .build());
   }
 }
