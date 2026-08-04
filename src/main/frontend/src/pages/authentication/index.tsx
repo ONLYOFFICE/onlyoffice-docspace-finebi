@@ -58,21 +58,21 @@ export function AuthenticationPage() {
           />
         )}
         {authentication.isSetup && (
-          <>
+          setupBlocked ? (
+            <Hint>{translate("settings.tenants.limit")}</Hint>
+          ) : (
             <Field
               id="docspaceUrl"
               label={translate("auth.url.label")}
               type="url"
               required
-              disabled={setupBlocked}
               value={authentication.fields.url}
               onInput={(e) =>
                 authentication.setField("url", e.currentTarget.value)
               }
               placeholder={translate("auth.url.placeholder")}
             />
-            {setupBlocked && <Hint>{translate("settings.tenants.limit")}</Hint>}
-          </>
+          )
         )}
         {!setupBlocked && (
           <>
