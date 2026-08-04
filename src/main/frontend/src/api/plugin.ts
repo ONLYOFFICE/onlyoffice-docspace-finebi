@@ -6,6 +6,17 @@ import manifest from "@manifest";
 interface PluginResult {
   ok?: boolean;
   error?: string;
+  errorCode?: string;
+  errorParams?: Record<string, string | number>;
+}
+
+function toErrorMessage(data: PluginResult | null, fallbackKey: string): string {
+  if (data?.errorCode) {
+    const localized = translate(data.errorCode, data.errorParams);
+    if (localized !== data.errorCode) return localized;
+  }
+
+  return data?.error?.trim() || translate(fallbackKey);
 }
 
 interface ImportResult {
@@ -47,10 +58,8 @@ export class PluginClient {
     });
 
     const data = (await response.json().catch(() => null)) as PluginResult | null;
-    if (!response.ok || !data?.ok) {
-      const detail = data?.error?.trim();
-      throw new Error(detail || translate("client.save.login"));
-    }
+    if (!response.ok || !data?.ok)
+      throw new Error(toErrorMessage(data, "client.save.login"));
   }
 
   async clearTenant(action: string): Promise<void> {
@@ -59,9 +68,9 @@ export class PluginClient {
       headers: { Accept: "application/json" },
     });
 
-    const data = (await response.json()) as PluginResult;
-    if (!response.ok || !data.ok)
-      throw new Error(`${translate("client.reset.tenant")}`);
+    const data = (await response.json().catch(() => null)) as PluginResult | null;
+    if (!response.ok || !data?.ok)
+      throw new Error(toErrorMessage(data, "client.reset.tenant"));
   }
 
   async manageTenant(action: string, docspaceUrl: string): Promise<void> {
@@ -76,10 +85,8 @@ export class PluginClient {
     });
 
     const data = (await response.json().catch(() => null)) as PluginResult | null;
-    if (!response.ok || !data?.ok) {
-      const detail = data?.error?.trim();
-      throw new Error(detail || translate("client.tenant.manage.failed"));
-    }
+    if (!response.ok || !data?.ok)
+      throw new Error(toErrorMessage(data, "client.tenant.manage.failed"));
   }
 
   async logout(action: string): Promise<void> {
