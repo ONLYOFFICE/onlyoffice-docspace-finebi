@@ -1,3 +1,7 @@
 .onlyoffice-lead {
-    color: var(--onlyoffice-color-text);
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.4;
+
+    color: var(--onlyoffice-color-text-strong);
 }
