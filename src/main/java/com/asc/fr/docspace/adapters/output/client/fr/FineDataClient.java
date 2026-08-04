@@ -192,6 +192,7 @@ public final class FineDataClient
         SheetImportSelector.select(
             base,
             command.getSheets(),
+            command.getSheetIndices(),
             (sheetIndex, tableName) ->
                 post(
                     session,

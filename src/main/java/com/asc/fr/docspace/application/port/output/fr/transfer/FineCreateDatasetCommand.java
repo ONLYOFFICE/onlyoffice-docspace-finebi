@@ -14,11 +14,15 @@ public class FineCreateDatasetCommand implements Command {
   private final String tableName;
   private final String folderId;
   private final FineAttachment attachment;
-
   @Builder.Default private final List<Sheet> sheets = Collections.emptyList();
+  @Builder.Default private final List<Integer> sheetIndices = Collections.emptyList();
 
   public List<Sheet> getSheets() {
     return sheets == null ? Collections.emptyList() : sheets;
+  }
+
+  public List<Integer> getSheetIndices() {
+    return sheetIndices == null ? Collections.emptyList() : sheetIndices;
   }
 
   @Override

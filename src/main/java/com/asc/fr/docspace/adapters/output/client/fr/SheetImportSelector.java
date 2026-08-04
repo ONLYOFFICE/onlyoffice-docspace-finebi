@@ -8,6 +8,7 @@ import com.asc.fr.docspace.domain.docspace.DocSpaceSpreadsheet;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -56,22 +57,33 @@ final class SheetImportSelector {
 
   static List<FineSheetPreview> select(String base, List<Sheet> sheets, PreviewExecutor executor)
       throws IOException {
+    return select(base, sheets, Collections.emptyList(), executor);
+  }
+
+  static List<FineSheetPreview> select(
+      String base, List<Sheet> sheets, List<Integer> realIndices, PreviewExecutor executor)
+      throws IOException {
+    boolean targeted = !realIndices.isEmpty();
     List<FineSheetPreview> selected = new ArrayList<>();
 
-    int max = sheets.isEmpty() ? MAX_SHEETS : sheets.size();
+    int max = targeted ? sheets.size() : sheets.isEmpty() ? MAX_SHEETS : sheets.size();
     for (int index = 0; index < max; index++) {
       String sheetName = sheetNameLocation(sheets, index);
       int sheetId = sheetIdLocation(sheets, index);
       String tableName = DocSpaceSpreadsheet.toDatasetName(base, sheetName);
+      int realIndex = targeted ? realIndices.get(index) : index;
 
-      String response = executor.preview(index, tableName);
+      String response = executor.preview(realIndex, tableName);
       FineEnvelope envelope = FineEnvelope.parse(response);
 
       if (envelope.isSuccess()) {
         FineSheetPreviewDataResponse data = envelope.dataAs(FineSheetPreviewDataResponse.class);
-        if (!hasFields(data)) break;
+        if (!hasFields(data)) {
+          if (targeted) continue; // this specific sheet isn't importable — the rest still might be
+          break; // sequential scan from 0: an empty result means we're past the last sheet
+        }
 
-        selected.add(new FineSheetPreview(index, sheetId, tableName, sheetName, data));
+        selected.add(new FineSheetPreview(realIndex, sheetId, tableName, sheetName, data));
       } else if (isAuthFailure(response)) {
         throw new IOException("FineBI sheet preview authentication failed");
       }

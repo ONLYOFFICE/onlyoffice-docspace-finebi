@@ -110,6 +110,9 @@ public final class DefaultSynchronizationService implements SynchronizationServi
               FineUploadAttachmentCommand.builder().fileName(filename).content(content).build(),
               session);
 
+      List<Integer> sheetIndices = new ArrayList<>(newSheets.size());
+      for (Sheet sheet : newSheets) sheetIndices.add(workbook.indexOfSheetId(sheet.getSheetId()));
+
       List<FineDataset> created =
           datasetService.createDatasets(
               FineCreateDatasetCommand.builder()
@@ -117,6 +120,7 @@ public final class DefaultSynchronizationService implements SynchronizationServi
                   .folderId(folderId)
                   .attachment(attachment)
                   .sheets(newSheets)
+                  .sheetIndices(sheetIndices)
                   .build(),
               session);
 

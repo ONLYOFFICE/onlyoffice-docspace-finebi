@@ -99,4 +99,29 @@ class SheetImportSelectorTest {
         .extracting(FineSheetPreview::getTableName)
         .containsExactly("Book", "Book_Sheet2");
   }
+
+  @Test
+  void givenRealIndices_whenSelecting_thenPreviewsAtThatPositionNotItsPositionInTheSubset()
+      throws IOException {
+    Map<Integer, String> responses = at(0, ok("WrongSheet"), 1, ok("Extra"));
+
+    List<FineSheetPreview> selected =
+        SheetImportSelector.select(
+            "Book", sheets("Extra", 2), Collections.singletonList(1), responding(responses));
+
+    assertThat(selected).extracting(FineSheetPreview::getSheetIndex).containsExactly(1);
+    assertThat(selected).extracting(FineSheetPreview::getSheetName).containsExactly("Extra");
+  }
+
+  @Test
+  void givenOneTargetedSheetNotImportable_whenSelecting_thenSkipsItWithoutStoppingTheOthers()
+      throws IOException {
+    Map<Integer, String> responses = at(0, ok("A"), 2, END);
+
+    List<FineSheetPreview> selected =
+        SheetImportSelector.select(
+            "Book", sheets("A", 1, "C", 3), Arrays.asList(0, 2), responding(responses));
+
+    assertThat(selected).extracting(FineSheetPreview::getSheetIndex).containsExactly(0);
+  }
 }
