@@ -14,12 +14,14 @@ import com.asc.fr.docspace.application.port.output.fr.FineSessionFactory;
 import com.asc.fr.docspace.application.port.output.fr.transfer.*;
 import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
 import com.asc.fr.docspace.domain.common.FileSynchronizationRecord;
+import com.asc.fr.docspace.domain.common.Sheet;
 import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.common.spreadsheet.Spreadsheet;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceRawFile;
 import com.asc.fr.docspace.domain.docspace.DocSpaceSpreadsheet;
 import com.asc.fr.docspace.domain.fr.FineAttachment;
+import com.asc.fr.docspace.domain.fr.FineDataset;
 import com.asc.fr.docspace.domain.fr.FineSession;
 import com.google.inject.Inject;
 import java.io.IOException;
@@ -50,6 +52,89 @@ public final class DefaultSynchronizationService implements SynchronizationServi
     for (FileSynchronizationRecord entry : entries)
       if (!entry.getTableId().isEmpty() && entry.getSheetId() > 0) ids.add(entry.getTableId());
     return ids;
+  }
+
+  private static Set<Integer> trackedSheetIds(List<FileSynchronizationRecord> entries) {
+    Set<Integer> ids = new HashSet<>();
+    for (FileSynchronizationRecord entry : entries)
+      if (entry.getSheetId() > 0) ids.add(entry.getSheetId());
+    return ids;
+  }
+
+  // EXPERIMENTAL: picks the folder most sibling datasets of this file already live in.
+  private static String majoritySiblingFolderId(Map<String, FineDatasetLocation> locations) {
+    Map<String, Integer> counts = new LinkedHashMap<>();
+    for (FineDatasetLocation location : locations.values())
+      counts.merge(location.getFolderId(), 1, Integer::sum);
+
+    String best = "";
+    int bestCount = 0;
+    for (Map.Entry<String, Integer> count : counts.entrySet())
+      if (count.getValue() > bestCount) {
+        best = count.getKey();
+        bestCount = count.getValue();
+      }
+
+    return best;
+  }
+
+  // EXPERIMENTAL: sheets added to the workbook after import have no tracked link yet — auto-import
+  // them here so they start syncing without a manual re-import via "Add Dataset".
+  private void importNewSheets(
+      List<FileSynchronizationRecord> entries,
+      Spreadsheet workbook,
+      Map<String, FineDatasetLocation> locations,
+      String filename,
+      byte[] content,
+      FineSession session,
+      String fileId) {
+    Set<Integer> trackedSheetIds = trackedSheetIds(entries);
+    List<Sheet> newSheets = new ArrayList<>();
+    for (Sheet sheet : workbook.sheets())
+      if (sheet.getSheetId() > 0 && !trackedSheetIds.contains(sheet.getSheetId()))
+        newSheets.add(sheet);
+    if (newSheets.isEmpty()) return;
+
+    int budget = DocSpaceImporterService.MAX_SHEETS - entries.size();
+    if (budget <= 0) return;
+
+    if (newSheets.size() > budget) newSheets = newSheets.subList(0, budget);
+
+    String folderId = majoritySiblingFolderId(locations);
+    if (folderId.isEmpty()) return;
+
+    try {
+      String tableName = new DocSpaceSpreadsheet(filename).getTableName();
+      FineAttachment attachment =
+          attachmentService.uploadAttachment(
+              FineUploadAttachmentCommand.builder().fileName(filename).content(content).build(),
+              session);
+
+      List<FineDataset> created =
+          datasetService.createDatasets(
+              FineCreateDatasetCommand.builder()
+                  .tableName(tableName)
+                  .folderId(folderId)
+                  .attachment(attachment)
+                  .sheets(newSheets)
+                  .build(),
+              session);
+
+      Map<Integer, String> hashBySheetId = new HashMap<>();
+      for (Sheet sheet : newSheets)
+        hashBySheetId.putIfAbsent(sheet.getSheetId(), sheet.getContentHash());
+
+      for (FineDataset dataset : created)
+        synchronizationService.put(
+            new FileSynchronizationRecord(
+                fileId,
+                dataset.getTableId(),
+                dataset.getSheetId(),
+                hashBySheetId.getOrDefault(dataset.getSheetId(), ""),
+                0L));
+    } catch (Exception ignored) {
+      // Best-effort: a failed auto-import here is retried on the next webhook for this file.
+    }
   }
 
   private void resync(String decisionBase, String fileId, DocSpaceAccountCredentials credentials) {
@@ -116,6 +201,8 @@ public final class DefaultSynchronizationService implements SynchronizationServi
                 .sheetIndex(sheetIndex)
                 .build());
       }
+
+      importNewSheets(entries, workbook, locations, filename, content, session, fileId);
 
       List<FineReplaceOutcome> outcomes = new ArrayList<>(commands.size());
       for (FineReplaceDatasetCommand command : commands) {

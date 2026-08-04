@@ -15,6 +15,7 @@ import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileDownload
 import com.asc.fr.docspace.application.port.output.fr.FineAttachmentService;
 import com.asc.fr.docspace.application.port.output.fr.FineDatasetService;
 import com.asc.fr.docspace.application.port.output.fr.FineSessionFactory;
+import com.asc.fr.docspace.application.port.output.fr.transfer.FineCreateDatasetCommand;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineDatasetLocation;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineRefreshDatasetCommand;
 import com.asc.fr.docspace.application.port.output.fr.transfer.FineReplaceDatasetCommand;
@@ -26,6 +27,7 @@ import com.asc.fr.docspace.domain.common.spreadsheet.Spreadsheet;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceRawFile;
 import com.asc.fr.docspace.domain.fr.FineAttachment;
+import com.asc.fr.docspace.domain.fr.FineDataset;
 import com.asc.fr.docspace.domain.fr.FineSession;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -503,6 +505,8 @@ class DefaultSynchronizationServiceTest {
     void givenSheetIdMissingFromWorkbook_whenScheduling_thenDropsMapping() throws IOException {
       downloading("Sales");
 
+      when(datasetService.locateDatasets(any(), any())).thenReturn(Collections.emptyMap());
+
       when(registry.findByFile("1"))
           .thenReturn(
               Collections.singletonList(new FileSynchronizationRecord("1", "uuid-gone", 9)));
@@ -536,6 +540,81 @@ class DefaultSynchronizationServiceTest {
           .containsExactly("uuid-sales");
       verify(eventPublisher).datasetUpdated("uuid-sales");
       verify(eventPublisher, never()).datasetUpdated("uuid-gone");
+    }
+
+    @Test
+    void givenNewSheetAddedToWorkbook_whenScheduling_thenCreatesDatasetAndTracksIt()
+        throws IOException {
+      downloading("Sales", "Extra");
+
+      when(registry.findByFile("1"))
+          .thenReturn(
+              Collections.singletonList(new FileSynchronizationRecord("1", "uuid-sales", 1)));
+      when(datasetService.createDatasets(any(), any()))
+          .thenReturn(
+              Collections.singletonList(new FineDataset("Extra", 2, "Book_Extra", "uuid-extra")));
+
+      service.schedule(commandFor("1"));
+
+      ArgumentCaptor<FineCreateDatasetCommand> create =
+          ArgumentCaptor.forClass(FineCreateDatasetCommand.class);
+      verify(datasetService).createDatasets(create.capture(), any());
+      assertThat(create.getValue().getFolderId()).isEqualTo("folder-1");
+      assertThat(create.getValue().getSheets()).extracting(Sheet::getSheetId).containsExactly(2);
+
+      ArgumentCaptor<FileSynchronizationRecord> put =
+          ArgumentCaptor.forClass(FileSynchronizationRecord.class);
+      verify(registry, atLeastOnce()).put(put.capture());
+      FileSynchronizationRecord created =
+          put.getAllValues().stream()
+              .filter(record -> "uuid-extra".equals(record.getTableId()))
+              .findFirst()
+              .orElseThrow(AssertionError::new);
+      assertThat(created.getFileId()).isEqualTo("1");
+      assertThat(created.getSheetId()).isEqualTo(2);
+    }
+
+    @Test
+    void givenNoResolvableSiblingLocation_whenNewSheetAdded_thenSkipsAutoImport()
+        throws IOException {
+      downloading("Sales", "Extra");
+
+      when(registry.findByFile("1"))
+          .thenReturn(
+              Collections.singletonList(new FileSynchronizationRecord("1", "uuid-sales", 1)));
+      when(datasetService.locateDatasets(any(), any())).thenReturn(Collections.emptyMap());
+
+      service.schedule(commandFor("1"));
+
+      verify(datasetService, never()).createDatasets(any(), any());
+    }
+
+    @Test
+    void givenNewSheetWouldExceedMaxSheets_whenScheduling_thenImportsOnlyUpToCap()
+        throws IOException {
+      int tracked = 49;
+      String[] names = new String[tracked + 2];
+      List<FileSynchronizationRecord> entries = new ArrayList<>();
+      for (int i = 0; i < tracked; i++) {
+        names[i] = "Sheet" + (i + 1);
+        entries.add(new FileSynchronizationRecord("1", "uuid-" + (i + 1), i + 1));
+      }
+
+      names[tracked] = "NewA";
+      names[tracked + 1] = "NewB";
+      downloading(names);
+
+      when(registry.findByFile("1")).thenReturn(entries);
+      when(datasetService.createDatasets(any(), any())).thenReturn(Collections.emptyList());
+
+      service.schedule(commandFor("1"));
+
+      ArgumentCaptor<FineCreateDatasetCommand> create =
+          ArgumentCaptor.forClass(FineCreateDatasetCommand.class);
+      verify(datasetService).createDatasets(create.capture(), any());
+      assertThat(create.getValue().getSheets())
+          .extracting(Sheet::getSheetId)
+          .containsExactly(tracked + 1);
     }
   }
 }
