@@ -62,13 +62,7 @@ public class RemoveTenantHttpHandler extends JsonHttpHandler {
     try {
       if (removingActive || removingSignedIn) userAccountService.clearAll();
       tenantAdminService.removeTenant(docSpaceUrl);
-      if (removingActive || removingSignedIn) {
-        String remainingUrl = tenantService.docSpaceUrl();
-        if (!remainingUrl.isEmpty())
-          userAccountService.saveLogin(
-              admin.name(), tenantService.adminCredentials(), remainingUrl);
-        eventPublisher.tenantReset();
-      }
+      if (removingActive || removingSignedIn) eventPublisher.tenantReset();
     } catch (IOException e) {
       throw new PluginStatusException(
           500, "Could not remove DocSpace connection: " + HttpJson.rootCause(e));

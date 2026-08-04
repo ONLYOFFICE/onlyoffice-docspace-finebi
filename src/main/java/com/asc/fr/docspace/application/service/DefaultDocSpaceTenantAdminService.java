@@ -60,6 +60,11 @@ public final class DefaultDocSpaceTenantAdminService implements DocSpaceTenantAd
   @Override
   public void selectTenant(URL docSpaceUrl) throws IOException {
     String targetUrl = docSpaceUrl.getValue();
+
+    DocSpaceTenantConfiguration outgoing = tenantService.load();
+    String currentUrl = outgoing.getUrl().getValue();
+    if (!currentUrl.isEmpty() && currentUrl.equals(targetUrl)) return;
+
     Optional<DocSpaceSavedTenantConnection> saved =
         savedTenantService.listConnections().stream()
             .filter(
@@ -69,9 +74,7 @@ public final class DefaultDocSpaceTenantAdminService implements DocSpaceTenantAd
     if (!saved.isPresent())
       throw new IOException("No saved DocSpace connection found for " + targetUrl);
 
-    DocSpaceTenantConfiguration outgoing = tenantService.load();
-    String currentUrl = outgoing.getUrl().getValue();
-    if (!currentUrl.isEmpty() && !currentUrl.equals(targetUrl) && outgoing.getAdmin().isComplete())
+    if (!currentUrl.isEmpty() && outgoing.getAdmin().isComplete())
       savedTenantService.upsert(outgoing, synchronizationSettings.loadSecret());
 
     DocSpaceSavedTenantConnection selected = saved.get();
