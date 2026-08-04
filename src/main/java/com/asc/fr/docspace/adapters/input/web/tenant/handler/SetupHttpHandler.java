@@ -17,6 +17,7 @@ import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
 import com.asc.fr.docspace.application.port.output.SynchronizationEventPublisher;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
+import com.asc.fr.docspace.application.port.output.docspace.DocSpaceProfileService;
 import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
@@ -39,6 +40,7 @@ public class SetupHttpHandler extends JsonHttpHandler {
   private final DocSpaceOriginService originService;
   private final WebhookRegistrar webhookRegistrar;
   private final SynchronizationEventPublisher eventPublisher;
+  private final DocSpaceProfileService profileService;
 
   @Inject
   public SetupHttpHandler(
@@ -48,7 +50,8 @@ public class SetupHttpHandler extends JsonHttpHandler {
       DocSpaceTenantService tenantService,
       DocSpaceOriginService originService,
       WebhookRegistrar webhookRegistrar,
-      SynchronizationEventPublisher eventPublisher) {
+      SynchronizationEventPublisher eventPublisher,
+      DocSpaceProfileService profileService) {
     super(RequestMethod.POST, PluginManifest.get().endpoints.setup);
     this.tenantAdminService = tenantAdminService;
     this.userAccountService = userAccountService;
@@ -57,6 +60,7 @@ public class SetupHttpHandler extends JsonHttpHandler {
     this.originService = originService;
     this.webhookRegistrar = webhookRegistrar;
     this.eventPublisher = eventPublisher;
+    this.profileService = profileService;
   }
 
   static String cspError(String fineBiOrigin) {
@@ -90,6 +94,16 @@ public class SetupHttpHandler extends JsonHttpHandler {
     String fineBiOrigin = RequestOrigin.of(request);
     if (originService.checkOrigin(docSpaceUrl, fineBiOrigin) == OriginCheck.BLOCKED)
       throw new BadRequestStatusException(cspError(fineBiOrigin));
+
+    try {
+      if (!profileService.isAdmin(docSpaceUrl, credentials))
+        throw new BadRequestStatusException(
+            "Sign in with a DocSpace account that has Administrator (or Owner) privileges — it is "
+                + "used for background sync and webhooks.");
+    } catch (IOException e) {
+      throw new BadRequestStatusException(
+          "Could not verify the DocSpace account's role: " + e.getMessage());
+    }
 
     try {
       tenantAdminService.save(docSpaceUrl, credentials);

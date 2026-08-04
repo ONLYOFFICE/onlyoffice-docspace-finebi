@@ -23,6 +23,7 @@ import com.asc.fr.docspace.adapters.input.web.tenant.handler.SetupHttpHandler;
 import com.asc.fr.docspace.adapters.output.client.docspace.DocSpaceAuthenticationClient;
 import com.asc.fr.docspace.adapters.output.client.docspace.DocSpaceCspClient;
 import com.asc.fr.docspace.adapters.output.client.docspace.DocSpaceFileClient;
+import com.asc.fr.docspace.adapters.output.client.docspace.DocSpaceProfileClient;
 import com.asc.fr.docspace.adapters.output.client.docspace.DocSpaceRest;
 import com.asc.fr.docspace.adapters.output.client.docspace.DocSpaceWebhookClient;
 import com.asc.fr.docspace.adapters.output.client.fr.FineDataClient;
@@ -65,6 +66,7 @@ import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileDownload
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileRetrievalService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceFileUploadService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpacePathService;
+import com.asc.fr.docspace.application.port.output.docspace.DocSpaceProfileService;
 import com.asc.fr.docspace.application.port.output.docspace.DocSpaceSecretGenerator;
 import com.asc.fr.docspace.application.port.output.fr.FineAttachmentService;
 import com.asc.fr.docspace.application.port.output.fr.FineDatasetService;
@@ -153,6 +155,12 @@ final class PluginModule extends AbstractModule {
 
   @Provides
   @Singleton
+  DocSpaceProfileClient profile(DocSpaceRest api, DocSpaceAuthenticator authenticator) {
+    return new DocSpaceProfileClient(api, authenticator);
+  }
+
+  @Provides
+  @Singleton
   RedirectingDownloader fineBiDownloader(@Named("fineBi") OkHttpClient http) {
     return new RedirectingDownloader(http);
   }
@@ -228,6 +236,7 @@ final class PluginModule extends AbstractModule {
 
     bind(WebhookRegistrar.class).to(DocSpaceWebhookClient.class).in(Singleton.class);
     bind(DocSpaceCspService.class).to(DocSpaceCspClient.class).in(Singleton.class);
+    bind(DocSpaceProfileService.class).to(DocSpaceProfileClient.class).in(Singleton.class);
 
     bind(DocSpaceFileUploadService.class).to(DocSpaceFileClient.class);
     bind(DocSpaceFileDownloadService.class).to(DocSpaceFileClient.class);
