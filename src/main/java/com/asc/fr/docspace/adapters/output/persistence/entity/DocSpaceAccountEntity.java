@@ -20,4 +20,7 @@ public class DocSpaceAccountEntity extends BaseEntity {
 
   @Column(name = "passwordHash", length = 1024)
   private String passwordHash = "";
+
+  @Column(name = "tenantUrl", length = 1024)
+  private String tenantUrl = "";
 }

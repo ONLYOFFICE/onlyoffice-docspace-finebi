@@ -14,6 +14,7 @@ import com.google.inject.Inject;
 import java.io.IOException;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 @RequiredArgsConstructor(onConstructor_ = @__(@Inject))
 public final class FineDocSpaceUserAccountService implements DocSpaceUserAccountService {
@@ -23,44 +24,67 @@ public final class FineDocSpaceUserAccountService implements DocSpaceUserAccount
   private final FineEncryptionService encryption;
   private final IUnitOfWork uow;
 
-  private final Cache<String, DocSpaceAccountCredentials> cache =
+  private final Cache<String, CachedAccount> cache =
       CacheBuilder.newBuilder()
           .maximumSize(CACHE_MAX_USERS)
           .expireAfterWrite(Duration.ofMillis(CACHE_TTL_MILLIS))
           .build();
 
-  @Override
-  public DocSpaceAccountCredentials credentials(String username) {
-    String id = username == null ? "" : username.trim();
-    if (id.isEmpty()) return DocSpaceAccountCredentials.empty();
+  @Value
+  private static final class CachedAccount {
+    DocSpaceAccountCredentials credentials;
+    String tenantUrl;
+  }
 
-    DocSpaceAccountCredentials cached = cache.getIfPresent(id);
+  private CachedAccount load(String id) {
+    CachedAccount cached = cache.getIfPresent(id);
     if (cached != null) return cached;
 
-    DocSpaceAccountCredentials loaded =
+    CachedAccount loaded =
         uow.query(ctx -> ctx.getDAO(DocSpaceAccountDAO.class).getById(id))
             .map(
                 entity -> {
                   try {
-                    return new DocSpaceAccountCredentials(
-                        encryption.decrypt(entity.getEmail()),
-                        entity.getDocspaceUserId(),
-                        encryption.decrypt(entity.getPasswordHash()));
+                    DocSpaceAccountCredentials credentials =
+                        new DocSpaceAccountCredentials(
+                            encryption.decrypt(entity.getEmail()),
+                            entity.getDocspaceUserId(),
+                            encryption.decrypt(entity.getPasswordHash()));
+                    String tenantUrl = entity.getTenantUrl();
+                    return new CachedAccount(credentials, tenantUrl == null ? "" : tenantUrl);
                   } catch (InvalidCredentialsException e) {
-                    return DocSpaceAccountCredentials.empty();
+                    return new CachedAccount(DocSpaceAccountCredentials.empty(), "");
                   }
                 })
-            .orElseGet(DocSpaceAccountCredentials::empty);
+            .orElseGet(() -> new CachedAccount(DocSpaceAccountCredentials.empty(), ""));
 
     cache.put(id, loaded);
     return loaded;
   }
 
   @Override
-  public void saveCredentials(String username, DocSpaceAccountCredentials credentials)
+  public DocSpaceAccountCredentials credentials(String username) {
+    String id = username == null ? "" : username.trim();
+    if (id.isEmpty()) return DocSpaceAccountCredentials.empty();
+    return load(id).getCredentials();
+  }
+
+  @Override
+  public String signedInTenantUrl(String username) {
+    String id = username == null ? "" : username.trim();
+    if (id.isEmpty()) return "";
+    CachedAccount account = load(id);
+    return account.getCredentials().isComplete() ? account.getTenantUrl() : "";
+  }
+
+  @Override
+  public void saveCredentials(
+      String username, DocSpaceAccountCredentials credentials, String tenantUrl)
       throws IOException {
     String id = username == null ? "" : username.trim();
     if (id.isEmpty()) throw new IOException("FineBI user is not available in this request");
+
+    String portal = tenantUrl == null ? "" : tenantUrl;
 
     uow.write(
         ctx -> {
@@ -74,6 +98,7 @@ public final class FineDocSpaceUserAccountService implements DocSpaceUserAccount
           entity.setEmail(encryption.encrypt(credentials.getEmail()));
           entity.setDocspaceUserId(credentials.getUserId());
           entity.setPasswordHash(encryption.encrypt(credentials.getHash()));
+          entity.setTenantUrl(portal);
           dao.addOrUpdate(entity);
           return null;
         });

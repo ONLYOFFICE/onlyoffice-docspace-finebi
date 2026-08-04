@@ -1,5 +1,6 @@
 package com.asc.fr.docspace.adapters.input.web.tenant.transfer;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Value;
 
@@ -15,6 +16,7 @@ public class PageConfigResponse {
   Credentials credentials;
   Status status;
   Tenant tenant;
+  List<KnownTenant> knownTenants;
   Actions actions;
   Response response;
 
@@ -44,6 +46,8 @@ public class PageConfigResponse {
     boolean loginStored;
     boolean isAdmin;
     boolean hasSavedTenants;
+    boolean canAddTenant;
+    String signedInTenantUrl;
   }
 
   @Value
@@ -55,9 +59,19 @@ public class PageConfigResponse {
 
   @Value
   @Builder
+  public static class KnownTenant {
+    String url;
+    String email;
+    boolean active;
+  }
+
+  @Value
+  @Builder
   public static class Actions {
     String submit;
     String changeTenant;
+    String selectTenant;
+    String removeTenant;
     String reset;
     String logout;
   }

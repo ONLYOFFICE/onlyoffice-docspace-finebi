@@ -59,6 +59,8 @@
     "login":            "/api/login",
     "logout":           "/api/logout",
     "changeTenant":     "/api/tenant/change",
+    "selectTenant":     "/api/tenant/select",
+    "removeTenant":     "/api/tenant/remove",
     "reset":            "/api/reset",
     "importFile":       "/api/import/docspace/file",
     "folders":          "/api/import/docspace/folders",

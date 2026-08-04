@@ -136,6 +136,22 @@ public final class FineDocSpaceSynchronizationService
   }
 
   @Override
+  public void removeByTenant(String tenantUrl) throws IOException {
+    if (tenantUrl == null || tenantUrl.isEmpty()) return;
+
+    uow.write(
+        ctx -> {
+          DocSpaceSynchronizationEntryDAO dao = ctx.getDAO(DocSpaceSynchronizationEntryDAO.class);
+          for (DocSpaceSynchronizationEntryEntity entity :
+              dao.find(
+                  QueryFactory.create()
+                      .addRestriction(RestrictionFactory.eq("tenantUrl", tenantUrl)))) {
+            dao.remove(entity.getId());
+          }
+        });
+  }
+
+  @Override
   public void removeAll() throws IOException {
     DocSpaceKeysetPaginationDAO.deleteAll(uow, DocSpaceSynchronizationEntryDAO.class);
   }
@@ -272,6 +288,26 @@ public final class FineDocSpaceSynchronizationService
           }
 
           return secret;
+        });
+  }
+
+  @Override
+  public void storeSecret(String secret) throws IOException {
+    String value = secret == null ? "" : secret;
+    uow.write(
+        ctx -> {
+          DocSpaceSynchronizationSettingsDAO dao =
+              ctx.getDAO(DocSpaceSynchronizationSettingsDAO.class);
+          DocSpaceSynchronizationSettingsEntity entity =
+              dao.getById(DocSpaceSynchronizationSettingsEntity.SINGLETON_ID);
+
+          if (entity == null) {
+            entity = new DocSpaceSynchronizationSettingsEntity();
+            entity.setId(DocSpaceSynchronizationSettingsEntity.SINGLETON_ID);
+          }
+
+          entity.setWebhookSecret(value.isEmpty() ? "" : encryption.encrypt(value));
+          dao.addOrUpdate(entity);
         });
   }
 

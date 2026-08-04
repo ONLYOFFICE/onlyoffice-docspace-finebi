@@ -15,6 +15,7 @@ import com.asc.fr.docspace.application.port.input.DocSpaceOriginService.OriginCh
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantAdminService;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
+import com.asc.fr.docspace.application.port.output.SynchronizationEventPublisher;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
 import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.URL;
@@ -37,6 +38,7 @@ public class SetupHttpHandler extends JsonHttpHandler {
   private final DocSpaceTenantService tenantService;
   private final DocSpaceOriginService originService;
   private final WebhookRegistrar webhookRegistrar;
+  private final SynchronizationEventPublisher eventPublisher;
 
   @Inject
   public SetupHttpHandler(
@@ -45,7 +47,8 @@ public class SetupHttpHandler extends JsonHttpHandler {
       SynchronizationSettings synchronizationService,
       DocSpaceTenantService tenantService,
       DocSpaceOriginService originService,
-      WebhookRegistrar webhookRegistrar) {
+      WebhookRegistrar webhookRegistrar,
+      SynchronizationEventPublisher eventPublisher) {
     super(RequestMethod.POST, PluginManifest.get().endpoints.setup);
     this.tenantAdminService = tenantAdminService;
     this.userAccountService = userAccountService;
@@ -53,12 +56,13 @@ public class SetupHttpHandler extends JsonHttpHandler {
     this.tenantService = tenantService;
     this.originService = originService;
     this.webhookRegistrar = webhookRegistrar;
+    this.eventPublisher = eventPublisher;
   }
 
   static String cspError(String fineBiOrigin) {
     return "Add "
         + fineBiOrigin
-        + " under DocSpace → Settings → Developer Tools → JavaScript SDK "
+        + " under DocSpace - Settings - Developer Tools - JavaScript SDK "
         + "(Allowed origins for API/CORS and embed CSP domains), then try again.";
   }
 
@@ -89,7 +93,7 @@ public class SetupHttpHandler extends JsonHttpHandler {
 
     try {
       tenantAdminService.save(docSpaceUrl, credentials);
-      userAccountService.saveLogin(user.name(), credentials);
+      userAccountService.saveLogin(user.name(), credentials, docSpaceUrl.getValue());
     } catch (TenantLimitExceededException e) {
       throw new BadRequestStatusException(e.getMessage());
     } catch (IOException e) {
@@ -115,6 +119,8 @@ public class SetupHttpHandler extends JsonHttpHandler {
               + "Automatic dataset syncing will not work until this is resolved — try Setup "
               + "again, or check DocSpace - Settings - Webhooks for a conflicting entry.");
     }
+
+    eventPublisher.tenantReset();
 
     return OkResponse.ok();
   }

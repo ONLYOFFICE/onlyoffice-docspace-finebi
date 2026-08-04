@@ -48,7 +48,7 @@ public class LoginHttpHandler extends JsonHttpHandler {
 
     RequestUser user = RequestUser.from(request);
     try {
-      userAccountService.saveLogin(user.name(), credentials);
+      userAccountService.saveLogin(user.name(), credentials, tenantService.docSpaceUrl());
     } catch (IOException e) {
       throw new PluginStatusException(500, "Could not save login: " + e.getMessage());
     }

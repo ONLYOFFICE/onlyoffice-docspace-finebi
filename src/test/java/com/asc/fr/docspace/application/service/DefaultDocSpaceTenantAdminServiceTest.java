@@ -1,5 +1,6 @@
 package com.asc.fr.docspace.application.service;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -53,6 +54,69 @@ class DefaultDocSpaceTenantAdminServiceTest {
   }
 
   @Test
+  void givenSavedTenant_whenRemovingIt_thenDropsLinksCredentialsAndLeavesOthers() throws Exception {
+    when(tenant.load())
+        .thenReturn(
+            new DocSpaceTenantConfiguration(
+                "https://other.example.com",
+                new DocSpaceAccountCredentials("other@example.com", "9", "hash9")));
+
+    service.removeTenant(CURRENT.getUrl());
+
+    InOrder inOrder = inOrder(registry, savedTenants);
+    inOrder.verify(registry).removeByTenant(CURRENT.getUrl().getValue());
+    inOrder.verify(savedTenants).remove(CURRENT.getUrl().getValue());
+    verify(tenant, never()).clear();
+    verify(synchronizationSettings, never()).clearSecret();
+  }
+
+  @Test
+  void givenActiveTenant_whenRemovingIt_thenClearsActiveRowAndSecret() throws Exception {
+    when(tenant.load()).thenReturn(CURRENT);
+
+    service.removeTenant(CURRENT.getUrl());
+
+    verify(registry).removeByTenant(CURRENT.getUrl().getValue());
+    verify(savedTenants).remove(CURRENT.getUrl().getValue());
+    verify(tenant).clear();
+    verify(synchronizationSettings).clearSecret();
+  }
+
+  @Test
+  void givenActiveTenantWithAnotherSaved_whenRemovingIt_thenActivatesTheRemainingOne()
+      throws Exception {
+    when(tenant.load()).thenReturn(CURRENT);
+    com.asc.fr.docspace.domain.docspace.DocSpaceSavedTenantConnection remaining =
+        new com.asc.fr.docspace.domain.docspace.DocSpaceSavedTenantConnection(
+            new DocSpaceTenantConfiguration("https://other.example.com", NEW_ADMIN),
+            "OtherSecret123");
+    when(savedTenants.listConnections()).thenReturn(java.util.Collections.singletonList(remaining));
+
+    service.removeTenant(CURRENT.getUrl());
+
+    verify(tenant).save(remaining.getConfiguration());
+    verify(synchronizationSettings).storeSecret("OtherSecret123");
+    verify(tenant, never()).clear();
+    verify(synchronizationSettings, never()).clearSecret();
+  }
+
+  @Test
+  void givenSavedTenant_whenSelectingIt_thenActivatesAndRestoresSecret() throws Exception {
+    when(tenant.load()).thenReturn(DocSpaceTenantConfiguration.empty());
+    when(savedTenants.listConnections())
+        .thenReturn(
+            java.util.Collections.singletonList(
+                new com.asc.fr.docspace.domain.docspace.DocSpaceSavedTenantConnection(
+                    CURRENT, "SavedSecret123")));
+
+    service.selectTenant(CURRENT.getUrl());
+
+    verify(tenant).save(CURRENT);
+    verify(synchronizationSettings).storeSecret("SavedSecret123");
+    verify(savedTenants, never()).upsert(any(), any());
+  }
+
+  @Test
   void givenActiveTenant_whenChangingTenant_thenPreservesItsCredentialsAndKeepsLinks()
       throws Exception {
     when(tenant.load()).thenReturn(CURRENT);
@@ -66,6 +130,19 @@ class DefaultDocSpaceTenantAdminServiceTest {
 
     verify(registry, never()).removeAll();
     verify(savedTenants, never()).clearAll();
+  }
+
+  @Test
+  void givenSavedTenantsAtCapacity_whenChangingTenant_thenRefusesWithoutMutating()
+      throws Exception {
+    when(tenant.load()).thenReturn(CURRENT);
+    when(savedTenants.hasCapacityFor(CURRENT.getUrl().getValue())).thenReturn(false);
+
+    assertThatThrownBy(() -> service.changeTenant())
+        .isInstanceOf(TenantLimitExceededException.class);
+
+    verify(savedTenants, never()).upsert(any(), any());
+    verify(tenant, never()).clear();
   }
 
   @Test

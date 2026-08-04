@@ -35,8 +35,7 @@ public final class FineDocSpaceSavedTenantService implements DocSpaceSavedTenant
       MessageDigest digest = MessageDigest.getInstance("MD5");
       byte[] hash = digest.digest(url.getBytes(StandardCharsets.UTF_8));
       StringBuilder hex = new StringBuilder(hash.length * 2);
-      for (byte b : hash)
-          hex.append(String.format("%02x", b));
+      for (byte b : hash) hex.append(String.format("%02x", b));
       return hex.toString();
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(e);
@@ -61,7 +60,7 @@ public final class FineDocSpaceSavedTenantService implements DocSpaceSavedTenant
           if (entity == null) {
             if (dao.find(QueryFactory.create()).size() >= MAX_SAVED_TENANTS)
               throw new TenantLimitExceededException(
-                  "Reset available credentials to register a different tenant. Maximum number of saved tenants reached.");
+                  "Remove a saved DocSpace connection before registering a different tenant. Maximum number of saved tenants reached.");
 
             entity = new DocSpaceSavedTenantEntity();
             entity.setId(key);
@@ -107,9 +106,13 @@ public final class FineDocSpaceSavedTenantService implements DocSpaceSavedTenant
             ctx -> {
               DocSpaceSavedTenantDAO dao = ctx.getDAO(DocSpaceSavedTenantDAO.class);
               if (dao.getById(key) != null) return true;
-              return dao.find(QueryFactory.create()).size() < MAX_SAVED_TENANTS;
+              return hasRoomForOneMore(dao);
             })
         .orElse(true);
+  }
+
+  private static boolean hasRoomForOneMore(DocSpaceSavedTenantDAO dao) throws Exception {
+    return dao.find(QueryFactory.create()).size() < MAX_SAVED_TENANTS;
   }
 
   @Override
@@ -149,6 +152,24 @@ public final class FineDocSpaceSavedTenantService implements DocSpaceSavedTenant
             .orElse(Collections.emptyList())
             .size()
         > 0;
+  }
+
+  @Override
+  public boolean canAddNew() {
+    return uow.query(ctx -> hasRoomForOneMore(ctx.getDAO(DocSpaceSavedTenantDAO.class)))
+        .orElse(true);
+  }
+
+  @Override
+  public void remove(String url) throws IOException {
+    if (url == null || url.isEmpty()) return;
+    String key = keyFor(url);
+    uow.write(
+        ctx -> {
+          DocSpaceSavedTenantDAO dao = ctx.getDAO(DocSpaceSavedTenantDAO.class);
+          if (dao.getById(key) != null) dao.remove(key);
+          return null;
+        });
   }
 
   @Override

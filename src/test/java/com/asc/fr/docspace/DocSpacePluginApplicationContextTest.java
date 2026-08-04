@@ -18,6 +18,6 @@ class DocSpacePluginApplicationContextTest {
                     + Arrays.stream(handlers)
                         .map(h -> h.getClass().getSimpleName())
                         .collect(Collectors.joining(", ")))
-        .hasSize(19);
+        .hasSize(21);
   }
 }

@@ -25,6 +25,9 @@ public interface SynchronizationLinkRegistry {
    */
   void removeByFile(String fileId, String tenantUrl) throws IOException;
 
+  /** Removes every dataset link that belongs to the given DocSpace tenant URL. */
+  void removeByTenant(String tenantUrl) throws IOException;
+
   /** Removes every link. Used when the tenant is reset. */
   void removeAll() throws IOException;
 

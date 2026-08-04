@@ -15,7 +15,6 @@ import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
 import com.asc.fr.docspace.domain.docspace.DocSpaceSavedTenantConnection;
 import com.asc.fr.docspace.domain.docspace.DocSpaceTenantConfiguration;
-
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

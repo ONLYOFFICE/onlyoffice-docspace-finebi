@@ -52,6 +52,14 @@ public final class PluginRoutes {
     return action(request, PluginManifest.get().endpoints.changeTenant);
   }
 
+  public static String selectTenantAction(HttpServletRequest request) {
+    return action(request, PluginManifest.get().endpoints.selectTenant);
+  }
+
+  public static String removeTenantAction(HttpServletRequest request) {
+    return action(request, PluginManifest.get().endpoints.removeTenant);
+  }
+
   public static String resetAction(HttpServletRequest request) {
     return action(request, PluginManifest.get().endpoints.reset);
   }

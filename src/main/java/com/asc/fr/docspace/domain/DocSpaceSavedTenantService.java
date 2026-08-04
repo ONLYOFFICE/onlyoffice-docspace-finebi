@@ -1,8 +1,8 @@
 package com.asc.fr.docspace.domain;
 
 import com.asc.fr.docspace.application.exception.TenantLimitExceededException;
-import com.asc.fr.docspace.domain.docspace.DocSpaceTenantConfiguration;
 import com.asc.fr.docspace.domain.docspace.DocSpaceSavedTenantConnection;
+import com.asc.fr.docspace.domain.docspace.DocSpaceTenantConfiguration;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +41,12 @@ public interface DocSpaceSavedTenantService {
 
   /** Whether any tenant history exists — lets the setup page offer a "Reset" only when relevant. */
   boolean hasAny();
+
+  /** Whether a brand-new (unknown) DocSpace URL could still be registered. */
+  boolean canAddNew();
+
+  /** Drops one saved tenant by URL. No-op when unknown. */
+  void remove(String url) throws IOException;
 
   void clearAll() throws IOException;
 }

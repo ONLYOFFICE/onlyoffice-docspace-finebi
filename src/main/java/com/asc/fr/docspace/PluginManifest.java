@@ -165,6 +165,8 @@ public final class PluginManifest {
     @JsonProperty public String login;
     @JsonProperty public String logout;
     @JsonProperty public String changeTenant;
+    @JsonProperty public String selectTenant;
+    @JsonProperty public String removeTenant;
     @JsonProperty public String reset;
     @JsonProperty public String docspace;
     @JsonProperty public String docspaceAdmin;

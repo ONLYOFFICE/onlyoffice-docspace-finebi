@@ -8,9 +8,11 @@ import com.asc.fr.docspace.domain.SynchronizationLinkRegistry;
 import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
+import com.asc.fr.docspace.domain.docspace.DocSpaceSavedTenantConnection;
 import com.asc.fr.docspace.domain.docspace.DocSpaceTenantConfiguration;
 import com.google.inject.Inject;
 import java.io.IOException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(onConstructor_ = @__(@Inject))
@@ -30,7 +32,7 @@ public final class DefaultDocSpaceTenantAdminService implements DocSpaceTenantAd
     // Refuse to configure a tenant beyond the cap outright.
     if (!sameAsActive && !savedTenantService.hasCapacityFor(newUrl))
       throw new TenantLimitExceededException(
-          "Reset available credentials to register a different tenant. Maximum number of saved tenants reached.");
+          "Remove a saved DocSpace connection before registering a different tenant. Maximum number of saved tenants reached.");
 
     // Setup can also be used to point at a different DocSpace directly (not just via the
     // dedicated "Change Tenant" action) — preserve the outgoing tenant exactly like
@@ -44,12 +46,62 @@ public final class DefaultDocSpaceTenantAdminService implements DocSpaceTenantAd
 
   @Override
   public void changeTenant() throws IOException {
-    // Unlike reset(), switching to a different DocSpace connection keeps every sync link — they
-    // simply go unused unless the same files/tenant are reconnected later. The outgoing tenant's
-    // admin credentials and webhook secret are preserved too (not lost), so only an explicit
-    // reset() is the deliberate "wipe everything" action.
-    savedTenantService.upsert(tenantService.load(), synchronizationSettings.loadSecret());
+    DocSpaceTenantConfiguration outgoing = tenantService.load();
+    String currentUrl = outgoing.getUrl().getValue();
+
+    if (!currentUrl.isEmpty() && !savedTenantService.hasCapacityFor(currentUrl))
+      throw new TenantLimitExceededException(
+          "Remove a saved DocSpace connection before changing tenant. Maximum number of saved tenants reached.");
+
+    savedTenantService.upsert(outgoing, synchronizationSettings.loadSecret());
     tenantService.clear();
+  }
+
+  @Override
+  public void selectTenant(URL docSpaceUrl) throws IOException {
+    String targetUrl = docSpaceUrl.getValue();
+    Optional<DocSpaceSavedTenantConnection> saved =
+        savedTenantService.listConnections().stream()
+            .filter(
+                connection -> connection.getConfiguration().getUrl().getValue().equals(targetUrl))
+            .findFirst();
+
+    if (!saved.isPresent())
+      throw new IOException("No saved DocSpace connection found for " + targetUrl);
+
+    DocSpaceTenantConfiguration outgoing = tenantService.load();
+    String currentUrl = outgoing.getUrl().getValue();
+    if (!currentUrl.isEmpty() && !currentUrl.equals(targetUrl) && outgoing.getAdmin().isComplete())
+      savedTenantService.upsert(outgoing, synchronizationSettings.loadSecret());
+
+    DocSpaceSavedTenantConnection selected = saved.get();
+    tenantService.save(selected.getConfiguration());
+    synchronizationSettings.storeSecret(selected.getWebhookSecret());
+  }
+
+  @Override
+  public void removeTenant(URL docSpaceUrl) throws IOException {
+    String url = docSpaceUrl.getValue();
+    if (url.isEmpty()) return;
+
+    synchronizationService.removeByTenant(url);
+    savedTenantService.remove(url);
+
+    String activeUrl = tenantService.load().getUrl().getValue();
+    if (!url.equals(activeUrl)) return;
+
+    // The active tenant was the one just removed — fall back to another saved connection
+    // instead of leaving the plugin unconfigured whenever one is still available.
+    Optional<DocSpaceSavedTenantConnection> next =
+        savedTenantService.listConnections().stream().findFirst();
+    if (next.isPresent()) {
+      DocSpaceSavedTenantConnection connection = next.get();
+      tenantService.save(connection.getConfiguration());
+      synchronizationSettings.storeSecret(connection.getWebhookSecret());
+    } else {
+      tenantService.clear();
+      synchronizationSettings.clearSecret();
+    }
   }
 
   @Override

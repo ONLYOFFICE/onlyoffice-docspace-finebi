@@ -15,5 +15,7 @@ public interface SynchronizationSettings {
 
   String loadSecret();
 
+  void storeSecret(String secret) throws IOException;
+
   void clearSecret() throws IOException;
 }

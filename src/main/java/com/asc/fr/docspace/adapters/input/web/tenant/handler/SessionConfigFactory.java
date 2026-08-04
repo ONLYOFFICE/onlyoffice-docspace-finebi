@@ -10,12 +10,18 @@ import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
 import com.asc.fr.docspace.application.port.input.transfer.Page;
 import com.asc.fr.docspace.domain.DocSpaceSavedTenantService;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
+import com.asc.fr.docspace.domain.docspace.DocSpaceSavedTenantConnection;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -77,6 +83,35 @@ public final class SessionConfigFactory {
     }
   }
 
+  private List<PageConfigResponse.KnownTenant> knownTenants(boolean include) {
+    if (!include) return Collections.emptyList();
+
+    Map<String, PageConfigResponse.KnownTenant> byUrl = new LinkedHashMap<>();
+    String activeUrl = tenantService.docSpaceUrl();
+    if (!activeUrl.isEmpty()) {
+      byUrl.put(
+          activeUrl,
+          PageConfigResponse.KnownTenant.builder()
+              .url(activeUrl)
+              .email(tenantService.adminCredentials().getEmail())
+              .active(true)
+              .build());
+    }
+
+    for (DocSpaceSavedTenantConnection saved : savedTenantService.listConnections()) {
+      String url = saved.getConfiguration().getUrl().getValue();
+      if (url.isEmpty() || byUrl.containsKey(url)) continue;
+      byUrl.put(
+          url,
+          PageConfigResponse.KnownTenant.builder()
+              .url(url)
+              .email(saved.getConfiguration().getAdmin().getEmail())
+              .active(false)
+              .build());
+    }
+    return new ArrayList<>(byUrl.values());
+  }
+
   private PageConfigResponse buildConfig(Page page, HttpServletRequest request, RequestUser user) {
     String docSpaceUrl = tenantService.docSpaceUrl();
     String pageUrl = PluginRoutes.pageUrl(request);
@@ -109,12 +144,16 @@ public final class SessionConfigFactory {
                 .loginStored(adminConsole && userAccountService.hasLogin(user.name()))
                 .isAdmin(user.isAdmin())
                 .hasSavedTenants(tenantActionsVisible && savedTenantService.hasAny())
+                .canAddTenant(tenantActionsVisible && savedTenantService.canAddNew())
+                .signedInTenantUrl(
+                    adminConsole ? userAccountService.signedInTenantUrl(user.name()) : "")
                 .build())
         .tenant(
             PageConfigResponse.Tenant.builder()
                 .docSpaceUrl(docSpaceUrl)
                 .sdkVersion(PluginManifest.get().sdkVersion)
                 .build())
+        .knownTenants(knownTenants(tenantActionsVisible))
         .actions(
             PageConfigResponse.Actions.builder()
                 .submit(
@@ -122,6 +161,8 @@ public final class SessionConfigFactory {
                         ? PluginRoutes.setupAction(request)
                         : PluginRoutes.loginAction(request))
                 .changeTenant(tenantActionsVisible ? PluginRoutes.changeTenantAction(request) : "")
+                .selectTenant(tenantActionsVisible ? PluginRoutes.selectTenantAction(request) : "")
+                .removeTenant(tenantActionsVisible ? PluginRoutes.removeTenantAction(request) : "")
                 .reset(tenantActionsVisible ? PluginRoutes.resetAction(request) : "")
                 .logout(PluginRoutes.logoutAction(request))
                 .build())

@@ -96,8 +96,7 @@ public class WebhookHttpHandler extends PluginHttpHandler {
     String currentUrl = current.getUrl().getValue();
     if (!currentUrl.isEmpty()) {
       String currentSecret = synchronizationSettings.loadSecret();
-      if (!currentSecret.isEmpty())
-        secrets.put(currentUrl, currentSecret);
+      if (!currentSecret.isEmpty()) secrets.put(currentUrl, currentSecret);
     }
 
     for (DocSpaceSavedTenantConnection saved : savedTenantService.listConnections())

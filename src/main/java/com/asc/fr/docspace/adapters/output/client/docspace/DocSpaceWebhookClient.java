@@ -34,8 +34,7 @@ public final class DocSpaceWebhookClient implements WebhookRegistrar {
     JsonNode root = Json.parse(raw);
     JsonNode list = root.path("response");
     if (!list.isArray()) list = root.isArray() ? root : null;
-    if (list == null)
-      return null;
+    if (list == null) return null;
 
     for (JsonNode entry : list) {
       String text = entry.toString();
@@ -69,8 +68,7 @@ public final class DocSpaceWebhookClient implements WebhookRegistrar {
     Integer id = findWebhookId(base, bearer, callback);
 
     if (id != null) {
-      if (!overwriteSecret)
-        return;
+      if (!overwriteSecret) return;
       Calls.verify(
           rest.updateWebhook(
               base + Paths.WEBHOOK.path(),

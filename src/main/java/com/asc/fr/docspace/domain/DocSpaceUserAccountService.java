@@ -6,7 +6,10 @@ import java.io.IOException;
 public interface DocSpaceUserAccountService {
   DocSpaceAccountCredentials credentials(String userName);
 
-  void saveCredentials(String userName, DocSpaceAccountCredentials credentials) throws IOException;
+  String signedInTenantUrl(String userName);
+
+  void saveCredentials(String userName, DocSpaceAccountCredentials credentials, String tenantUrl)
+      throws IOException;
 
   void clear(String userName) throws IOException;
 

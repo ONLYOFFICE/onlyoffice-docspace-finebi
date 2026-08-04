@@ -26,10 +26,15 @@ public final class DefaultDocSpaceUserAccountService implements DocSpaceUserAcco
   }
 
   @Override
-  public void saveLogin(String username, DocSpaceAccountCredentials credentials)
+  public String signedInTenantUrl(String username) {
+    return accounts.signedInTenantUrl(username);
+  }
+
+  @Override
+  public void saveLogin(String username, DocSpaceAccountCredentials credentials, String tenantUrl)
       throws IOException {
     requireUsername(username);
-    accounts.saveCredentials(username, credentials);
+    accounts.saveCredentials(username, credentials, tenantUrl);
   }
 
   @Override

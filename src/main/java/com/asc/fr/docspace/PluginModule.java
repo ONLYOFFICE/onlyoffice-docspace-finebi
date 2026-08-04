@@ -15,7 +15,9 @@ import com.asc.fr.docspace.adapters.input.web.tenant.handler.ChangeTenantHttpHan
 import com.asc.fr.docspace.adapters.input.web.tenant.handler.DocSpacePageHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.tenant.handler.LoginHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.tenant.handler.LogoutHttpHandler;
+import com.asc.fr.docspace.adapters.input.web.tenant.handler.RemoveTenantHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.tenant.handler.ResetHttpHandler;
+import com.asc.fr.docspace.adapters.input.web.tenant.handler.SelectTenantHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.tenant.handler.SessionConfigHttpHandler;
 import com.asc.fr.docspace.adapters.input.web.tenant.handler.SetupHttpHandler;
 import com.asc.fr.docspace.adapters.output.client.docspace.DocSpaceAuthenticationClient;
@@ -271,6 +273,8 @@ final class PluginModule extends AbstractModule {
     web.addBinding().to(LoginHttpHandler.class);
     web.addBinding().to(LogoutHttpHandler.class);
     web.addBinding().to(ChangeTenantHttpHandler.class);
+    web.addBinding().to(SelectTenantHttpHandler.class);
+    web.addBinding().to(RemoveTenantHttpHandler.class);
     web.addBinding().to(ResetHttpHandler.class);
 
     // Import and webhook-driven sync
