@@ -1,5 +1,6 @@
 import { PlaceholderContainer } from "@components";
 import { ImportUrlUtils } from "@features/import/utils/url";
+import { useTenantListener } from "@features/authentication/hooks/useTenantListener";
 
 import { useEventPublisher } from "@hooks/useEventPublisher";
 
@@ -19,6 +20,8 @@ export function PlaceholderPage() {
     { action: "close" },
     { enabled: picker },
   );
+
+  useTenantListener();
 
   if (picker) return null;
 

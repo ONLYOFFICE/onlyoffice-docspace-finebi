@@ -5,17 +5,24 @@ import type { PluginCoreServerConfiguration } from "@api/plugin";
 import { usePluginStore } from "@store/plugin";
 import { useDocSpaceStore } from "@store/docspace";
 
+import { UrlUtils } from "@utils/url";
+
 export type DocSpaceStatus = "loading" | "ready" | "error";
 
 export function useDocSpace(config: PluginCoreServerConfiguration) {
   const [status, setStatus] = useState<DocSpaceStatus>("loading");
   const [error, setError] = useState<string | null>(null);
+  const tenantUrl = UrlUtils.normalize(config.tenant.docSpaceUrl);
+  const { email, hash } = config.credentials;
 
   useEffect(() => {
     let cancelled = false;
+    setStatus("loading");
+    setError(null);
     const { setFrameVisible, connect, launchManager, reset } =
       useDocSpaceStore.getState();
     setFrameVisible(true);
+
     void usePluginStore.getState().registerWebhook(config.locations.webhookRegistrationUrl);
 
     connect(config)
@@ -42,8 +49,7 @@ export function useDocSpace(config: PluginCoreServerConfiguration) {
       reset();
       setFrameVisible(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [tenantUrl, email, hash]);
 
   return { status, error };
 }

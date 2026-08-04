@@ -15,6 +15,7 @@ interface PluginState {
   setMode(mode: PluginCorePageMode): void;
   login: PluginClient["login"];
   clearTenant: PluginClient["clearTenant"];
+  manageTenant: PluginClient["manageTenant"];
   logout: PluginClient["logout"];
   registerWebhook: PluginClient["registerWebhook"];
   importFile: PluginClient["importFile"];
@@ -36,6 +37,7 @@ export const usePluginStore = create<PluginState>()((set) => {
     setMode: (mode) => set({ mode, loggedIn: loggedInFor(mode) }),
     login: (action, fields) => client.login(action, fields),
     clearTenant: (action) => client.clearTenant(action),
+    manageTenant: (action, docspaceUrl) => client.manageTenant(action, docspaceUrl),
     logout: (action) => client.logout(action),
     registerWebhook: (url) => client.registerWebhook(url),
     importFile: (importUrl, params) => client.importFile(importUrl, params),

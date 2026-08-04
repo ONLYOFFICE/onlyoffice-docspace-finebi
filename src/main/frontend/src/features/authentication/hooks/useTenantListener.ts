@@ -20,15 +20,18 @@ export function useTenantListener(): void {
     const session = usePluginStore.getState().config;
     if (!session?.locations.eventStreamUrl) return;
 
-    const docSpaceUrl = UrlUtils.normalize(session.tenant.docSpaceUrl);
     const eventSource = new EventSource(session.locations.eventStreamUrl);
 
     eventSource.onmessage = (event) => {
       if (parseEventType(event.data) !== manifest.events.backend.tenantReset) return;
-      eventSource.close();
+
+      const current = UrlUtils.normalize(
+        usePluginStore.getState().config?.tenant.docSpaceUrl ?? "",
+      );
+
       void useDocSpaceStore
         .getState()
-        .logout(docSpaceUrl)
+        .logout(current)
         .finally(() => void usePluginStore.getState().load());
     };
 

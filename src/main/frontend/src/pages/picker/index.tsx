@@ -4,6 +4,7 @@ import { FilePicker, FolderPicker } from "@features/import";
 import type { DocSpaceItem } from "@features/docspace/types";
 import { ImportUrlUtils } from "@features/import/utils/url";
 
+import { useTenantListener } from "@features/authentication/hooks/useTenantListener";
 import { useEventPublisher } from "@hooks/useEventPublisher";
 
 import { useNotificationStore } from "@store/notification";
@@ -36,6 +37,8 @@ export function PickerPage() {
   const config = usePluginStore((s) => s.config);
   const [stage, setStage] = useState<Stage>({ name: "picker" });
   const { publish } = useEventPublisher();
+
+  useTenantListener();
 
   if (!config) return null;
   const session = config;

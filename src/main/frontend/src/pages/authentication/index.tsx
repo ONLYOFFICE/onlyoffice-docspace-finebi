@@ -7,6 +7,7 @@ import {
   PasswordField,
 } from "@components";
 import { AuthenticationContainer } from "@/features/authentication/components/Container";
+import { KnownTenantList } from "@/features/authentication/components/KnownTenantList";
 import { useAuthentication } from "@/features/authentication/hooks/useAuthentication";
 import { useTenantListener } from "@features/authentication/hooks/useTenantListener";
 
@@ -34,6 +35,12 @@ export function AuthenticationPage() {
       ? UrlUtils.extractHost(config.tenant.docSpaceUrl)
       : undefined;
 
+  const showTenantPicker =
+    config.mode === "admin" ||
+    (config.mode === "setup" && authentication.knownTenants.length > 0);
+
+  const setupBlocked = authentication.isSetup && !authentication.canAddTenant;
+
   return (
     <AuthenticationContainer lead={mode.lead} address={address}>
       <form
@@ -41,63 +48,73 @@ export function AuthenticationPage() {
         onSubmit={authentication.submit}
       >
         <FormError message={authentication.error} />
-        {authentication.isSetup && (
-          <Field
-            id="docspaceUrl"
-            label={translate("auth.url.label")}
-            type="url"
-            required
-            value={authentication.fields.url}
-            onInput={(e) =>
-              authentication.setField("url", e.currentTarget.value)
-            }
-            placeholder={translate("auth.url.placeholder")}
+        {showTenantPicker && (
+          <KnownTenantList
+            tenants={authentication.knownTenants}
+            disabled={authentication.loading}
+            signedInTenantUrl={config.status.signedInTenantUrl}
+            onSelect={authentication.selectTenant}
+            onRemove={authentication.removeTenant}
           />
         )}
-        <Field
-          id="email"
-          label={mode.emailLabel}
-          type="email"
-          required
-          value={authentication.fields.email}
-          onInput={(e) =>
-            authentication.setField("email", e.currentTarget.value)
-          }
-          autocomplete="username"
-          placeholder={mode.emailPlaceholder}
-        />
-        <PasswordField
-          id="password"
-          label={mode.passwordLabel}
-          required
-          value={authentication.fields.password}
-          onInput={(e) =>
-            authentication.setField("password", e.currentTarget.value)
-          }
-          autocomplete="current-password"
-          placeholder={mode.passwordPlaceholder}
-        />
-        <LoaderButton type="submit" loading={authentication.loading}>
-          {mode.submit}
-        </LoaderButton>
-        {authentication.isSetup && config.status.hasSavedTenants && config.actions.reset && (
-          <GenericButton
-            className="onlyoffice-button--danger"
-            disabled={authentication.loading}
-            onClick={authentication.resetTenant}
-          >
-            {translate("settings.reset")}
-          </GenericButton>
+        {authentication.isSetup && (
+          <>
+            <Field
+              id="docspaceUrl"
+              label={translate("auth.url.label")}
+              type="url"
+              required
+              disabled={setupBlocked}
+              value={authentication.fields.url}
+              onInput={(e) =>
+                authentication.setField("url", e.currentTarget.value)
+              }
+              placeholder={translate("auth.url.placeholder")}
+            />
+            {setupBlocked && <Hint>{translate("settings.tenants.limit")}</Hint>}
+          </>
         )}
-        {config.mode === "admin" && config.actions.reset && (
-          <GenericButton
-            className="onlyoffice-button--secondary"
-            disabled={authentication.loading}
-            onClick={authentication.changeTenant}
-          >
-            {translate("auth.change.tenant")}
-          </GenericButton>
+        {!setupBlocked && (
+          <>
+            <Field
+              id="email"
+              label={mode.emailLabel}
+              type="email"
+              required
+              value={authentication.fields.email}
+              onInput={(e) =>
+                authentication.setField("email", e.currentTarget.value)
+              }
+              autocomplete="username"
+              placeholder={mode.emailPlaceholder}
+            />
+            <PasswordField
+              id="password"
+              label={mode.passwordLabel}
+              required
+              value={authentication.fields.password}
+              onInput={(e) =>
+                authentication.setField("password", e.currentTarget.value)
+              }
+              autocomplete="current-password"
+              placeholder={mode.passwordPlaceholder}
+            />
+            <LoaderButton type="submit" loading={authentication.loading}>
+              {mode.submit}
+            </LoaderButton>
+          </>
         )}
+        {config.mode === "admin" &&
+          config.actions.changeTenant &&
+          authentication.canAddTenant && (
+            <GenericButton
+              className="onlyoffice-button--secondary"
+              disabled={authentication.loading}
+              onClick={authentication.changeTenant}
+            >
+              {translate("auth.change.tenant")}
+            </GenericButton>
+          )}
         {authentication.isSetup && config.locations.hostOrigin && (
           <Hint>
             {translate("auth.csp.hint.before")}{" "}

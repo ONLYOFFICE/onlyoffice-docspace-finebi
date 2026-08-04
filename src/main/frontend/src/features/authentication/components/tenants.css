@@ -1,0 +1,118 @@
+.onlyoffice-known-tenants {
+  margin-bottom: 16px;
+}
+
+.onlyoffice-known-tenants__list {
+  display: flex;
+  flex-direction: column;
+
+  margin: 0;
+  padding: 0;
+  gap: 8px;
+
+  list-style: none;
+}
+
+.onlyoffice-known-tenants__item {
+  display: flex;
+  align-items: stretch;
+
+  border: 1px solid var(--onlyoffice-color-border);
+  border-radius: var(--onlyoffice-radius-md);
+
+  overflow: hidden;
+  background: var(--onlyoffice-color-surface);
+}
+
+.onlyoffice-known-tenants__item--active {
+  border-color: var(--onlyoffice-color-primary);
+}
+
+.onlyoffice-known-tenants__select {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+
+  gap: 2px;
+  padding: 10px 12px;
+
+  border: none;
+  background: transparent;
+
+  text-align: left;
+  font-family: var(--onlyoffice-font-sans);
+
+  cursor: pointer;
+  color: var(--onlyoffice-color-text);
+}
+
+.onlyoffice-known-tenants__select:disabled {
+  cursor: default;
+}
+
+.onlyoffice-known-tenants__select:not(:disabled):hover {
+  background: var(--onlyoffice-color-surface-hover);
+}
+
+.onlyoffice-known-tenants__host {
+  max-width: 100%;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onlyoffice-known-tenants__email {
+  max-width: 100%;
+
+  font-size: 0.8rem;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: var(--onlyoffice-color-text-subtle);
+}
+
+.onlyoffice-known-tenants__badge {
+  margin-top: 2px;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  color: var(--onlyoffice-color-primary);
+}
+
+.onlyoffice-known-tenants__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+
+  border: none;
+  border-left: 1px solid var(--onlyoffice-color-border);
+
+  background: transparent;
+  color: var(--onlyoffice-color-text-subtle);
+  cursor: pointer;
+}
+
+.onlyoffice-known-tenants__remove:hover:not(:disabled) {
+  color: var(--onlyoffice-color-danger);
+  background: var(--onlyoffice-color-surface-hover);
+}
+
+.onlyoffice-known-tenants__remove:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.onlyoffice-known-tenants__remove svg {
+  width: 14px;
+  height: 14px;
+}

@@ -61,9 +61,25 @@ export class PluginClient {
 
     const data = (await response.json()) as PluginResult;
     if (!response.ok || !data.ok)
-      throw new Error(
-        `${translate("client.reset.tenant")}`,
-      );
+      throw new Error(`${translate("client.reset.tenant")}`);
+  }
+
+  async manageTenant(action: string, docspaceUrl: string): Promise<void> {
+    const response = await fetch(action, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ docspaceUrl }),
+    });
+
+    const data = (await response.json().catch(() => null)) as PluginResult | null;
+    if (!response.ok || !data?.ok) {
+      const detail = data?.error?.trim();
+      throw new Error(detail || translate("client.tenant.manage.failed"));
+    }
   }
 
   async logout(action: string): Promise<void> {
@@ -137,6 +153,14 @@ type PluginCoreUserStatus = {
   loginStored: boolean;
   isAdmin: boolean;
   hasSavedTenants: boolean;
+  canAddTenant: boolean;
+  signedInTenantUrl: string;
+}
+
+export type PluginCoreKnownTenant = {
+  url: string;
+  email: string;
+  active: boolean;
 }
 
 type PluginCoreLocations = {
@@ -158,6 +182,8 @@ type PluginCoreTenantConfiguration = {
 type PluginCoreServerActions = {
   submit: string;
   changeTenant: string;
+  selectTenant: string;
+  removeTenant: string;
   reset: string;
   logout: string;
 }
@@ -174,6 +200,7 @@ export interface PluginCoreServerConfiguration {
   credentials: PluginCoreUserCredentials;
   status: PluginCoreUserStatus;
   tenant: PluginCoreTenantConfiguration;
+  knownTenants: PluginCoreKnownTenant[];
   actions: PluginCoreServerActions;
   response: PluginCoreServerTextResponse;
 }
@@ -231,14 +258,19 @@ export class PluginCoreServer {
         loginStored: this.toBoolean(status.loginStored),
         isAdmin: this.toBoolean(status.isAdmin),
         hasSavedTenants: this.toBoolean(status.hasSavedTenants),
+        canAddTenant: this.toBoolean(status.canAddTenant),
+        signedInTenantUrl: this.toString(status.signedInTenantUrl),
       },
       tenant: {
         docSpaceUrl: this.toString(tenant.docSpaceUrl),
         sdkVersion: this.toString(tenant.sdkVersion) || manifest.sdkVersion,
       },
+      knownTenants: this.toKnownTenants(raw.knownTenants),
       actions: {
         submit: this.toString(actions.submit),
         changeTenant: this.toString(actions.changeTenant),
+        selectTenant: this.toString(actions.selectTenant),
+        removeTenant: this.toString(actions.removeTenant),
         reset: this.toString(actions.reset),
         logout: this.toString(actions.logout),
       },
@@ -251,6 +283,20 @@ export class PluginCoreServer {
 
   private toObject(value: unknown): Record<string, unknown> {
     return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  }
+
+  private toKnownTenants(value: unknown): PluginCoreKnownTenant[] {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((entry) => {
+        const row = this.toObject(entry);
+        return {
+          url: this.toString(row.url),
+          email: this.toString(row.email),
+          active: this.toBoolean(row.active),
+        };
+      })
+      .filter((entry) => entry.url.length > 0);
   }
 
   private toMode(value: unknown): PluginCorePageMode {

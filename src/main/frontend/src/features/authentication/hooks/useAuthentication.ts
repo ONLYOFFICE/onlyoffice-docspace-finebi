@@ -4,6 +4,8 @@ import { usePluginStore } from "@store/plugin";
 import { useDocSpaceStore } from "@store/docspace";
 import { useAuthenticationStore } from "@store/authentication";
 
+import type { PluginCoreKnownTenant } from "@api/plugin";
+
 import { FuncUtils } from "@utils/func";
 import { UrlUtils } from "@utils/url";
 
@@ -23,6 +25,7 @@ export function useAuthentication() {
   const session = config;
   const isSetup = session.mode === "setup";
   const tenantUrl = session.tenant.docSpaceUrl;
+  const canAddTenant = session.status.canAddTenant;
 
   const [fields, setFields] = useState<AuthFields>({
     url: tenantUrl,
@@ -72,6 +75,18 @@ export function useAuthentication() {
 
   function submit(event: Event): void {
     event.preventDefault();
+    if (isSetup && !canAddTenant) {
+      const normalized = UrlUtils.normalize(fields.url);
+      const known = session.knownTenants.some(
+        (tenant) => UrlUtils.normalize(tenant.url) === normalized,
+      );
+
+      if (!known) {
+        setError(translate("settings.tenants.limit"));
+        return;
+      }
+    }
+
     const invalid = validationError();
     if (invalid) {
       setError(invalid);
@@ -102,24 +117,47 @@ export function useAuthentication() {
     });
   }
 
-  function resetTenant(): void {
+  function selectTenant(tenant: PluginCoreKnownTenant): void {
+    if (!session.actions.selectTenant) return;
     void run(async () => {
       const url = UrlUtils.normalize(session.tenant.docSpaceUrl);
-      if (url) await useDocSpaceStore.getState().logout(url);
-      else useDocSpaceStore.getState().reset();
-      await usePluginStore.getState().clearTenant(session.actions.reset);
+      if (url)
+        await useDocSpaceStore.getState().logout(url);
+      else
+        useDocSpaceStore.getState().reset();
+
+      await usePluginStore.getState().manageTenant(session.actions.selectTenant, tenant.url);
+      await usePluginStore.getState().load();
+    });
+  }
+
+  function removeTenant(tenant: PluginCoreKnownTenant): void {
+    if (!session.actions.removeTenant) return;
+    void run(async () => {
+      const url = UrlUtils.normalize(session.tenant.docSpaceUrl);
+      if (tenant.active || UrlUtils.normalize(tenant.url) === url) {
+        if (url)
+          await useDocSpaceStore.getState().logout(url);
+        else
+          useDocSpaceStore.getState().reset();
+      }
+
+      await usePluginStore.getState().manageTenant(session.actions.removeTenant, tenant.url);
       await usePluginStore.getState().load();
     });
   }
 
   return {
     isSetup,
+    canAddTenant,
+    knownTenants: session.knownTenants,
     fields,
     setField,
     loading,
     error,
     submit,
     changeTenant,
-    resetTenant,
+    selectTenant,
+    removeTenant,
   };
 }
