@@ -13,5 +13,7 @@ public interface SynchronizationSettings {
 
   String ensureSecret() throws IOException;
 
+  String rotateSecret() throws IOException;
+
   String loadSecret();
 }

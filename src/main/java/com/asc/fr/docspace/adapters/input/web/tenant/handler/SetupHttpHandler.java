@@ -115,7 +115,7 @@ public class SetupHttpHandler extends JsonHttpHandler {
     try {
       String callbackUrl = ImportRoutes.webhookCallbackUrl(request);
       synchronizationService.storeCallbackUrl(callbackUrl);
-      String secret = synchronizationService.ensureSecret();
+      String secret = synchronizationService.rotateSecret();
       webhookRegistrar.register(
           new URL(tenantService.docSpaceUrl()),
           new URL(callbackUrl),

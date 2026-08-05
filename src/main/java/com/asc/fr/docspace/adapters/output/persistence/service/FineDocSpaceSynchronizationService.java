@@ -263,4 +263,24 @@ public final class FineDocSpaceSynchronizationService
           return secret;
         });
   }
+
+  @Override
+  public String rotateSecret() throws IOException {
+    return uow.write(
+        ctx -> {
+          DocSpaceSynchronizationSettingsDAO dao =
+              ctx.getDAO(DocSpaceSynchronizationSettingsDAO.class);
+          DocSpaceSynchronizationSettingsEntity entity =
+              dao.getById(DocSpaceSynchronizationSettingsEntity.SINGLETON_ID);
+          if (entity == null) {
+            entity = new DocSpaceSynchronizationSettingsEntity();
+            entity.setId(DocSpaceSynchronizationSettingsEntity.SINGLETON_ID);
+          }
+
+          String secret = docSpaceSecretGenerator.generate();
+          entity.setWebhookSecret(encryption.encrypt(secret));
+          dao.addOrUpdate(entity);
+          return secret;
+        });
+  }
 }
