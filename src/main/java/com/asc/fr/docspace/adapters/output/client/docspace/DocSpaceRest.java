@@ -5,6 +5,7 @@ import com.asc.fr.docspace.adapters.output.client.docspace.transfer.request.DocS
 import com.asc.fr.docspace.adapters.output.client.docspace.transfer.request.DocSpaceWebhookCreateRequest;
 import com.asc.fr.docspace.adapters.output.client.docspace.transfer.response.DocSpaceAuthenticationTokenResponse;
 import com.asc.fr.docspace.adapters.output.client.docspace.transfer.response.DocSpaceCspResponse;
+import com.asc.fr.docspace.adapters.output.client.docspace.transfer.response.DocSpaceProfileResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
@@ -32,6 +33,11 @@ public interface DocSpaceRest {
   @GET
   @Headers("Accept: application/json")
   Call<DocSpaceEnvelope<DocSpaceCspResponse>> csp(@Url String url);
+
+  @GET
+  @Headers("Accept: application/json")
+  Call<DocSpaceEnvelope<DocSpaceProfileResponse>> self(
+      @Url String url, @Header("Authorization") String bearer);
 
   @GET
   @Headers("Accept: application/json")

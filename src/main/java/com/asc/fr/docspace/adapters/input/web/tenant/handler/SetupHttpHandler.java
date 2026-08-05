@@ -16,6 +16,7 @@ import com.asc.fr.docspace.application.port.input.DocSpaceTenantAdminService;
 import com.asc.fr.docspace.application.port.input.DocSpaceTenantService;
 import com.asc.fr.docspace.application.port.input.DocSpaceUserAccountService;
 import com.asc.fr.docspace.application.port.output.WebhookRegistrar;
+import com.asc.fr.docspace.application.port.output.docspace.DocSpaceProfileService;
 import com.asc.fr.docspace.domain.SynchronizationSettings;
 import com.asc.fr.docspace.domain.common.URL;
 import com.asc.fr.docspace.domain.docspace.DocSpaceAccountCredentials;
@@ -37,6 +38,7 @@ public class SetupHttpHandler extends JsonHttpHandler {
   private final DocSpaceTenantService tenantService;
   private final DocSpaceOriginService originService;
   private final WebhookRegistrar webhookRegistrar;
+  private final DocSpaceProfileService profileService;
 
   @Inject
   public SetupHttpHandler(
@@ -45,7 +47,8 @@ public class SetupHttpHandler extends JsonHttpHandler {
       SynchronizationSettings synchronizationService,
       DocSpaceTenantService tenantService,
       DocSpaceOriginService originService,
-      WebhookRegistrar webhookRegistrar) {
+      WebhookRegistrar webhookRegistrar,
+      DocSpaceProfileService profileService) {
     super(RequestMethod.POST, PluginManifest.get().endpoints.setup);
     this.tenantAdminService = tenantAdminService;
     this.userAccountService = userAccountService;
@@ -53,12 +56,13 @@ public class SetupHttpHandler extends JsonHttpHandler {
     this.tenantService = tenantService;
     this.originService = originService;
     this.webhookRegistrar = webhookRegistrar;
+    this.profileService = profileService;
   }
 
   static String cspError(String fineBiOrigin) {
     return "Add "
         + fineBiOrigin
-        + " under DocSpace → Settings → Developer Tools → JavaScript SDK "
+        + " under DocSpace's Settings > Developer Tools > JavaScript SDK "
         + "(Allowed origins for API/CORS and embed CSP domains), then try again.";
   }
 
@@ -86,6 +90,16 @@ public class SetupHttpHandler extends JsonHttpHandler {
     String fineBiOrigin = RequestOrigin.of(request);
     if (originService.checkOrigin(docSpaceUrl, fineBiOrigin) == OriginCheck.BLOCKED)
       throw new BadRequestStatusException(cspError(fineBiOrigin));
+
+    try {
+      if (!profileService.isAdmin(docSpaceUrl, credentials))
+        throw new BadRequestStatusException(
+            "Sign in with a DocSpace account that has Administrator (or Owner) privileges — it is "
+                + "used for background sync and webhooks.");
+    } catch (IOException e) {
+      throw new BadRequestStatusException(
+          "Could not verify the DocSpace account's role: " + e.getMessage());
+    }
 
     try {
       tenantAdminService.save(docSpaceUrl, credentials);
